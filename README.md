@@ -1,6 +1,6 @@
 # Phusion Passenger APT repository automation tools
 
-This repository contains tools for automatically creating a multi-distribution APT repository for Phusion Passenger. It is meant to be run on Ubuntu 12.04.
+This repository contains tools for automatically creating a multi-distribution APT repository for Phusion Passenger. The goal is to automatically build Debian packages for multiple distributions, immediately after a source release. These tools are meant to be run on Ubuntu 12.04.
 
 First, install prerequisites and setup a user:
 
@@ -43,3 +43,7 @@ For example:
     ./new_release https://github.com/phusion/passenger.git passenger.repo passenger.apt
 
 The `new_release` script is near-atomic: it is very unlikely that users will see an intermediate state in which only some packages have been built.
+
+## Related project
+
+ * https://github.com/phusion/passenger_autobuilder
