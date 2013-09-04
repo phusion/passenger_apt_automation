@@ -2,10 +2,14 @@
 
 This repository contains tools for automatically creating a multi-distribution APT repository for Phusion Passenger. It is meant to be run on Ubuntu 12.04.
 
-To begin:
+First, install prerequisites:
 
     sudo apt-get install ubuntu-dev-tools reprepro
     ./setup-pbuilder-dist
+
+Next, configure your GPG signing settings:
+
+    nano configuration
     echo your-gpg-key-passphrase > passphrase
     chmod 600 passphrase
 

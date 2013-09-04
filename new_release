@@ -5,15 +5,16 @@ BASE_DIR=`dirname "$0"`
 BASE_DIR=`cd "$BASE_DIR"; pwd`
 
 GIT_URL="$1"
+REPO_DIR=repo
 REF=${2:-origin/master}
 source configuration
 export PKG_DIR=/tmp/passenger_apt_build
 
 set -x
 
-if [[ -e repo ]]; then
+if [[ -e "$REPO_DIR" ]]; then
 	echo "Updating repository..."
-	cd repo
+	cd "$REPO_DIR"
 	if [[ "`git config remote.origin.url`" != "$GIT_URL" ]]; then
 		echo "Git repository URL does not match!"
 		exit 1
@@ -22,8 +23,8 @@ if [[ -e repo ]]; then
 	rm -rf *
 else
 	echo "Cloning repository..."
-	git clone "$GIT_URL" repo
-	cd repo
+	git clone "$GIT_URL" "$REPO_DIR"
+	cd "$REPO_DIR"
 fi
 git reset --hard "$REF"
 
