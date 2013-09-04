@@ -29,12 +29,17 @@ Configure your GPG signing settings:
 
 Then, every time a new Phusion Passenger version is released, run the following command to update the APT repository in `apt/`, as `psg_apt_automation`:
 
-    ./new_release <GIT_URL> [REF]
+    ./new_release <GIT_URL> <REPO_DIR> <APT_DIR> [REF]
 
-where `GIT_URL` is the Phusion Passenger git repository URL, and `REF` is the commit in git for which you want to build packages. If `REF` is not specified, then it is assumed to be `origin/master`.
+where:
+
+ * `GIT_URL` is the Phusion Passenger git repository URL.
+ * `REPO_DIR` is the directory that the git repository should be cloned to.
+ * `APT_DIR` is the APT repository directory.
+ * `REF` is the commit in git for which you want to build packages. If `REF` is not specified, then it is assumed to be `origin/master`.
 
 For example:
 
-    ./new_release https://github.com/phusion/passenger.git
+    ./new_release https://github.com/phusion/passenger.git passenger.repo passenger.apt
 
 The `new_release` script is near-atomic: it is very unlikely that users will see an intermediate state in which only some packages have been built.

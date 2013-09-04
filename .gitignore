@@ -1,4 +1,4 @@
-/repo
-/apt/db
-/apt/dists
-/apt/pool
+/passenger.repo
+/passenger.apt/db
+/passenger.apt/dists
+/passenger.apt/pool

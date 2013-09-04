@@ -5,8 +5,9 @@ BASE_DIR=`dirname "$0"`
 BASE_DIR=`cd "$BASE_DIR"; pwd`
 
 GIT_URL="$1"
-REPO_DIR=repo
-REF=${2:-origin/master}
+REPO_DIR="$2"
+APT_DIR="$3"
+REF=${4:-origin/master}
 source configuration
 export PKG_DIR=/tmp/passenger_apt_build
 
@@ -43,9 +44,9 @@ debsign -k$SIGNING_KEY $PKG_DIR/official/*.changes
 debsign -k$SIGNING_KEY ~/pbuilder/*_result/*.changes
 
 echo "Importing packages into APT repository..."
-rm -rf apt2 apt.old
-cp -dpR apt apt2
-cd apt2
+rm -rf "$APT_DIR.tmp" "$APT_DIR.old"
+cp -dpR "$APT_DIR" "$APT_DIR.tmp"
+cd "$APT_DIR.tmp"
 for DIST in $DEBIAN_DISTROS; do
 	for ARCH in $DEBIAN_ARCHS; do
 		if [[ $ARCH == amd64 ]]; then
@@ -62,6 +63,6 @@ done
 find . -name Release.gpg -print0 | xargs -0 rm -f
 find . -name Release -exec gpg --batch --sign --detach-sign --armor --local-user $SIGNING_KEY --output \{\}.gpg \{\} \;
 cd ..
-mv apt apt.old
-mv apt2 apt
-rm -rf apt.old
+mv "$APT_DIR" "$APT_DIR.old"
+mv "$APT_DIR.tmp" "$APT_DIR"
+rm -rf "$APT_DIR.old"
