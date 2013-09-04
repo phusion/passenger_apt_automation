@@ -59,7 +59,8 @@ for DIST in $DEBIAN_DISTROS; do
 	reprepro --keepunusednewfiles -Vb . includedeb $DIST $HOME/pbuilder/${DIST}_result/*_all.deb
 	reprepro --keepunusednewfiles -Vb . includedsc $DIST $HOME/pbuilder/${DIST}_result/*.dsc
 done
-find . -name Release -print0 -exec gpg --batch --sign --detach-sign --armor --local-user $SIGNING_KEY --output \{\}.gpg \{\} \;
+find . -name Release.gpg -print0 | xargs -0 rm -f
+find . -name Release -exec gpg --batch --sign --detach-sign --armor --local-user $SIGNING_KEY --output \{\}.gpg \{\} \;
 cd ..
 mv apt apt.old
 mv apt2 apt
