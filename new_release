@@ -1,0 +1,34 @@
+#!/bin/bash
+set -e
+
+GIT_URL="$1"
+VERSION="$2"
+REF=${3:-origin/master}
+source configuration
+export PKG_DIR=/tmp/passenger_apt_build
+
+set -x
+
+if [[ -e repo ]]; then
+	echo "Updating repository..."
+	cd repo
+	if [[ "`git config remote.origin.url`" != "$GIT_URL" ]]; then
+		echo "Git repository URL does not match!"
+		exit 1
+	fi
+	git fetch
+	rm -rf *
+else
+	echo "Cloning repository..."
+	git clone "$GIT_URL" repo
+	cd repo
+fi
+git reset --hard "$REF"
+
+echo "Building packages..."
+rm -rf "$PKG_DIR"
+mkdir -p "$PKG_DIR"
+rm -rf ~/pbuilder/*_result/*
+unset USE_CCACHE
+rake debian:source_packages
+rake debian:binary_packages
