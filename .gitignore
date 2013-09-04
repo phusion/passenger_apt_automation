@@ -1,1 +1,4 @@
 /repo
+/apt/db
+/apt/dists
+/apt/pool

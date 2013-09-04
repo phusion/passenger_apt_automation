@@ -1,5 +1,5 @@
 # Don't forget to update apt/conf/distributions
 #export DEBIAN_DISTROS="raring quantal precise lucid"
-#export DEBIAN_ARCHS="i386 amd64"
 export DEBIAN_DISTROS="lucid"
 export DEBIAN_ARCHS="i386 amd64"
+SIGNING_KEY=561F9B9CAC40B2F7

@@ -1,34 +1,63 @@
 #!/bin/bash
 set -e
 
+BASE_DIR=`dirname "$0"`
+BASE_DIR=`cd "$BASE_DIR"; pwd`
+
 GIT_URL="$1"
-VERSION="$2"
-REF=${3:-origin/master}
+REF=${2:-origin/master}
 source configuration
 export PKG_DIR=/tmp/passenger_apt_build
 
 set -x
 
-if [[ -e repo ]]; then
-	echo "Updating repository..."
-	cd repo
-	if [[ "`git config remote.origin.url`" != "$GIT_URL" ]]; then
-		echo "Git repository URL does not match!"
-		exit 1
-	fi
-	git fetch
-	rm -rf *
-else
-	echo "Cloning repository..."
-	git clone "$GIT_URL" repo
-	cd repo
-fi
-git reset --hard "$REF"
+# if [[ -e repo ]]; then
+# 	echo "Updating repository..."
+# 	cd repo
+# 	if [[ "`git config remote.origin.url`" != "$GIT_URL" ]]; then
+# 		echo "Git repository URL does not match!"
+# 		exit 1
+# 	fi
+# 	git fetch
+# 	rm -rf *
+# else
+# 	echo "Cloning repository..."
+# 	git clone "$GIT_URL" repo
+# 	cd repo
+# fi
+# git reset --hard "$REF"
 
-echo "Building packages..."
-rm -rf "$PKG_DIR"
-mkdir -p "$PKG_DIR"
-rm -rf ~/pbuilder/*_result/*
-unset USE_CCACHE
-rake debian:source_packages
-rake debian:binary_packages
+# echo "Building packages..."
+# rm -rf "$PKG_DIR"
+# mkdir -p "$PKG_DIR"
+# rm -rf ~/pbuilder/*_result/*
+# unset USE_CCACHE
+# rake debian:source_packages
+# rake debian:binary_packages
+
+echo "Signing packages..."
+cd "$BASE_DIR"
+debsign -p./sign-file -k$SIGNING_KEY $PKG_DIR/official/*.changes
+debsign -p./sign-file -k$SIGNING_KEY ~/pbuilder/*_result/*.changes
+
+echo "Importing packages into APT repository..."
+rm -rf apt2 apt.old
+cp -dpR apt apt2
+cd apt2
+for DIST in $DEBIAN_DISTROS; do
+	for ARCH in $DEBIAN_ARCHS; do
+		if [[ $ARCH == amd64 ]]; then
+			pbase_name="$DIST"
+		else
+			pbase_name="$DIST-$ARCH"
+		fi
+		result_dir="$HOME/pbuilder/${pbase_name}_result"
+		reprepro --keepunusednewfiles -Vb . includedeb $DIST $result_dir/*_$ARCH.deb
+	done
+	reprepro --keepunusednewfiles -Vb . includedeb $DIST $HOME/pbuilder/${DIST}_result/*_all.deb
+	reprepro --keepunusednewfiles -Vb . includedsc $DIST $HOME/pbuilder/${DIST}_result/*.dsc
+done
+cd ..
+mv apt apt.old
+mv apt2 apt
+rm -rf apt.old
