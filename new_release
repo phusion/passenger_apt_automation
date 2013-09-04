@@ -11,34 +11,35 @@ export PKG_DIR=/tmp/passenger_apt_build
 
 set -x
 
-# if [[ -e repo ]]; then
-# 	echo "Updating repository..."
-# 	cd repo
-# 	if [[ "`git config remote.origin.url`" != "$GIT_URL" ]]; then
-# 		echo "Git repository URL does not match!"
-# 		exit 1
-# 	fi
-# 	git fetch
-# 	rm -rf *
-# else
-# 	echo "Cloning repository..."
-# 	git clone "$GIT_URL" repo
-# 	cd repo
-# fi
-# git reset --hard "$REF"
+if [[ -e repo ]]; then
+	echo "Updating repository..."
+	cd repo
+	if [[ "`git config remote.origin.url`" != "$GIT_URL" ]]; then
+		echo "Git repository URL does not match!"
+		exit 1
+	fi
+	git fetch
+	rm -rf *
+else
+	echo "Cloning repository..."
+	git clone "$GIT_URL" repo
+	cd repo
+fi
+git reset --hard "$REF"
 
-# echo "Building packages..."
-# rm -rf "$PKG_DIR"
-# mkdir -p "$PKG_DIR"
-# rm -rf ~/pbuilder/*_result/*
-# unset USE_CCACHE
-# rake debian:source_packages
-# rake debian:binary_packages
+echo "Building packages..."
+rm -rf "$PKG_DIR"
+mkdir -p "$PKG_DIR"
+rm -rf ~/pbuilder/*_result/*
+unset USE_CCACHE
+rake debian:source_packages
+rake debian:binary_packages
 
 echo "Signing packages..."
 cd "$BASE_DIR"
-debsign -p./sign-file -k$SIGNING_KEY $PKG_DIR/official/*.changes
-debsign -p./sign-file -k$SIGNING_KEY ~/pbuilder/*_result/*.changes
+export PATH="$BASE_DIR/dummygpg:$PATH"
+debsign -k$SIGNING_KEY $PKG_DIR/official/*.changes
+debsign -k$SIGNING_KEY ~/pbuilder/*_result/*.changes
 
 echo "Importing packages into APT repository..."
 rm -rf apt2 apt.old
@@ -57,6 +58,7 @@ for DIST in $DEBIAN_DISTROS; do
 	reprepro --keepunusednewfiles -Vb . includedeb $DIST $HOME/pbuilder/${DIST}_result/*_all.deb
 	reprepro --keepunusednewfiles -Vb . includedsc $DIST $HOME/pbuilder/${DIST}_result/*.dsc
 done
+find . -name Release -print0 -exec gpg --batch --sign --detach-sign --armor --local-user $SIGNING_KEY --output \{\}.gpg \{\} \;
 cd ..
 mv apt apt.old
 mv apt2 apt

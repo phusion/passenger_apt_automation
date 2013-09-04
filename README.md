@@ -6,6 +6,8 @@ To begin:
 
     sudo apt-get install ubuntu-dev-tools reprepro
     ./setup-pbuilder-dist
+    echo your-gpg-key-passphrase > passphrase
+    chmod 600 passphrase
 
 Then, every time a new Phusion Passenger version is released, run the following command to update the APT repository in `apt/`:
 

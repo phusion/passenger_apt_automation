@@ -5,7 +5,6 @@ Codename: raring
 Architectures: i386 amd64 source
 Components: main
 Description: Phusion Passenger
-SignWith: 561F9B9CAC40B2F7
 
 Origin: Phusion
 Label: Phusion Passenger
@@ -14,7 +13,6 @@ Codename: quantal
 Architectures: i386 amd64 source
 Components: main
 Description: Phusion Passenger
-SignWith: 561F9B9CAC40B2F7
 
 Origin: Phusion
 Label: Phusion Passenger
@@ -23,7 +21,6 @@ Codename: precise
 Architectures: i386 amd64 source
 Components: main
 Description: Phusion Passenger
-SignWith: 561F9B9CAC40B2F7
 
 Origin: Phusion
 Label: Phusion Passenger
@@ -32,4 +29,3 @@ Codename: lucid
 Architectures: i386 amd64 source
 Components: main
 Description: Phusion Passenger
-SignWith: 561F9B9CAC40B2F7
