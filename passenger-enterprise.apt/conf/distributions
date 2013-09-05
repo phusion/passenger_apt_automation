@@ -5,14 +5,7 @@ Codename: raring
 Architectures: i386 amd64 source
 Components: main
 Description: Phusion Passenger Enterprise
-
-Origin: Phusion
-Label: Phusion Passenger Enterprise
-Suite: stable
-Codename: quantal
-Architectures: i386 amd64 source
-Components: main
-Description: Phusion Passenger Enterprise
+Update: phusion_misc
 
 Origin: Phusion
 Label: Phusion Passenger Enterprise
@@ -21,6 +14,7 @@ Codename: precise
 Architectures: i386 amd64 source
 Components: main
 Description: Phusion Passenger Enterprise
+Update: phusion_misc
 
 Origin: Phusion
 Label: Phusion Passenger Enterprise
@@ -29,3 +23,4 @@ Codename: lucid
 Architectures: i386 amd64 source
 Components: main
 Description: Phusion Passenger Enterprise
+Update: phusion_misc
