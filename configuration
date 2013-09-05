@@ -1,5 +1,5 @@
 # Don't forget to update passenger.apt/conf/distributions
 # and passenger-enterprise.apt/conf/distributions
-export DEBIAN_DISTROS="raring quantal precise lucid"
+export DEBIAN_DISTROS="raring precise lucid"
 export DEBIAN_ARCHS="i386 amd64"
 SIGNING_KEY=561F9B9CAC40B2F7
