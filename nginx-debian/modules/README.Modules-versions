@@ -29,6 +29,10 @@ README for Modules versions
   Homepage: https://github.com/gnosek/nginx-upstream-fair
   Version: a18b409
 
+ nginx-upstream-check-module
+  Homepage: https://github.com/yaoweibin/nginx_upstream_check_module
+  Version: 2662fe4
+
  nginx-push
   Homepage: http://pushmodule.slact.net/#download
   http://pushmodule.slact.net/downloads/nginx_http_push_module-0.692.tar.gz
