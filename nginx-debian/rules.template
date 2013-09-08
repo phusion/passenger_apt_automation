@@ -66,7 +66,11 @@ config.status.full: config.env.full config.sub config.guess
 	    --http-scgi-temp-path=/var/lib/nginx/scgi \
 	    --http-uwsgi-temp-path=/var/lib/nginx/uwsgi \
 	    --lock-path=/var/lock/nginx.lock \
-	    --pid-path=/var/run/nginx.pid \
+	    #if is_distribution?("<= quantal")
+	        --pid-path=/var/run/nginx.pid \
+	    #else
+	        --pid-path=/run/nginx.pid \
+	    #endif
 	    --with-pcre-jit \
 	    --with-debug \
 	    --with-http_addition_module \
@@ -101,7 +105,11 @@ config.status.light: config.env.light config.sub config.guess
 	    --http-log-path=/var/log/nginx/access.log \
 	    --http-proxy-temp-path=/var/lib/nginx/proxy \
 	    --lock-path=/var/lock/nginx.lock \
-	    --pid-path=/var/run/nginx.pid \
+	    #if is_distribution?("<= quantal")
+	        --pid-path=/var/run/nginx.pid \
+	    #else
+	        --pid-path=/run/nginx.pid \
+	    #endif
 	    --with-pcre-jit \
 	    --with-http_gzip_static_module \
 	    --with-http_ssl_module \
@@ -134,7 +142,11 @@ config.status.extras: config.env.extras config.sub config.guess
 	    --http-scgi-temp-path=/var/lib/nginx/scgi \
 	    --http-uwsgi-temp-path=/var/lib/nginx/uwsgi \
 	    --lock-path=/var/lock/nginx.lock \
-	    --pid-path=/var/run/nginx.pid \
+	    #if is_distribution?("<= quantal")
+	        --pid-path=/var/run/nginx.pid \
+	    #else
+	        --pid-path=/run/nginx.pid \
+	    #endif
 	    --with-pcre-jit \
 	    --with-debug \
 	    --with-http_addition_module \
@@ -148,6 +160,9 @@ config.status.extras: config.env.extras config.sub config.guess
 	    --with-http_random_index_module \
 	    --with-http_realip_module \
 	    --with-http_secure_link_module \
+	    #if is_distribution?(">= precise")
+	        --with-http_spdy_module \
+	    #endif
 	    --with-http_stub_status_module \
 	    --with-http_ssl_module \
 	    --with-http_sub_module \
@@ -184,7 +199,11 @@ config.status.naxsi: config.env.naxsi config.sub config.guess
 	    --http-scgi-temp-path=/var/lib/nginx/scgi \
 	    --http-uwsgi-temp-path=/var/lib/nginx/uwsgi \
 	    --lock-path=/var/lock/nginx.lock \
-	    --pid-path=/var/run/nginx.pid \
+	    #if is_distribution?("<= quantal")
+	        --pid-path=/var/run/nginx.pid \
+	    #else
+	        --pid-path=/run/nginx.pid \
+	    #endif
 	    --with-pcre-jit \
 	    --with-http_ssl_module \
 	    --without-mail_pop3_module \

@@ -29,7 +29,11 @@ set -e
 PID=$(awk -F'[ ;]' '/[^#]pid/ {print $2}' /etc/nginx/nginx.conf)
 if [ -z "$PID" ]
 then
-  PID=/var/run/nginx.pid
+  #if is_distribution?("<= quantal")
+      PID=/var/run/nginx.pid
+  #else
+      PID=/run/nginx.pid
+  #endif
 fi
 
 # Check if the ULIMIT is set in /etc/default/nginx

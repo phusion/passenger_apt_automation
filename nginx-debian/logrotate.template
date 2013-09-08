@@ -13,6 +13,10 @@
 		fi \
 	endscript
 	postrotate
-		[ ! -f /var/run/nginx.pid ] || kill -USR1 `cat /var/run/nginx.pid`
+		#if is_distribution?("<= quantal")
+		    [ ! -f /var/run/nginx.pid ] || kill -USR1 `cat /var/run/nginx.pid`
+		#else
+		    [ ! -f /run/nginx.pid ] || kill -USR1 `cat /run/nginx.pid`
+		#endif
 	endscript
 }

@@ -1,0 +1,10 @@
+#!/bin/bash
+cd /usr/share/nginx-naxsi/naxsi-ui/
+python nx_extract.py /etc/nginx/naxsi-ui.conf &
+somepid=$!
+#if is_distribution?("<= quantal")
+    echo $somepid > /var/run/nginx-naxsi-ui_extract.pid
+#else
+    echo $somepid > /run/nginx-naxsi-ui_extract.pid
+#endif
+wait $somepid

@@ -4,7 +4,11 @@ After=network.target
 
 [Service]
 Type=forking
-PIDFile=/var/run/nginx.pid
+#if is_distribution?("<= quantal")
+    PIDFile=/var/run/nginx.pid
+#else
+    PIDFile=/run/nginx.pid
+#endif
 ExecStartPre=/usr/sbin/nginx -t -q -g 'daemon on; master_process on;'
 ExecStart=/usr/sbin/nginx -g 'daemon on; master_process on;'
 ExecReload=/usr/sbin/nginx -g 'daemon on; master_process on;' -s reload
