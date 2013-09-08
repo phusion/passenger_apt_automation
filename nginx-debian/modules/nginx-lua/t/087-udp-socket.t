@@ -5,7 +5,7 @@ use Test::Nginx::Socket;
 
 repeat_each(2);
 
-plan tests => repeat_each() * (3 * blocks() + 6);
+plan tests => repeat_each() * (3 * blocks() + 8);
 
 our $HtmlDir = html_dir;
 
@@ -16,6 +16,7 @@ log_level 'warn';
 
 no_long_string();
 #no_diff();
+#no_shuffle();
 
 run_tests();
 
@@ -254,7 +255,7 @@ end
 
 --- stap2
 M(http-lua-info) {
-    printf("tcp resume: %p\n", $coctx)
+    printf("udp resume: %p\n", $coctx)
     print_ubacktrace()
 }
 
@@ -500,7 +501,7 @@ lua udp socket receive buffer size: 1400
 
 
 
-=== TEST 9: read timeout and resend
+=== TEST 9: read timeout and re-receive
 --- config
     location = /t {
         content_by_lua '
@@ -651,4 +652,155 @@ received a good response.
 --- log_level: debug
 --- error_log
 lua udp socket receive buffer size: 8192
+
+
+
+=== TEST 12: github issue #215: Handle the posted requests in lua cosocket api (failed to resolve)
+--- config
+    resolver 8.8.8.8;
+
+    location = /sub {
+        content_by_lua '
+            local sock = ngx.socket.udp()
+            local ok, err = sock:setpeername("xxx", 80)
+            if not ok then
+                ngx.say("failed to connect to xxx: ", err)
+                return
+            end
+            ngx.say("successfully connected to xxx!")
+            sock:close()
+        ';
+    }
+
+    location = /lua {
+        content_by_lua '
+            local res = ngx.location.capture("/sub")
+            ngx.print(res.body)
+        ';
+    }
+--- request
+GET /sub
+
+--- stap
+F(ngx_resolve_name_done) {
+    println("resolve name done")
+}
+
+--- stap_out
+resolve name done
+
+--- response_body_like chop
+^failed to connect to xxx: xxx could not be resolved.*?Host not found
+
+--- no_error_log
+[error]
+
+
+
+=== TEST 13: github issue #215: Handle the posted requests in lua cosocket api (successfully resolved)
+--- config
+    resolver 8.8.8.8;
+
+    location = /sub {
+        content_by_lua '
+            if not package.i then
+                package.i = 1
+            end
+
+            local servers = {"openresty.org", "agentzh.org", "sregex.org"}
+            local server = servers[package.i]
+            package.i = package.i + 1
+
+            local sock = ngx.socket.udp()
+            local ok, err = sock:setpeername(server, 80)
+            if not ok then
+                ngx.say("failed to connect to agentzh.org: ", err)
+                return
+            end
+            ngx.say("successfully connected to xxx!")
+            sock:close()
+        ';
+    }
+
+    location = /lua {
+        content_by_lua '
+            local res = ngx.location.capture("/sub")
+            ngx.print(res.body)
+        ';
+    }
+--- request
+GET /lua
+--- response_body
+successfully connected to xxx!
+
+--- no_error_log
+[error]
+
+
+
+=== TEST 14: datagram unix domain socket
+--- config
+    server_tokens off;
+    location /t {
+        #set $port 5000;
+        set $port $TEST_NGINX_MEMCACHED_PORT;
+        #set $port 1234;
+
+        content_by_lua '
+            local socket = ngx.socket
+            -- local socket = require "socket"
+
+            local udp = socket.udp()
+
+            local port = ngx.var.port
+            udp:settimeout(1000) -- 1 sec
+
+            local ok, err = udp:setpeername("unix:a.sock")
+            if not ok then
+                ngx.say("failed to connect: ", err)
+                return
+            end
+
+            ngx.say("connected")
+
+            local req = "hello,\\nserver"
+            local ok, err = udp:send(req)
+            if not ok then
+                ngx.say("failed to send: ", err)
+                return
+            end
+
+            local data, err = udp:receive()
+            if not data then
+                ngx.say("failed to receive data: ", err)
+                return
+            end
+            ngx.print("received ", #data, " bytes: ", data)
+        ';
+    }
+--- request
+GET /t
+
+--- udp_listen: a.sock
+--- udp_reply
+hello,
+client
+
+--- response_body
+connected
+received 14 bytes: hello,
+client
+
+--- stap2
+probe syscall.socket, syscall.connect {
+    print(name, "(", argstr, ")")
+}
+
+probe syscall.socket.return, syscall.connect.return {
+    println(" = ", retstr)
+}
+--- no_error_log
+[error]
+[crit]
+--- skip_eval: 3: $^O ne 'linux'
 

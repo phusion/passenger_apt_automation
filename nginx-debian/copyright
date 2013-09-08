@@ -4,8 +4,8 @@ Source: http://nginx.net/
 Upstream-Contact: Igor Sysoev <igor@sysoev.ru>
 
 Files: *
-Copyright: 2002-2012 Igor Sysoev
-           2011,2012 Nginx, Inc.
+Copyright: 2002-2013 Igor Sysoev
+           2011-2013 Nginx, Inc.
 License:
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
@@ -25,88 +25,62 @@ License:
  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
  ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Files: contrib/geo2nginx.pl
 Copyright: 2005, Andrei Nigmatulin
 License:
  Same as upstream license.
 
-Files: modules/nginx-upstream-fair/ngx_http_upstream_fair_module.c
+Files: debian/modules/nginx-upstream-fair/ngx_http_upstream_fair_module.c
 Copyright: 2007, Igor Sysoev, Grzegorz Nosek
 License:
  Same as upstream license.
 
-Files: modules/nginx-development-kit/*
+Files: debian/modules/nginx-development-kit/*
 Copyright: Marcus Clyne
 License:
  Same as upstream license.
 
-Files: modules/nginx-http-push/*
+Files: debian/modules/nginx-http-push/*
 Copyright: 2009, Leo Ponomarev
 License:
  Same as upstream license.
 
-Files: modules/nginx-upload-progress/ngx_http_uploadprogress_module.c
+Files: debian/modules/nginx-upload-progress/ngx_http_uploadprogress_module.c
 Copyright: 2007, Brice Figureau
            2002-2007, Igor Sysoev
 License:
  Same as upstream license.
 
-Files: modules/agentzh-chunkin-nginx-module-*/*
- modules/agentzh-headers-more-nginx-module-*/*
+Files: debian/modules/agentzh-chunkin-nginx-module-*/*
+ debian/modules/agentzh-headers-more-nginx-module-*/*
 Copyright: 2009, Taobao Inc., Alibaba Group <http://www.taobao.com>.
            2009-2011, Zhang "agentzh" Yichun (章亦春) <agentzh@gmail.com>.
 License:
  Same as upstream license.
 
-Files: modules/nginx-auth-pam/*
+Files: debian/modules/nginx-auth-pam/*
 Copyright: 2008-2010, Sergio Talens Oliag <sto@iti.upv.es>
 License:
  Same as upstream license.
 
-Files: modules/nginx-cache-purge
+Files: debian/modules/nginx-cache-purge
 Copyright: 2009-2011, FRiCKLE <info@frickle.com>,
            2009-2011, Piotr Sikora <piotr.sikora@frickle.com>
 License:
  Same as upstream license.
 
-Files: modules/nginx-dav-ext-module
+Files: debian/modules/nginx-dav-ext-module
 Copyright: 2012, Arutyunyan Roman <arut@qip.ru>
 License:
  Same as upstream license.
 
-Files: modules/nginx-upload-module
-Copyright: 2006, 2008, Valery Kholodkov
-License:
- All rights reserved.
- .
- Redistribution and use in source and binary forms, with or without
- modification, are permitted provided that the following conditions are met:
-      * Redistributions of source code must retain the above copyright
-        notice, this list of conditions and the following disclaimer.
-      * Redistributions in binary form must reproduce the above copyright
-        notice, this list of conditions and the following disclaimer in the
-        documentation and/or other materials provided with the distribution.
-      * Neither the name of the Valery Kholodkov nor the
-        names of its contributors may be used to endorse or promote products
-        derived from this software without specific prior written permission.
- .
- THIS SOFTWARE IS PROVIDED BY VALERY KHOLODKOV ''AS IS'' AND ANY
- EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- DISCLAIMED. IN NO EVENT SHALL VALERY KHOLODKOV BE LIABLE FOR ANY
- DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-Files: modules/naxsi
+Files: debian/modules/naxsi
 Copyright: 2012, Thibault Koechlin
 License: GPL-2+ with OpenSSL exception
 
-Files: modules/naxsi/contrib/fp-reporter/fp-reporter.php
+Files: debian/modules/naxsi/contrib/fp-reporter/fp-reporter.php
 Copyright: 2011, Thibault 'bui' Koechlin, Didier Conchaudron
 License: GPL-2+ with OpenSSL exception
 
@@ -145,9 +119,9 @@ License: GPL-2+ with OpenSSL exception
 Files: debian/*
 Copyright: 2006-2010, Jose Parrella <joseparrella@cantv.net>,
                         Fabio Tranchitella <kobold@debian.org>,
-           2009-2012, Kartik Mistry <kartik@debian.org>,
-           2012, Michael Lustfield <michael@lustfield.net>,
-                 Dmitry E. Oboukhov <unera@debian.org>,
-                 Cyril Lavier <cyril.lavier@davromaniak.eu>.
+           2009-2013, Kartik Mistry <kartik@debian.org>,
+           2012-2013, Michael Lustfield <michael@lustfield.net>,
+                      Dmitry E. Oboukhov <unera@debian.org>,
+                      Cyril Lavier <cyril.lavier@davromaniak.eu>.
 License:
  Same as upstream license.

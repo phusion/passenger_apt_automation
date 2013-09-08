@@ -9,7 +9,7 @@ use Test::Nginx::Socket;
 
 repeat_each(2);
 
-plan tests => repeat_each() * (blocks() * 3 - 1);
+plan tests => repeat_each() * (blocks() * 3 + 2);
 
 #no_diff();
 no_long_string();
@@ -74,13 +74,13 @@ Hel
     location /read {
         content_by_lua '
             ngx.status = 302;
-            ngx.header["Location"] = "http://google.com/foo";
+            ngx.header["Location"] = "http://agentzh.org/foo";
         ';
     }
 --- request
 GET /read
 --- response_headers
-Location: http://google.com/foo
+Location: http://agentzh.org/foo
 --- response_body
 --- error_code: 302
 
@@ -274,7 +274,8 @@ Fooy: cony1, cony2
     }
 --- request
     GET /lua
---- ignore_response
+--- response_body chop
+hello
 --- error_log
 attempt to set ngx.header.HEADER after sending out response headers
 --- no_error_log eval
@@ -822,4 +823,34 @@ nil
 --- response_body
 Hello
 Hello
+
+
+
+=== TEST 42: github issue #199: underscores in lua variables
+--- config
+    location /read {
+        content_by_lua '
+          ngx.header.content_type = "text/my-plain"
+
+          local results = {}
+          results.something = "hello"
+          results.content_type = "anything"
+          results.somehing_else = "hi"
+
+          for k, v in pairs(results) do
+            ngx.say(k .. ": " .. v)
+          end
+        ';
+    }
+--- request
+GET /read
+--- response_headers
+Content-Type: text/my-plain
+
+--- response_body
+somehing_else: hi
+something: hello
+content_type: anything
+--- no_error_log
+[error]
 

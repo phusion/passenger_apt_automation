@@ -1,7 +1,13 @@
-/* vim:set ft=c ts=4 sw=4 et fdm=marker: */
 
-#ifndef NGX_HTTP_LUA_UTIL_H
-#define NGX_HTTP_LUA_UTIL_H
+/*
+ * Copyright (C) Xiaozhe Wang (chaoslawful)
+ * Copyright (C) Yichun Zhang (agentzh)
+ */
+
+
+#ifndef _NGX_HTTP_LUA_UTIL_H_INCLUDED_
+#define _NGX_HTTP_LUA_UTIL_H_INCLUDED_
+
 
 #include "ngx_http_lua_common.h"
 
@@ -55,11 +61,25 @@ extern char ngx_http_lua_req_get_headers_metatable_key;
      : (c) == NGX_HTTP_LUA_CONTEXT_CONTENT ? "content_by_lua*"               \
      : (c) == NGX_HTTP_LUA_CONTEXT_LOG ? "log_by_lua*"                       \
      : (c) == NGX_HTTP_LUA_CONTEXT_HEADER_FILTER ? "header_filter_by_lua*"   \
+     : (c) == NGX_HTTP_LUA_CONTEXT_TIMER ? "ngx.timer"   \
      : "(unknown)")
 
 
 #define ngx_http_lua_check_context(L, ctx, flags)                            \
     if (!((ctx)->context & (flags))) {                                       \
+        return luaL_error(L, "API disabled in the context of %s",            \
+                          ngx_http_lua_context_name((ctx)->context));        \
+    }
+
+
+#define ngx_http_lua_check_fake_request(L, r)                                \
+    if ((r)->connection->fd == -1) {                                         \
+        return luaL_error(L, "API disabled in the current context");         \
+    }
+
+
+#define ngx_http_lua_check_fake_request2(L, r, ctx)                          \
+    if ((r)->connection->fd == -1) {                                         \
         return luaL_error(L, "API disabled in the context of %s",            \
                           ngx_http_lua_context_name((ctx)->context));        \
     }
@@ -82,7 +102,8 @@ ngx_int_t ngx_http_lua_send_chain_link(ngx_http_request_t *r,
 void ngx_http_lua_discard_bufs(ngx_pool_t *pool, ngx_chain_t *in);
 
 ngx_int_t ngx_http_lua_add_copy_chain(ngx_http_request_t *r,
-    ngx_http_lua_ctx_t *ctx, ngx_chain_t **chain, ngx_chain_t *in);
+    ngx_http_lua_ctx_t *ctx, ngx_chain_t ***plast, ngx_chain_t *in,
+    ngx_int_t *eof);
 
 void ngx_http_lua_reset_ctx(ngx_http_request_t *r, lua_State *L,
     ngx_http_lua_ctx_t *ctx);
@@ -144,6 +165,12 @@ ngx_int_t ngx_http_lua_test_expect(ngx_http_request_t *r);
 ngx_int_t ngx_http_lua_check_broken_connection(ngx_http_request_t *r,
     ngx_event_t *ev);
 
+void ngx_http_lua_finalize_request(ngx_http_request_t *r, ngx_int_t rc);
+
+void ngx_http_lua_finalize_fake_request(ngx_http_request_t *r,
+    ngx_int_t rc);
+
+void ngx_http_lua_close_fake_connection(ngx_connection_t *c);
 
 
 #define ngx_http_lua_check_if_abortable(L, ctx)                             \
@@ -176,5 +203,6 @@ ngx_http_lua_create_ctx(ngx_http_request_t *r)
 }
 
 
-#endif /* NGX_HTTP_LUA_UTIL_H */
+#endif /* _NGX_HTTP_LUA_UTIL_H_INCLUDED_ */
 
+/* vi:set ft=c ts=4 sw=4 et fdm=marker: */

@@ -1,32 +1,177 @@
-nginx (1:1.2.6-2bbox3) precise; urgency=low
+nginx (1.4.1-3ubuntu1) saucy; urgency=low
 
-  * Fix nginx-extras postinst pidfile path
+  * Resynchronise with Debian.  Remaining changes:
+    - debian/patches/ubuntu-branding.patch:
+      + Add Ubuntu branding to server_tokens.
 
- -- John Leach <john@brightbox.co.uk>  Tue, 12 Feb 2013 19:05:11 +0000
+ -- Colin Watson <cjwatson@ubuntu.com>  Thu, 20 Jun 2013 15:08:44 +0100
 
-nginx (1:1.2.6-2bbox2) precise; urgency=low
-
-  * Fix broken listen line in default config
-
- -- John Leach <john@brightbox.co.uk>  Wed, 06 Feb 2013 17:20:34 +0000
-
-nginx (1:1.2.6-2bbox1) precise; urgency=low
+nginx (1.4.1-3) unstable; urgency=low
 
   [ Kartik Mistry ]
+  * debian/control:
+    + Changed libgd2-dev build-dep to libgd2-dev|libgd2-noxpm-dev allow
+      backporting (Closes: #711505)
+
+  [ Cyril Lavier ]
+  * debian/nginx-naxsi-ui.preinst
+    + Added argument "install" to the preinst script. (Closes: #711590)
+
+ -- Kartik Mistry <kartik@debian.org>  Sun, 09 Jun 2013 13:07:52 +0530
+
+nginx (1.4.1-2ubuntu1) saucy; urgency=low
+
+  * Resynchronise with Debian.  Remaining changes:
+    - debian/patches/ubuntu-branding.patch:
+      + Add Ubuntu branding to server_tokens.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Fri, 07 Jun 2013 15:41:48 +0100
+
+nginx (1.4.1-2) unstable; urgency=medium
+
+  [ Kartik Mistry]
+  * Urgency set to medium due to Security and RC bugs.
+  * debian/conf/sites-available/default:
+    + Fixed typo in listen ipv6only=on (Closes: #707684)
+
+  [ Cyril Lavier ]
+  * debian/control:
+    + Replaced the build-dep libgd2-noxpm-dev to libgd2-dev as part of
+      the libgd2-{xpm,noxpm}-dev -> libgd2-dev transition.
+  * debian/nginx-naxsi-ui.preinst, debian/nginx-naxsi-ui.postinst,
+    debian/conf/naxsi-ui.conf.1.4.1:
+    + Added preinst script and renamed the new config file to avoid
+      prompting the user. (Closes: #707291)
+  * debian/rules:
+    + Made "debian/rules binary" enough to build binary package.
+      (Closes: #708522)
+
+ -- Kartik Mistry <kartik@debian.org>  Thu, 06 Jun 2013 12:55:23 +0530
+
+nginx (1.4.1-1ubuntu2) saucy; urgency=low
+
+  * Rebuild for libgd3.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Mon, 20 May 2013 00:45:10 +0100
+
+nginx (1.4.1-1ubuntu1) saucy; urgency=low
+
+  * Merge with Debian unstable (LP: #1177919). Remaining changes:
+    - debian/conf/sites-available/default:
+      + Modify default site configuration file to correct a typo
+        that prevented out-of-the-box usability (LP: #1162177).
+    - debian/patches/ubuntu-branding.patch:
+      + Add ubuntu branding to server_tokens.
+  * Refresh all patches.
+
+ -- Dmitry Shachnev <mitya57@ubuntu.com>  Sat, 11 May 2013 14:47:53 +0400
+
+nginx (1.4.1-1) unstable; urgency=low
+
+  * New upstream release:
+    + Fixes arbitrary code execution (CVE-2013-2028).
+  * Uploaded to unstable.
+  * debian/control:
+    + Updated Standards-Version to 3.9.4
+
+ -- Kartik Mistry <kartik@debian.org>  Tue, 07 May 2013 19:53:46 +0530
+
+nginx (1.4.0-2) experimental; urgency=low
+
+  [ Ondřej Surý ]
+  * debian/modules/:
+    + Updated nginx-echo, nginx-cache-purge and naxsi modules.
+    + Removed useless .gitignore, .gitmodules files.
+
+  [ Kartik Mistry ]
+  * debian/modules/nginx-upload:
+    + This module no longer works with 1.3.x and above. Removed as of now.
+  * debian/modules/ngx-fancyindex:
+    + Added Fancy Indexes module (Closes: #704210)
+  * debian/copyright:
+    + Fixed path for modules in Files: field.
+    + Updated copyright for debian/*
+  * debian/rules:
+    + Enabled spdy module (Closes: #706195).
+  * debian/control:
+    + Suggests: fcgiwrap (Closes: #701508).
+
+  [ Cyril Lavier ]
+  * debian/conf/naxsi-ui.conf:
+    + Added configuration file for nginx-naxsi-ui using SQLite
+      (Closes: #699678).
+  * debian/nginx-naxsi-ui.config, debian/nginx-naxsi-ui.postinst,
+    debian/nginx-naxsi-ui.postrm, debian/nginx-naxsi-ui.prerm,
+    debian/nginx-naxsi-ui.templates:
+    + Removed these files as they are not necessary anymore with the
+      database engine switching from MySQL to SQLite.
+  * debian/control:
+    + Removed dependencies against MySQL.
+  * debian/rules, debian/modules/ngx_http_substitutions_filter_module,
+    debian/README.Modules-versions:
+    + Added http_substitutions_filter module. (Closes: #706456)
+
+ -- Kartik Mistry <kartik@debian.org>  Wed, 01 May 2013 10:48:43 +0530
+
+nginx (1.4.0-1) experimental; urgency=low
+
+  [ Kartik Mistry ]
+  * New upstream release (Closes: #706127).
+  * debian/rules, debian/modules/:
+    + Removed chunkin-nginx-module as it no longer supported for nginx 1.3.9+
+    + Updated nginx-lua module to 0.8.0
+    + Patched nginx-upload module as described in modules/README file.
+  * Refreshed debian/patches/perl-use-dpkg-buildflags.patch
   * debian/logrotate:
     + Set default log to keep for 52 weeks instead of 52 days. Thanks to
       RjY <rjy@users.sourceforge.net> for patch (Closes: #696440)
   * debian/rules:
     + Added cache purge module to nginx-extras.
+  * debian/control:
+    + Suggests: nginx-docs. Thanks to colliar <colliar4ever@aol.com> for
+      reporting bug (Closes: #702923)
+  * debian/copyright:
+    + Updated copyright year.
+    + Fixed broken license text.
 
-  [ John Leach ]
-  * Reverted back to /var/run for older Ubuntu compatability
-  * Added fix-false-memset-warnings.patch to workaround memset
-    transposition compile false positives
-  * Upgraded to Passenger 3.0.19
-  * Upgraded nginx-upstream-check-module to 327249cc
+  [ Michael Lustfield ]
+  * debian/conf/sites-available/default:
+    + Added ipv6_only=on to default server block. (Closes: #700857)
+    + Added default_server to ipv4 default server block. Now matches ipv6.
+  * debian/rules:
+    + Removed obsolete --with-md5 and --with-sha1
 
- -- John Leach <john@brightbox.co.uk>  Fri, 01 Feb 2013 18:23:26 +0000
+ -- Kartik Mistry <kartik@debian.org>  Thu, 25 Apr 2013 12:51:45 +0530
+
+nginx (1.2.6-1ubuntu4) saucy; urgency=low
+
+  * debian/patches/ubuntu-branding.patch: Move Ubuntu branding from
+    the numerical version string to the long version (LP: #1174158)
+
+ -- Adam Conrad <adconrad@ubuntu.com>  Thu, 09 May 2013 11:50:52 -0600
+
+nginx (1.2.6-1ubuntu3) raring; urgency=low
+
+  * debian/patches/ubuntu-branding.patch: Add ubuntu branding
+    to server_tokens. 
+
+ -- Chuck Short <zulcss@ubuntu.com>  Tue, 09 Apr 2013 10:23:26 -0500
+
+nginx (1.2.6-1ubuntu2) raring; urgency=low
+
+  * debian/conf/sites-available/default:
+    * Modify default site configuration file to correct a typo
+      that prevented out-of-the-box usability (LP: #1162177)
+
+ -- Thomas Ward <teward@ubuntu.com>  Fri, 05 Apr 2013 20:22:38 +0100
+
+nginx (1.2.6-1ubuntu1) raring; urgency=low
+
+  * debian/conf/sites-available/default:
+    * Modify default site default configuration file to bind to IPv6
+      only for IPv6 default listen statement (LP: #1132678)
+
+ -- Thomas Ward <teward@ubuntu.com>  Tue, 12 Mar 2013 00:23:02 +0000
 
 nginx (1.2.6-1) unstable; urgency=low
 
@@ -113,26 +258,6 @@ nginx (1.2.4-1) unstable; urgency=low
 
  -- Kartik Mistry <kartik@debian.org>  Tue, 30 Oct 2012 10:10:34 +0530
 
-nginx (1:1.2.3-1bbox1) precise; urgency=low
-
-  * New upstream release, 1.2.3
-  * New upstream version of Passenger, 3.0.17
-
- -- John Leach <john@brightbox.co.uk>  Tue, 11 Sep 2012 16:39:06 +0100
-
-nginx (1:1.2.2-1bbox2) precise; urgency=low
-
-  * Added upstream-check-module
-
- -- John Leach <john@brightbox.co.uk>  Fri, 10 Aug 2012 19:51:14 +0100
-
-nginx (1:1.2.2-1bbox1) precise; urgency=low
-
-  * New upstream release, 1.2.2
-  * New upstream version of Passenger, 3.0.14
-
- -- John Leach <john@brightbox.co.uk>  Fri, 27 Jul 2012 16:31:22 +0100
-
 nginx (1.2.1-2.2) unstable; urgency=low
 
   * Non-maintainer upload.
@@ -145,12 +270,6 @@ nginx (1.2.1-2.2) unstable; urgency=low
     (Closes: #681758)
 
  -- gregor herrmann <gregoa@debian.org>  Sat, 04 Aug 2012 18:13:10 +0200
-
-nginx (1:1.2.1-1bbox1) precise; urgency=low
-
-  * New upstream version of Passenger, 3.0.13
-
- -- John Leach <john@brightbox.co.uk>  Mon, 18 Jun 2012 19:03:13 +0100
 
 nginx (1.2.1-2.1) unstable; urgency=low
 
@@ -299,12 +418,6 @@ nginx (1.2.0-1) unstable; urgency=low
 
  -- Kartik Mistry <kartik@debian.org>  Mon, 14 May 2012 11:15:00 +0530
 
-nginx (1:1.1.19-1bbox1) lucid; urgency=low
-
-  * New upstream version of Passenger, 3.0.12
-
- -- John Leach <john@brightbox.co.uk>  Sat, 14 Apr 2012 22:32:49 +0100
-
 nginx (1.1.19-1) unstable; urgency=high
 
   [Cyril Lavier]
@@ -344,12 +457,6 @@ nginx (1.1.18-1) unstable; urgency=low
     + Added naxsi 0.44 to nginx-naxsi.
 
  -- Cyril Lavier <cyril.lavier@davromaniak.eu>  Thu, 29 Mar 2012 22:43:07 +0530
-
-nginx (1:1.1.17-2bbox1) lucid; urgency=low
-
-  * Updated passenger packaging
-
- -- John Leach <john@brightbox.co.uk>  Tue, 27 Mar 2012 20:10:49 +0100
 
 nginx (1.1.17-2) unstable; urgency=high
 
@@ -485,12 +592,6 @@ nginx (1.1.11-1) unstable; urgency=low
 
  -- Kartik Mistry <kartik@debian.org>  Wed, 14 Dec 2011 09:45:40 +0530
 
-nginx (1:1.1.8-2bbox1) lucid; urgency=low
-
-  * Passenger 3.0.11 support
-
- -- John Leach <john@brightbox.co.uk>  Mon, 12 Dec 2011 12:50:24 +0000
-
 nginx (1.1.8-2) unstable; urgency=low
 
   * debian/modules/chunkin-nginx-module:
@@ -576,18 +677,6 @@ nginx (1.1.2-1) unstable; urgency=low
     + Updated Breaks on nginx-common to address conflicting versions
 
  -- Kartik Mistry <kartik@debian.org>  Wed, 07 Sep 2011 12:15:36 +0530
-
-nginx (1:1.1.0-1bbox2) lucid; urgency=low
-
-  * Upped passenger depends to 3.0.9
-
- -- John Leach <john@brightbox.co.uk>  Wed, 07 Sep 2011 18:38:11 +0100
-
-nginx (1:1.1.0-1bbox1) lucid; urgency=low
-
-  * Added support for passenger 3.0.8
-
- -- John Leach <john@brightbox.co.uk>  Sat, 20 Aug 2011 12:11:05 +0100
 
 nginx (1.1.0-1) unstable; urgency=low
 

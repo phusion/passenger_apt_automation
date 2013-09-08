@@ -3,7 +3,9 @@
 use lib 'lib';
 use Test::Nginx::Socket;
 
-plan tests => repeat_each() * 2 * blocks();
+repeat_each(2);
+
+plan tests => repeat_each() * (2 * blocks() + 1);
 
 no_long_string();
 log_level('warn');
@@ -182,7 +184,7 @@ status: 404$
 
 
 
-=== TEST 11: in subrequests (echo_after_body does not work)
+=== TEST 11: in subrequests
 --- config
     location /main {
         echo_location_async /hello;
@@ -195,6 +197,7 @@ status: 404$
     GET /main
 --- response_body
 hello
+world!
 
 
 
@@ -214,7 +217,7 @@ hello
 
 
 
-=== TEST 13: echo_after_body + lua output
+=== TEST 13: echo_after_body + proxy output
 --- config
     #gzip             on;
     #gzip_min_length  1;
@@ -223,10 +226,36 @@ hello
         proxy_pass http://127.0.0.1:$server_port/foo;
     }
     location /foo {
-        echo_duplicate 1000 hello;
+        echo_duplicate 10 hello;
     }
 --- request
     GET /main
---- response_body_like: world
---- SKIP
+--- response_body_like
+^(?:hello){10}world$
+
+
+
+=== TEST 14: in subrequests (we get last_in_chain set properly)
+--- config
+    location /main {
+        echo_location_async /hello;
+    }
+    location /hello {
+        echo 'hello';
+        echo_after_body 'world!';
+        body_filter_by_lua '
+            local eof = ngx.arg[2]
+            if eof then
+                print("lua: eof found in body")
+            end
+        ';
+    }
+--- request
+    GET /main
+--- response_body
+hello
+world!
+--- log_level: notice
+--- error_log
+lua: eof found in body
 

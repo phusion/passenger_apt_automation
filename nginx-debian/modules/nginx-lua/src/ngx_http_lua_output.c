@@ -550,6 +550,9 @@ ngx_http_lua_ngx_flush(lua_State *L)
         if (ctx->entered_content_phase) {
             /* mimic ngx_http_set_write_handler */
             r->write_event_handler = ngx_http_lua_content_wev_handler;
+
+        } else {
+            r->write_event_handler = ngx_http_core_run_phases;
         }
 
         wev = r->connection->write;
@@ -710,14 +713,14 @@ ngx_http_lua_flush_resume_helper(ngx_http_request_t *r, ngx_http_lua_ctx_t *ctx)
     }
 
     if (rc == NGX_DONE) {
-        ngx_http_finalize_request(r, NGX_DONE);
+        ngx_http_lua_finalize_request(r, NGX_DONE);
         return ngx_http_lua_run_posted_threads(c, lmcf->lua, r, ctx);
     }
 
     /* rc == NGX_ERROR || rc >= NGX_OK */
 
     if (ctx->entered_content_phase) {
-        ngx_http_finalize_request(r, rc);
+        ngx_http_lua_finalize_request(r, rc);
         return NGX_DONE;
     }
 

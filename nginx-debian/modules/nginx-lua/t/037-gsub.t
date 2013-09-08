@@ -9,7 +9,7 @@ log_level('warn');
 
 repeat_each(2);
 
-plan tests => repeat_each() * (blocks() * 2 + 8);
+plan tests => repeat_each() * (blocks() * 2 + 10);
 
 #no_diff();
 no_long_string();
@@ -360,6 +360,73 @@ n: 1
     GET /re
 --- response_body eval
 ("a" x 8000) . ("b" x 998) . " b" . ("a" x 8000) . ("b" x 998) . " b\n2\n"
+--- no_error_log
+[error]
+
+
+
+=== TEST 18: named pattern repl w/ callback
+--- config
+    location /re {
+       content_by_lua '
+            local repl = function (m)
+                return "[" .. m[0] .. "," .. m["first"] .. "]"
+            end
+
+            local s, n = ngx.re.gsub("hello, world", "(?<first>[a-z])[a-z]+", repl)
+            ngx.say(s)
+            ngx.say(n)
+        ';
+    }
+--- request
+    GET /re
+--- response_body
+[hello,h], [world,w]
+2
+
+
+
+=== TEST 19: $0 without parens
+--- config
+    location /re {
+        content_by_lua '
+            local s, n = ngx.re.gsub("a b c d", [[\w]], "[$0]")
+            ngx.say(s)
+            ngx.say(n)
+        ';
+    }
+--- request
+    GET /re
+--- response_body
+[a] [b] [c] [d]
+4
+--- no_error_log
+[error]
+
+
+
+=== TEST 20: bad UTF-8
+--- config
+    location = /t {
+        content_by_lua '
+            local target = "你好"
+            local regex = "你好"
+
+            -- Note the D here
+            local s, n, err = ngx.re.gsub(string.sub(target, 1, 4), regex, "", "u")
+
+            if s then
+                ngx.say(s, ": ", n)
+            else
+                ngx.say("error: ", err)
+            end
+       ';
+    }
+--- request
+GET /t
+--- response_body_like chop
+error: pcre_exec\(\) failed: -10 on "你.*?" using "你好"
+
 --- no_error_log
 [error]
 

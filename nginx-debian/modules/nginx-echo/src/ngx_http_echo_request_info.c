@@ -54,6 +54,7 @@ ngx_http_echo_request_method_variable(ngx_http_request_t *r,
         v->no_cacheable = 0;
         v->not_found = 0;
         v->data = r->method_name.data;
+
     } else {
         v->not_found = 1;
     }
@@ -75,6 +76,7 @@ ngx_http_echo_client_request_method_variable(ngx_http_request_t *r,
         v->no_cacheable = 0;
         v->not_found = 0;
         v->data = r->main->method_name.data;
+
     } else {
         v->not_found = 1;
     }
@@ -164,51 +166,133 @@ ngx_int_t
 ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
         ngx_http_variable_value_t *v, uintptr_t data)
 {
-    size_t                      size;
-    u_char                      *p, *last;
-    ngx_buf_t                   *header_in;
-    ngx_flag_t                  just_seen_crlf;
+    size_t                       size;
+    u_char                      *p, *last, *pos;
+    ngx_int_t                    i;
+    ngx_buf_t                   *b, *first = NULL;
+    unsigned                     found;
+    ngx_http_connection_t       *hc;
 
-    if (r != r->main) {
-        header_in = r->main->header_in;
+    hc = r->main->http_connection;
+
+    if (hc->nbusy) {
+        b = NULL;  /* to suppress a gcc warning */
+        size = 0;
+        for (i = 0; i < hc->nbusy; i++) {
+            b = hc->busy[i];
+
+            if (first == NULL) {
+                if (r->main->request_line.data >= b->pos
+                    || r->main->request_line.data
+                       + r->main->request_line.len + 2
+                       <= b->start)
+                {
+                    continue;
+                }
+
+                dd("found first at %d", (int) i);
+                first = b;
+            }
+
+            if (b == r->main->header_in) {
+                size += r->main->header_end + 2 - b->start;
+                break;
+            }
+
+            size += b->pos - b->start;
+        }
+
     } else {
-        header_in = r->header_in;
-    }
+        b = r->main->header_in;
 
-    if (header_in == NULL) {
-        v->not_found = 1;
-        return NGX_OK;
-    }
+        if (b == NULL) {
+            v->not_found = 1;
+            return NGX_OK;
+        }
 
-    size = header_in->pos - header_in->start;
+        size = r->main->header_end + 2 - r->main->request_line.data;
+    }
 
     v->data = ngx_palloc(r->pool, size);
     if (v->data == NULL) {
         return NGX_ERROR;
     }
 
-    last = ngx_cpymem(v->data, header_in->start, size);
+    if (hc->nbusy) {
+        last = v->data;
+        found = 0;
+        for (i = 0; i < hc->nbusy; i++) {
+            b = hc->busy[i];
 
-    /* fix \0 introduced by the nginx header parser and
-     * locate the end of the header */
-    just_seen_crlf = 0;
-    for (p = (u_char*)v->data; p != last; p++) {
-        if (*p == '\0') {
-            if (p + 1 != last && *(p + 1) == LF) {
-                just_seen_crlf = 1;
-                *p = CR;
-            } else {
-                *p = ':';
-                just_seen_crlf = 0;
+            if (!found) {
+                if (b != first) {
+                    continue;
+                }
+
+                dd("found first");
+                found = 1;
             }
-        } else if (*p == CR) {
-            if (just_seen_crlf) {
-                *p = '\0';
-                last = p;
+
+            p = last;
+
+            if (b == r->main->header_in) {
+                pos = r->main->header_end + 2;
+
+            } else {
+                pos = b->pos;
+            }
+
+            if (b == first) {
+                dd("request line: %.*s", (int) r->main->request_line.len,
+                   r->main->request_line.data);
+
+                last = ngx_copy(last,
+                                r->main->request_line.data,
+                                pos - r->main->request_line.data);
+
+            } else {
+                last = ngx_copy(last, b->start, pos - b->start);
+            }
+
+#if 1
+            /* skip truncated header entries (if any) */
+            while (last > p && last[-1] != LF) {
+                last--;
+            }
+#endif
+
+            for (; p != last; p++) {
+                if (*p == '\0') {
+                    if (p + 1 == last) {
+                        /* XXX this should not happen */
+                        dd("found string end!!");
+
+                    } else if (*(p + 1) == LF) {
+                        *p = CR;
+
+                    } else {
+                        *p = ':';
+                    }
+                }
+            }
+
+            if (b == r->main->header_in) {
                 break;
             }
-        } else if (*p != LF) {
-            just_seen_crlf = 0;
+        }
+
+    } else {
+        last = ngx_copy(v->data, r->main->request_line.data, size);
+
+        for (p = v->data; p != last; p++) {
+            if (*p == '\0') {
+                if (p + 1 != last && *(p + 1) == LF) {
+                    *p = CR;
+
+                } else {
+                    *p = ':';
+                }
+            }
         }
     }
 
@@ -231,6 +315,7 @@ ngx_http_echo_cacheable_request_uri_variable(ngx_http_request_t *r,
         v->no_cacheable = 0;
         v->not_found = 0;
         v->data = r->uri.data;
+
     } else {
         v->not_found = 1;
     }
@@ -249,6 +334,7 @@ ngx_http_echo_request_uri_variable(ngx_http_request_t *r,
         v->no_cacheable = 1;
         v->not_found = 0;
         v->data = r->uri.data;
+
     } else {
         v->not_found = 1;
     }
@@ -277,6 +363,7 @@ ngx_http_echo_response_status_variable(ngx_http_request_t *r,
         v->valid = 1;
         v->no_cacheable = 1;
         v->not_found = 0;
+
     } else {
         v->not_found = 1;
     }

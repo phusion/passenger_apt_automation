@@ -10,7 +10,7 @@ log_level('warn');
 #repeat_each(120);
 repeat_each(2);
 
-plan tests => repeat_each() * (blocks() * 2 + 1);
+plan tests => repeat_each() * (blocks() * 2 + 3);
 
 #no_diff();
 #no_long_string();
@@ -170,4 +170,49 @@ ok
 --- error_code: 200
 --- error_log eval
 qr/\[error\] .*? attempt to set ngx\.status after sending out response headers/
+
+
+
+=== TEST 11: http 1.0 and ngx.status
+--- config
+    location /nil {
+        content_by_lua '
+            ngx.status = ngx.HTTP_UNAUTHORIZED
+            ngx.say("invalid request")
+            ngx.exit(ngx.HTTP_OK)
+        ';
+    }
+--- request
+GET /nil HTTP/1.0
+--- response_body
+invalid request
+--- error_code: 401
+--- no_error_log
+[error]
+
+
+
+=== TEST 12: github issue #221: cannot modify ngx.status for responses from ngx_proxy
+--- config
+    location = /t {
+        proxy_pass http://127.0.0.1:$server_port/;
+        header_filter_by_lua '
+            if ngx.status == 206 then
+                ngx.status = ngx.HTTP_OK
+            end
+        ';
+    }
+
+--- request
+GET /t
+
+--- more_headers
+Range: bytes=0-4
+
+--- response_body chop
+<html
+
+--- error_code: 200
+--- no_error_log
+[error]
 

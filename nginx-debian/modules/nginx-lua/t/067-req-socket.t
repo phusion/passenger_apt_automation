@@ -5,7 +5,7 @@ use Test::Nginx::Socket;
 
 repeat_each(2);
 
-plan tests => repeat_each() * (blocks() * 3 + 6);
+plan tests => repeat_each() * (blocks() * 3 + 8);
 
 our $HtmlDir = html_dir;
 
@@ -570,6 +570,185 @@ received: lo
 received: be
 failed to receive: closed []
 "]
+--- no_error_log
+[error]
+
+
+
+=== TEST 9: chunked support is still a TODO
+--- config
+    location /t {
+        content_by_lua '
+            local sock, err = ngx.req.socket()
+            if sock then
+                ngx.say("got the request socket")
+            else
+                ngx.req.read_body()
+                ngx.say("failed to get the request socket: ", err)
+                return
+            end
+
+            for i = 1, 3 do
+                local data, err, part = sock:receive(5)
+                if data then
+                    ngx.say("received: ", data)
+                else
+                    ngx.say("failed to receive: ", err, " [", part, "]")
+                end
+            end
+        ';
+    }
+--- raw_request eval
+"POST /t HTTP/1.1\r
+Host: localhost\r
+Transfer-Encoding: chunked\r
+Connection: close\r
+\r
+b\r
+hello world\r
+0\r
+\r
+"
+--- stap2
+/*
+F(ngx_http_finalize_request) {
+    if ($r->main->count == 2) {
+        print_ubacktrace()
+    }
+}
+F(ngx_http_free_request) {
+    print_ubacktrace()
+}
+*/
+--- response_body
+failed to get the request socket: chunked request bodies not supported yet
+--- no_error_log
+[error]
+[alert]
+--- skip_nginx: 4: <1.3.9
+
+
+
+=== TEST 10: chunked support in ngx.req.read_body
+--- config
+    location /t {
+        content_by_lua '
+            ngx.req.read_body()
+            ngx.say(ngx.req.get_body_data())
+        ';
+    }
+--- raw_request eval
+"POST /t HTTP/1.1\r
+Host: localhost\r
+Transfer-Encoding: chunked\r
+Connection: close\r
+\r
+b\r
+hello world\r
+0\r
+\r
+"
+--- stap2
+/*
+F(ngx_http_finalize_request) {
+    if ($r->main->count == 2) {
+        print_ubacktrace()
+    }
+}
+F(ngx_http_free_request) {
+    print_ubacktrace()
+}
+*/
+--- response_body
+hello world
+--- no_error_log
+[error]
+[alert]
+--- skip_nginx: 4: <1.3.9
+
+
+
+=== TEST 11: downstream cosocket for GET requests (w/o request bodies)
+--- config
+    #resolver 8.8.8.8;
+    location = /t {
+        content_by_lua '
+           local sock, err = ngx.req.socket()
+
+           if not sock then
+              ngx.say("failed to get socket: ", err)
+              return nil
+           end
+
+           while true do
+              local data, err, partial = sock:receive(4096)
+
+              ngx.log(ngx.INFO, "Received data")
+
+              if err then
+                 ngx.say("err: ", err)
+                 if partial then
+                    ngx.print(partial)
+                 end
+
+                 break
+              end
+
+              if data then
+                 ngx.print(data)
+              end
+           end
+        ';
+    }
+
+--- request
+GET /t
+--- response_body
+failed to get socket: no body
+--- no_error_log
+[error]
+
+
+
+=== TEST 12: downstream cosocket for POST requests with 0 size bodies
+--- config
+    #resolver 8.8.8.8;
+    location = /t {
+        content_by_lua '
+           local sock, err = ngx.req.socket()
+
+           if not sock then
+              ngx.say("failed to get socket: ", err)
+              return nil
+           end
+
+           while true do
+              local data, err, partial = sock:receive(4096)
+
+              ngx.log(ngx.INFO, "Received data")
+
+              if err then
+                 ngx.say("err: ", err)
+                 if partial then
+                    ngx.print(partial)
+                 end
+
+                 break
+              end
+
+              if data then
+                 ngx.print(data)
+              end
+           end
+        ';
+    }
+
+--- request
+POST /t
+--- more_headers
+Content-Length: 0
+--- response_body
+failed to get socket: no body
 --- no_error_log
 [error]
 

@@ -9,7 +9,7 @@ use Test::Nginx::Socket;
 
 repeat_each(2);
 
-plan tests => (2 * blocks() + 5) * repeat_each();
+plan tests => (2 * blocks() + 6) * repeat_each();
 
 #no_diff();
 no_long_string();
@@ -647,7 +647,7 @@ Test-Header: [1]
     }
 
     location /back {
-        echo $echo_client_request_headers;
+        echo -n $echo_client_request_headers;
     }
 --- request
 POST /t
@@ -658,6 +658,7 @@ Test-Header: 1
 --- response_body_like eval
 qr/Connection: close\r
 Test-Header: 1\r
+\r
 $/
 --- no_error_log
 [error]
@@ -801,7 +802,7 @@ My-Foo-Header: Hello World
     }
 
     location = /back {
-        echo $echo_client_request_headers;
+        echo -n $echo_client_request_headers;
     }
 --- request
 GET /t
@@ -834,7 +835,7 @@ N: n\r
 O: o\r
 P: p\r
 Q: q\r
-
+\r
 "
 
 
@@ -854,7 +855,7 @@ Q: q\r
     }
 
     location = /back {
-        echo $echo_client_request_headers;
+        echo -n $echo_client_request_headers;
     }
 --- request
 GET /t
@@ -908,7 +909,7 @@ foo-18: 18\r
 foo-19: 19\r
 foo-20: 20\r
 foo-21: 21\r
-
+\r
 "
 
 
@@ -926,7 +927,7 @@ foo-21: 21\r
     }
 
     location = /back {
-        echo $echo_client_request_headers;
+        echo -n $echo_client_request_headers;
     }
 --- request
 GET /t
@@ -959,7 +960,7 @@ M: m\r
 N: n\r
 O: o\r
 P: p\r
-
+\r
 "
 
 
@@ -980,7 +981,7 @@ P: p\r
     }
 
     location = /back {
-        echo $echo_client_request_headers;
+        echo -n $echo_client_request_headers;
     }
 --- request
 GET /t
@@ -1034,6 +1035,32 @@ foo-18: 18\r
 foo-19: 19\r
 foo-20: 20\r
 foo-21: 21\r
-
+\r
 "
+
+
+
+=== TEST 34: raw form
+--- config
+    location /t {
+        content_by_lua '
+           -- get ALL the raw headers (0 == no limit, not recommended)
+           local headers = ngx.req.get_headers(0, true)
+           for k, v in pairs(headers) do
+              ngx.say{ k, ": ", v}
+           end
+        ';
+    }
+--- request
+GET /t
+--- more_headers
+My-Foo: bar
+Bar: baz
+--- response_body
+Host: localhost
+Bar: baz
+My-Foo: bar
+Connection: Close
+--- no_error_log
+[error]
 

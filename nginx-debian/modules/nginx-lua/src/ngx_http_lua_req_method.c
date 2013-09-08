@@ -1,6 +1,13 @@
+
+/*
+ * Copyright (C) Yichun Zhang (agentzh)
+ */
+
+
 #ifndef DDEBUG
 #define DDEBUG 0
 #endif
+
 
 #include "ddebug.h"
 #include "ngx_http_lua_req_method.h"
@@ -43,6 +50,8 @@ ngx_http_lua_ngx_req_get_method(lua_State *L)
         return luaL_error(L, "request object not found");
     }
 
+    ngx_http_lua_check_fake_request(L, r);
+
     lua_pushlstring(L, (char *) r->method_name.data, r->method_name.len);
     return 1;
 }
@@ -70,6 +79,8 @@ ngx_http_lua_ngx_req_set_method(lua_State *L)
     if (r == NULL) {
         return luaL_error(L, "request object not found");
     }
+
+    ngx_http_lua_check_fake_request(L, r);
 
     r->method = method;
 
@@ -106,3 +117,4 @@ ngx_http_lua_ngx_req_set_method(lua_State *L)
     return 0;
 }
 
+/* vi:set ft=c ts=4 sw=4 et fdm=marker: */

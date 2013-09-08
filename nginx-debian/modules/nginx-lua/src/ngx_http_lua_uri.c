@@ -1,7 +1,15 @@
+
+/*
+ * Copyright (C) Xiaozhe Wang (chaoslawful)
+ * Copyright (C) Yichun Zhang (agentzh)
+ */
+
+
 #ifndef DDEBUG
 #define DDEBUG 0
 #endif
 #include "ddebug.h"
+
 
 #include "ngx_http_lua_uri.h"
 #include "ngx_http_lua_util.h"
@@ -39,6 +47,14 @@ ngx_http_lua_ngx_req_set_uri(lua_State *L)
     r = lua_touserdata(L, -1);
     lua_pop(L, 1);
 
+    ngx_http_lua_check_fake_request(L, r);
+
+    p = (u_char *) luaL_checklstring(L, 1, &len);
+
+    if (len == 0) {
+        return luaL_error(L, "attempt to use zero-length uri");
+    }
+
     if (n == 2) {
 
         luaL_checktype(L, 2, LUA_TBOOLEAN);
@@ -52,23 +68,17 @@ ngx_http_lua_ngx_req_set_uri(lua_State *L)
             }
 
             dd("rewrite: %d, access: %d, content: %d",
-                    (int) ctx->entered_rewrite_phase,
-                    (int) ctx->entered_access_phase,
-                    (int) ctx->entered_content_phase);
+               (int) ctx->entered_rewrite_phase,
+               (int) ctx->entered_access_phase,
+               (int) ctx->entered_content_phase);
 
             ngx_http_lua_check_context(L, ctx, NGX_HTTP_LUA_CONTEXT_REWRITE);
 
-            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
-                           "lua set uri jump to \"%V\"", &r->uri);
+            ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
+                           "lua set uri jump to \"%*s\"", len, p);
 
             ngx_http_lua_check_if_abortable(L, ctx);
         }
-    }
-
-    p = (u_char *) luaL_checklstring(L, 1, &len);
-
-    if (len == 0) {
-        return luaL_error(L, "attempt to use zero-length uri");
     }
 
     r->uri.data = ngx_palloc(r->pool, len);
@@ -97,3 +107,4 @@ ngx_http_lua_ngx_req_set_uri(lua_State *L)
     return 0;
 }
 
+/* vi:set ft=c ts=4 sw=4 et fdm=marker: */

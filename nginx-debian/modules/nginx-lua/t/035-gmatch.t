@@ -9,7 +9,7 @@ use Test::Nginx::Socket;
 
 repeat_each(5);
 
-plan tests => repeat_each() * (blocks() * 2 + 1);
+plan tests => repeat_each() * (blocks() * 2 + 3);
 
 our $HtmlDir = html_dir;
 
@@ -510,4 +510,234 @@ matched: []
 matched: []
 matched: []
 matched: []
+
+
+
+=== TEST 21: gmatch with named pattern
+--- config
+    location /re {
+        content_by_lua '
+            local it = ngx.re.gmatch("1234, 1234", "(?<first>[0-9]+)")
+            m = it()
+            if m then
+                ngx.say(m[0])
+                ngx.say(m[1])
+                ngx.say(m["first"])
+            else
+                ngx.say("not matched!")
+            end
+
+            m = it()
+            if m then
+                ngx.say(m[0])
+                ngx.say(m[1])
+                ngx.say(m["first"])
+            else
+                ngx.say("not matched!")
+            end
+        ';
+    }
+--- request
+    GET /re
+--- response_body
+1234
+1234
+1234
+1234
+1234
+1234
+
+
+
+=== TEST 22: gmatch with multiple named pattern
+--- config
+    location /re {
+        content_by_lua '
+            local it = ngx.re.gmatch("1234, abcd, 1234", "(?<first>[0-9]+)|(?<second>[a-z]+)")
+
+            m = it()
+            if m then
+                ngx.say(m[0])
+                ngx.say(m[1])
+                ngx.say(m[2])
+                ngx.say(m["first"])
+                ngx.say(m["second"])
+            else
+                ngx.say("not matched!")
+            end
+
+            m = it()
+            if m then
+                ngx.say(m[0])
+                ngx.say(m[1])
+                ngx.say(m[2])
+                ngx.say(m["first"])
+                ngx.say(m["second"])
+            else
+                ngx.say("not matched!")
+            end
+        ';
+    }
+--- request
+    GET /re
+--- response_body
+1234
+1234
+nil
+1234
+nil
+abcd
+nil
+abcd
+nil
+abcd
+
+
+
+=== TEST 23: gmatch with duplicate named pattern w/ extraction
+--- config
+    location /re {
+        content_by_lua '
+            local it = ngx.re.gmatch("hello, 1234", "(?<first>[a-z]+), (?<first>[0-9]+)", "D")
+            m = it()
+            if m then
+                ngx.say(m[0])
+                ngx.say(m[1])
+                ngx.say(m[2])
+                ngx.say(table.concat(m.first,"-"))
+            else
+                ngx.say("not matched!")
+            end
+
+            m = it()
+            if m then
+             ngx.say(m[0])
+                ngx.say(m[1])
+                ngx.say(m[2])
+                ngx.say(table.concat(m.first,"-"))
+            else
+                ngx.say("not matched!")
+            end
+        ';
+    }
+--- request
+    GET /re
+--- response_body
+hello, 1234
+hello
+1234
+hello-1234
+not matched!
+
+
+
+=== TEST 24: named captures are empty
+--- config
+    location /re {
+        content_by_lua '
+            local it = ngx.re.gmatch("1234", "(?<first>[a-z]*)([0-9]+)", "")
+            local m = it()
+            if m then
+                ngx.say(m[0])
+                ngx.say(m.first)
+                ngx.say(m[1])
+                ngx.say(m[2])
+            else
+                ngx.say("not matched!")
+            end
+        ';
+    }
+--- request
+    GET /re
+--- response_body
+1234
+
+
+1234
+
+
+
+=== TEST 25: named captures are empty (with regex cache)
+--- config
+    location /re {
+        content_by_lua '
+            local it = ngx.re.gmatch("1234", "(?<first>[a-z]*)([0-9]+)", "o")
+            local m = it()
+            if m then
+                ngx.say(m[0])
+                ngx.say(m.first)
+                ngx.say(m[1])
+                ngx.say(m[2])
+            else
+                ngx.say("not matched!")
+            end
+        ';
+    }
+--- request
+    GET /re
+--- response_body
+1234
+
+
+1234
+
+
+
+=== TEST 26: bad pattern
+--- config
+    location /re {
+        content_by_lua '
+            local it, err = ngx.re.gmatch("hello\\nworld", "(abc")
+            if not err then
+                ngx.say("good")
+
+            else
+                ngx.say("error: ", err)
+            end
+        ';
+    }
+--- request
+    GET /re
+--- response_body
+error: failed to compile regex "(abc": pcre_compile() failed: missing ) in "(abc"
+--- no_error_log
+[error]
+
+
+
+=== TEST 27: bad UTF-8
+--- config
+    location = /t {
+        content_by_lua '
+            local target = "你好"
+            local regex = "你好"
+
+            -- Note the D here
+            local it, err = ngx.re.gmatch(string.sub(target, 1, 4), regex, "u")
+
+            if err then
+                ngx.say("error: ", err)
+                return
+            end
+
+            local m, err = it()
+            if err then
+                ngx.say("error: ", err)
+                return
+            end
+
+            if m then
+                ngx.say("matched: ", m[0])
+            else
+                ngx.say("not matched")
+            end
+        ';
+    }
+--- request
+GET /t
+--- response_body_like chop
+error: pcre_exec\(\) failed: -10 on "你.*?"
+
+--- no_error_log
+[error]
 

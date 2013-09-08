@@ -206,12 +206,12 @@ attempt to send data on a closed socket:
 --- config
     server_tokens off;
     resolver $TEST_NGINX_RESOLVER;
-    resolver_timeout 5s;
+    resolver_timeout 1s;
     location /t {
         rewrite_by_lua '
             local sock = ngx.socket.tcp()
             local port = 80
-            local ok, err = sock:connect("agentzh.org", port)
+            local ok, err = sock:connect("direct.agentzh.org", port)
             if not ok then
                 ngx.say("failed to connect: ", err)
                 return
@@ -301,11 +301,11 @@ qr/connect\(\) failed \(\d+: Connection refused\)/
     lua_socket_connect_timeout 100ms;
     lua_socket_send_timeout 100ms;
     lua_socket_read_timeout 100ms;
-    resolver_timeout 2s;
+    resolver_timeout 1s;
     location /test {
         rewrite_by_lua '
             local sock = ngx.socket.tcp()
-            local ok, err = sock:connect("taobao.com", 16787)
+            local ok, err = sock:connect("agentzh.org", 12345)
             ngx.say("connect: ", ok, " ", err)
 
             local bytes
@@ -373,7 +373,7 @@ connected: 1
 --- config
     server_tokens off;
     resolver $TEST_NGINX_RESOLVER;
-    resolver_timeout 4s;
+    resolver_timeout 1s;
     location /t {
         rewrite_by_lua '
             local sock = ngx.socket.tcp()

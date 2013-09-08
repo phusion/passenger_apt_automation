@@ -1,4 +1,9 @@
-/* vim:set ft=c ts=4 sw=4 et fdm=marker: */
+
+/*
+ * Copyright (C) Xiaozhe Wang (chaoslawful)
+ * Copyright (C) Yichun Zhang (agentzh)
+ */
+
 
 #ifndef DDEBUG
 #define DDEBUG 0
@@ -13,7 +18,7 @@
 
 
 static ngx_int_t ngx_http_lua_rewrite_by_chunk(lua_State *L,
-        ngx_http_request_t *r);
+    ngx_http_request_t *r);
 
 
 ngx_int_t
@@ -29,8 +34,9 @@ ngx_http_lua_rewrite_handler(ngx_http_request_t *r)
         return NGX_DECLINED;
     }
 
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
-                   "lua rewrite handler, uri \"%V\"", &r->uri);
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
+                   "lua rewrite handler, uri:\"%V\" c:%ud", &r->uri,
+                   r->main->count);
 
     lmcf = ngx_http_get_module_main_conf(r, ngx_http_lua_module);
 
@@ -113,9 +119,14 @@ ngx_http_lua_rewrite_handler(ngx_http_request_t *r)
         r->request_body_in_clean_file = 1;
 
         rc = ngx_http_read_client_request_body(r,
-                ngx_http_lua_generic_phase_post_read);
+                                       ngx_http_lua_generic_phase_post_read);
 
         if (rc == NGX_ERROR || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
+#if (nginx_version < 1002006) ||                                             \
+        (nginx_version >= 1003000 && nginx_version < 1003009)
+            r->main->count--;
+#endif
+
             return rc;
         }
 
@@ -148,8 +159,10 @@ ngx_http_lua_rewrite_handler_inline(ngx_http_request_t *r)
 
     /*  load Lua inline script (w/ cache) sp = 1 */
     rc = ngx_http_lua_cache_loadbuffer(L, llcf->rewrite_src.value.data,
-            llcf->rewrite_src.value.len, llcf->rewrite_src_key,
-            "rewrite_by_lua", &err, llcf->enable_code_cache ? 1 : 0);
+                                       llcf->rewrite_src.value.len,
+                                       llcf->rewrite_src_key,
+                                       "rewrite_by_lua", &err,
+                                       llcf->enable_code_cache ? 1 : 0);
 
     if (rc != NGX_OK) {
         if (err == NULL) {
@@ -184,7 +197,7 @@ ngx_http_lua_rewrite_handler_file(ngx_http_request_t *r)
     }
 
     script_path = ngx_http_lua_rebase_path(r->pool, eval_src.data,
-            eval_src.len);
+                                           eval_src.len);
 
     if (script_path == NULL) {
         return NGX_ERROR;
@@ -195,7 +208,7 @@ ngx_http_lua_rewrite_handler_file(ngx_http_request_t *r)
 
     /*  load Lua script file (w/ cache)        sp = 1 */
     rc = ngx_http_lua_cache_loadfile(L, script_path, llcf->rewrite_src_key,
-            &err, llcf->enable_code_cache ? 1 : 0);
+                                     &err, llcf->enable_code_cache ? 1 : 0);
 
     if (rc != NGX_OK) {
         if (err == NULL) {
@@ -309,7 +322,7 @@ ngx_http_lua_rewrite_by_chunk(lua_State *L, ngx_http_request_t *r)
     }
 
     if (rc == NGX_DONE) {
-        ngx_http_finalize_request(r, NGX_DONE);
+        ngx_http_lua_finalize_request(r, NGX_DONE);
         rc = ngx_http_lua_run_posted_threads(c, L, r, ctx);
 
         if (rc == NGX_OK) {
@@ -322,3 +335,4 @@ ngx_http_lua_rewrite_by_chunk(lua_State *L, ngx_http_request_t *r)
     return NGX_DECLINED;
 }
 
+/* vi:set ft=c ts=4 sw=4 et fdm=marker: */

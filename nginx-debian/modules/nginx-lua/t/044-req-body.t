@@ -8,7 +8,7 @@ use Test::Nginx::Socket;
 
 repeat_each(2);
 
-plan tests => repeat_each() * (blocks() * 4 + 5);
+plan tests => repeat_each() * (blocks() * 3 + 38);
 
 #no_diff();
 no_long_string();
@@ -33,6 +33,7 @@ hello, world
 hello, world
 --- no_error_log
 [error]
+[alert]
 
 
 
@@ -298,25 +299,23 @@ hello, baby
     location = /sleep {
         echo_sleep 0.5;
     }
---- pipelined_requests eval
-["POST /test\nyeah", "POST /test\nblah"]
---- response_body eval
-["hello, baby
-hello, baby
-",
-"hello, baby
-hello, baby
-"]
+--- request
+POST /test
+yeah
+--- response_body_like: 500 Internal Server Error
+--- error_code: 500
+--- error_log
+lua entry thread aborted: runtime error: [string "content_by_lua"]:2: request body not read yet
 --- no_error_log
-[error]
+[alert]
 
 
 
 === TEST 14: read buffered body to file and reset it to a new file
 --- config
-    client_body_in_file_only on;
 
     location = /test {
+        client_body_in_file_only on;
         set $old '';
         set $new '';
         rewrite_by_lua '
@@ -353,9 +352,8 @@ Will you change this world?
 
 === TEST 15: read buffered body to file and reset it to a new file
 --- config
-    client_body_in_file_only on;
-
     location = /test {
+        client_body_in_file_only on;
         set $old '';
         set $new '';
         rewrite_by_lua '
@@ -498,14 +496,16 @@ Will you change this world?
 
 
 
-=== TEST 19: no request body and reset it to a new file (auto-clean)
+=== TEST 19: request body discarded and reset it to a new file (auto-clean)
 --- config
     client_body_in_file_only off;
+    client_header_buffer_size 80;
 
     location = /test {
         set $old '';
         set $new '';
         rewrite_by_lua '
+            ngx.req.discard_body()
             local a_file = ngx.var.realpath_root .. "/a.txt"
             ngx.req.set_body_file(a_file, false)
         ';
@@ -515,21 +515,18 @@ Will you change this world?
         echo_read_request_body;
         echo_request_body;
     }
---- pipelined_requests eval
-["POST /test
-hello, world",
-"POST /test
-hey, you"]
+--- request
+POST /test
+hello, world
+
 --- user_files
 >>> a.txt
 Will you change this world?
---- response_body eval
-["Will you change this world?\n",
-"Will you change this world?\n"]
---- error_code eval
-[200, 200]
+
+--- response_body_like: 500 Internal Server Error
+--- error_code: 500
 --- no_error_log
-[error]
+[alert]
 
 
 
@@ -550,22 +547,19 @@ Will you change this world?
         echo_read_request_body;
         echo_request_body;
     }
---- pipelined_requests eval
-["POST /test
-hello, world",
-"POST /test
-hey, you"]
+--- request
+POST /test
+hello, world
+
 --- user_files
 >>> a.txt
 Will you change this world?
---- response_body eval
-["Will you change this world?\n",
-qr/500 Internal Server Error/]
---- error_code eval
-[200, 500]
---- error_log eval
-[qr{\[error\].*? lua entry thread aborted: runtime error: \[string "rewrite_by_lua"\]:3: stat\(\) "[^"]+/a\.txt" failed}
-]
+--- response_body_like: 500 Internal Server Error
+--- error_code: 500
+--- error_log
+lua entry thread aborted: runtime error: [string "rewrite_by_lua"]:3: request body not read yet
+--- no_error_log
+[alert]
 
 
 
@@ -610,19 +604,18 @@ hiya, dear dear friend!
         echo_read_request_body;
         echo_request_body;
     }
---- pipelined_requests eval
-["POST /test
-hello, world",
-"POST /test
-hey, you"]
+--- request
+POST /test
+hello, world
+
 --- user_files
 >>> a.txt
 Will you change this world?
---- response_body eval
-["Will you change this world?\n",
-qr/500 Internal Server Error/]
---- error_code eval
-[200, 500]
+
+--- response_body_like: 500 Internal Server Error
+--- error_code: 500
+--- no_error_log
+[alert]
 
 
 
@@ -651,6 +644,7 @@ hello, world"]
 --- config
     location = /test {
         rewrite_by_lua '
+            ngx.req.read_body()
             ngx.req.set_body_data("")
         ';
         proxy_pass http://127.0.0.1:$server_port/echo;
@@ -677,6 +671,7 @@ hello, world"]
 --- config
     location = /test {
         rewrite_by_lua '
+            ngx.req.read_body()
             ngx.req.set_body_file(ngx.var.realpath_root .. "/a.txt")
         ';
         proxy_pass http://127.0.0.1:$server_port/echo;
@@ -842,6 +837,7 @@ srcache_store: request body len: 55
 --- config
     location /t {
         content_by_lua '
+            ngx.req.read_body()
             ngx.req.init_body(4)
             ngx.req.append_body("h")
             ngx.req.append_body("ell")
@@ -876,6 +872,7 @@ body: hell
 --- config
     location /t {
         content_by_lua '
+            ngx.req.read_body()
             ngx.req.init_body(4)
             ngx.req.append_body("h")
             ngx.req.append_body("ell")
@@ -931,11 +928,38 @@ a client request body is buffered to a temporary file
 
 
 
-=== TEST 33: init & append & finish (use default buffer size)
+=== TEST 33: init & append & finish (use default buffer size) - body not read yet
 --- config
     location /t {
         client_body_buffer_size 4;
         content_by_lua '
+            ngx.req.init_body()
+            ngx.req.append_body("h")
+            ngx.req.append_body("ell")
+            ngx.req.finish_body()
+
+            ngx.say("content length: ", ngx.var.http_content_length)
+
+            local data = ngx.req.get_body_data()
+            ngx.say("body: ", data)
+
+        ';
+    }
+--- request
+    GET /t
+--- response_body_like: 500 Internal Server Error
+--- error_code: 500
+--- error_log
+lua entry thread aborted: runtime error: [string "content_by_lua"]:2: request body not read yet
+
+
+
+=== TEST 34: init & append & finish (use default buffer size)
+--- config
+    location /t {
+        client_body_buffer_size 4;
+        content_by_lua '
+            ngx.req.read_body()
             ngx.req.init_body()
             ngx.req.append_body("h")
             ngx.req.append_body("ell")
@@ -960,10 +984,11 @@ a client request body is buffered to a temporary file
 
 
 
-=== TEST 34: init & append & finish (exceeding the buffer size, proxy)
+=== TEST 35: init & append & finish (exceeding the buffer size, proxy)
 --- config
     location /t {
         rewrite_by_lua '
+            ngx.req.read_body()
             ngx.req.init_body(4)
             ngx.req.append_body("h")
             ngx.req.append_body("ell")
@@ -1004,10 +1029,11 @@ a client request body is buffered to a temporary file
 
 
 
-=== TEST 35: init & append & finish (just in buffer, proxy)
+=== TEST 36: init & append & finish (just in buffer, proxy)
 --- config
     location /t {
         rewrite_by_lua '
+            ngx.req.read_body()
             ngx.req.init_body(4)
             ngx.req.append_body("h")
             ngx.req.append_body("ell")
@@ -1032,7 +1058,7 @@ a client request body is buffered to a temporary file
 
 
 
-=== TEST 36: init & append & finish (exceeding buffer size, discard on-disk buffer)
+=== TEST 37: init & append & finish (exceeding buffer size, discard on-disk buffer)
 --- config
     client_header_buffer_size 100;
     location /t {
@@ -1129,7 +1155,7 @@ a client request body is buffered to a temporary file
 
 
 
-=== TEST 37: ngx.req.socket + init & append & finish (requests)
+=== TEST 38: ngx.req.socket + init & append & finish (requests)
 --- config
     location = /t {
         client_body_buffer_size 1;
@@ -1178,7 +1204,7 @@ a client request body is buffered to a temporary file
 
 
 
-=== TEST 38: ngx.req.socket + init & append & finish (pipelined requests, small buffer size)
+=== TEST 39: ngx.req.socket + init & append & finish (pipelined requests, small buffer size)
 --- config
     location = /t {
         client_body_buffer_size 1;
@@ -1232,7 +1258,7 @@ a client request body is buffered to a temporary file
 
 
 
-=== TEST 39: ngx.req.socket + init & append & finish (pipelined requests, big buffer size)
+=== TEST 40: ngx.req.socket + init & append & finish (pipelined requests, big buffer size)
 --- config
     location = /t {
         client_body_buffer_size 100;
@@ -1287,13 +1313,13 @@ a client request body is buffered to a temporary file
 
 
 
-=== TEST 40: calling ngx.req.socket after ngx.req.init_body
+=== TEST 41: calling ngx.req.socket after ngx.req.read_body
 --- config
     location = /t {
         client_body_buffer_size 100;
         lua_socket_buffer_size 100;
         content_by_lua '
-            ngx.req.init_body()
+            ngx.req.read_body()
 
             local sock, err = ngx.req.socket()
             if not sock then
@@ -1313,4 +1339,60 @@ failed to get req socket: request body already exists
 [error]
 --- no_error_log
 a client request body is buffered to a temporary file
+
+
+
+=== TEST 42: failed to write 100 continue
+--- config
+    location = /test {
+        content_by_lua '
+            ngx.req.read_body()
+            ngx.say(ngx.var.request_body)
+        ';
+    }
+--- request
+POST /test
+hello, world
+--- more_headers
+Expect: 100-Continue
+--- ignore_response
+--- no_error_log
+[alert]
+[error]
+http finalize request: 500, "/test?" a:1, c:0
+
+
+
+=== TEST 43: chunked support in ngx.req.read_body
+--- config
+    location /t {
+        content_by_lua '
+            ngx.req.read_body()
+            ngx.say(ngx.req.get_body_data())
+        ';
+    }
+--- raw_request eval
+"POST /t HTTP/1.1\r
+Host: localhost\r
+Transfer-Encoding: chunked\r
+Connection: close\r
+\r
+5\r
+hello\r
+1\r
+,\r
+1\r
+ \r
+5\r
+world\r
+0\r
+\r
+"
+
+--- response_body
+hello, world
+--- no_error_log
+[error]
+[alert]
+--- skip_nginx: 4: <1.3.9
 

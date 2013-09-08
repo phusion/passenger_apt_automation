@@ -1,7 +1,15 @@
+
+/*
+ * Copyright (C) Xiaozhe Wang (chaoslawful)
+ * Copyright (C) Yichun Zhang (agentzh)
+ */
+
+
 #ifndef DDEBUG
 #define DDEBUG 0
 #endif
 #include "ddebug.h"
+
 
 #include "ngx_http_lua_util.h"
 #include "ngx_http_lua_sleep.h"
@@ -39,12 +47,6 @@ ngx_http_lua_ngx_sleep(lua_State *L)
         return luaL_error(L, "invalid sleep duration \"%d\"", delay);
     }
 
-    if (delay == 0) {
-        ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
-                       "lua sleep for 0ms");
-        return 0;
-    }
-
     ctx = ngx_http_get_module_ctx(r, ngx_http_lua_module);
     if (ctx == NULL) {
         return luaL_error(L, "no request ctx found");
@@ -62,7 +64,7 @@ ngx_http_lua_ngx_sleep(lua_State *L)
     coctx->sleep.log = r->connection->log;
 
     dd("adding timer with delay %lu ms, r:%.*s", (unsigned long) delay,
-            (int) r->uri.len, r->uri.data);
+       (int) r->uri.len, r->uri.data);
 
     ngx_add_timer(&coctx->sleep, (ngx_msec_t) delay);
 
@@ -167,15 +169,16 @@ ngx_http_lua_sleep_resume(ngx_http_request_t *r)
     }
 
     if (rc == NGX_DONE) {
-        ngx_http_finalize_request(r, NGX_DONE);
+        ngx_http_lua_finalize_request(r, NGX_DONE);
         return ngx_http_lua_run_posted_threads(c, lmcf->lua, r, ctx);
     }
 
     if (ctx->entered_content_phase) {
-        ngx_http_finalize_request(r, rc);
+        ngx_http_lua_finalize_request(r, rc);
         return NGX_DONE;
     }
 
     return rc;
 }
 
+/* vi:set ft=c ts=4 sw=4 et fdm=marker: */

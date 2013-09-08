@@ -1,9 +1,15 @@
-/* vim:set ft=c ts=4 sw=4 et fdm=marker: */
+
+/*
+ * Copyright (C) Xiaozhe Wang (chaoslawful)
+ * Copyright (C) Yichun Zhang (agentzh)
+ */
+
 
 #ifndef DDEBUG
 #define DDEBUG 0
 #endif
 #include "ddebug.h"
+
 
 #include <nginx.h>
 #include "ngx_http_lua_capturefilter.h"
@@ -18,7 +24,7 @@ ngx_http_output_body_filter_pt ngx_http_lua_next_body_filter;
 
 static ngx_int_t ngx_http_lua_capture_header_filter(ngx_http_request_t *r);
 static ngx_int_t ngx_http_lua_capture_body_filter(ngx_http_request_t *r,
-        ngx_chain_t *in);
+    ngx_chain_t *in);
 
 
 ngx_int_t
@@ -77,6 +83,8 @@ ngx_http_lua_capture_header_filter(ngx_http_request_t *r)
 
                 ctx->capture = old_ctx->capture;
                 ctx->index = old_ctx->index;
+                ctx->body = NULL;
+                ctx->last_body = &ctx->body;
                 psr_data->ctx = ctx;
             }
         }
@@ -100,6 +108,7 @@ static ngx_int_t
 ngx_http_lua_capture_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
 {
     int                              rc;
+    ngx_int_t                        eof;
     ngx_http_lua_ctx_t              *ctx;
     ngx_http_lua_ctx_t              *pr_ctx;
 
@@ -142,9 +151,15 @@ ngx_http_lua_capture_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
                    "lua capture body filter capturing response body, uri "
                    "\"%V\"", &r->uri);
 
-    rc = ngx_http_lua_add_copy_chain(r, pr_ctx, &ctx->body, in);
+    rc = ngx_http_lua_add_copy_chain(r, pr_ctx, &ctx->last_body, in, &eof);
     if (rc != NGX_OK) {
         return NGX_ERROR;
+    }
+
+    dd("add copy chain eof: %d, sr: %d", (int) eof, r != r->main);
+
+    if (eof) {
+        ctx->seen_last_for_subreq = 1;
     }
 
     ngx_http_lua_discard_bufs(r->pool, in);
@@ -152,3 +167,4 @@ ngx_http_lua_capture_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
     return NGX_OK;
 }
 
+/* vi:set ft=c ts=4 sw=4 et fdm=marker: */

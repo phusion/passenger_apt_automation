@@ -35,7 +35,7 @@ __DATA__
 --- request
 GET /test
 --- response_body
-ngx: 85
+ngx: 86
 --- no_error_log
 [error]
 
@@ -56,7 +56,7 @@ ngx: 85
 --- request
 GET /test
 --- response_body
-85
+86
 --- no_error_log
 [error]
 
@@ -84,7 +84,7 @@ GET /test
 --- request
 GET /test
 --- response_body
-n = 85
+n = 86
 --- no_error_log
 [error]
 
@@ -124,7 +124,7 @@ n = 1
 --- request
 GET /test
 --- response_body
-n = 21
+n = 23
 --- no_error_log
 [error]
 
@@ -146,7 +146,7 @@ n = 21
 --- request
 GET /test
 --- response_body
-n = 21
+n = 23
 --- no_error_log
 [error]
 
@@ -173,7 +173,7 @@ n = 21
 --- request
 GET /test
 --- response_body
-n = 21
+n = 23
 --- no_error_log
 [error]
 
@@ -279,7 +279,7 @@ n = 4
 --- request
 GET /test
 --- response_body
-n = 10
+n = 12
 --- no_error_log
 [error]
 
@@ -301,5 +301,25 @@ GET /t
 --- response_body_like: 404 Not Found
 --- error_code: 404
 --- error_log
-ngx. entry count: 85
+ngx. entry count: 86
+
+
+
+=== TEST 14: entries under ngx.timer
+--- config
+        location = /test {
+            content_by_lua '
+                local n = 0
+                for k, v in pairs(ngx.timer) do
+                    n = n + 1
+                end
+                ngx.say("n = ", n)
+            ';
+        }
+--- request
+GET /test
+--- response_body
+n = 1
+--- no_error_log
+[error]
 
