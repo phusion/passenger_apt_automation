@@ -21,7 +21,11 @@ server {
 	listen 80 default_server;
 	listen [::]:80 default_server ipv6only=on;
 
-	root /usr/share/nginx/html;
+    #if is_distribution?("<= quantal")
+        root /usr/share/nginx/www;
+    #else
+	    root /usr/share/nginx/html;
+	#endif
 	index index.html index.htm;
 
 	# Make site accessible from http://localhost/
@@ -44,22 +48,26 @@ server {
 	}
 
 	# Only for nginx-naxsi used with nginx-naxsi-ui : process denied requests
-	#location /RequestDenied {
+	# location /RequestDenied {
 	#	proxy_pass http://127.0.0.1:8080;    
-	#}
+	# }
 
-	#error_page 404 /404.html;
+	# error_page 404 /404.html;
 
 	# redirect server error pages to the static page /50x.html
 	#
-	#error_page 500 502 503 504 /50x.html;
-	#location = /50x.html {
-	#	root /usr/share/nginx/html;
-	#}
+	# error_page 500 502 503 504 /50x.html;
+	# location = /50x.html {
+	#if is_distribution?("<= quantal")
+	    #	root /usr/share/nginx/www;
+	#else
+	    #	root /usr/share/nginx/html;
+	#endif
+	# }
 
 	# pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
 	#
-	#location ~ \.php$ {
+	# location ~ \.php$ {
 	#	fastcgi_split_path_info ^(.+\.php)(/.+)$;
 	#	# NOTE: You should have "cgi.fix_pathinfo = 0;" in php.ini
 	#
@@ -69,20 +77,20 @@ server {
 	#	fastcgi_pass unix:/var/run/php5-fpm.sock;
 	#	fastcgi_index index.php;
 	#	include fastcgi_params;
-	#}
+	# }
 
 	# deny access to .htaccess files, if Apache's document root
 	# concurs with nginx's one
 	#
-	#location ~ /\.ht {
+	# location ~ /\.ht {
 	#	deny all;
-	#}
+	# }
 }
 
 
 # another virtual host using mix of IP-, name-, and port-based configuration
 #
-#server {
+# server {
 #	listen 8000;
 #	listen somename:8080;
 #	server_name somename alias another.alias;
@@ -92,12 +100,12 @@ server {
 #	location / {
 #		try_files $uri $uri/ =404;
 #	}
-#}
+# }
 
 
 # HTTPS server
 #
-#server {
+# server {
 #	listen 443;
 #	server_name localhost;
 #
@@ -117,4 +125,4 @@ server {
 #	location / {
 #		try_files $uri $uri/ =404;
 #	}
-#}
+# }

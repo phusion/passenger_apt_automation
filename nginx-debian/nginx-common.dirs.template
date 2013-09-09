@@ -7,4 +7,6 @@ etc/logrotate.d
 usr/share/nginx
 var/log/nginx
 var/lib/nginx
-run
+#if is_distribution?(">= raring")
+    run
+#endif
