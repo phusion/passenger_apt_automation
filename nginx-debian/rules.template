@@ -3,7 +3,7 @@
 CFLAGS = `dpkg-buildflags --get CFLAGS`
 CFLAGS += -Wall -DFORTIFY_SOURCE=2 -fstack-protector
 CFLAGS += `dpkg-buildflags --get CPPFLAGS`
-LDFLAGS = `dpkg-buildflags --get LDFLAGS`
+LDFLAGS = $(dpkg-buildflags --get LDFLAGS)
 # export necessary for (hardening) flags for perl
 # (src/http/modules/perl/Makefile.PL).
 export CFLAGS LDFLAGS

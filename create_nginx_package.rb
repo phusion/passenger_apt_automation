@@ -118,7 +118,7 @@ def create_debian_package_dir(distribution, passenger_package, passenger_version
 	sh "cd #{root}/debian/modules/passenger && rm -rf doc/images test rpm"
 	changelog = File.read("#{root}/debian/changelog")
 	changelog =
-		"#{DEBIAN_NAME} (#{DEBIAN_EPOCH}:#{package_version}-1~#{distribution}1) #{distribution}; urgency=low\n" +
+		"#{DEBIAN_NAME} (#{DEBIAN_EPOCH}:#{package_version}-2~#{distribution}1) #{distribution}; urgency=low\n" +
 		"\n" +
 		"  * Package built.\n" +
 		"\n" +
