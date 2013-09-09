@@ -75,10 +75,11 @@ def download_nginx_tarball(nginx_version)
 	end
 end
 
-def create_passenger_tarball(passenger_dir, passenger_version)
-	if !File.exist?("#{PKG_DIR}/passenger-#{passenger_version}.tar.gz")
+def create_passenger_tarball(passenger_dir, passenger_package, passenger_version)
+	if !File.exist?("#{PKG_DIR}/#{passenger_package}-#{passenger_version}.tar.gz")
 		sh "mkdir -p #{PKG_DIR}"
-		sh "cd #{passenger_dir} && rake package:tarball"
+		pkg_dir = File.expand_path(PKG_DIR)
+		sh "cd #{passenger_dir} && rake package:tarball PKG_DIR='#{pkg_dir}'"
 	end
 end
 
@@ -90,7 +91,8 @@ def infer_next_passenger_version(passenger_version)
 	return components.join(".")
 end
 
-def create_debian_package_dir(distribution, passenger_version, nginx_version, package_version, output_dir = PKG_DIR)
+def create_debian_package_dir(distribution, passenger_package, passenger_version,
+	nginx_version, package_version, output_dir = PKG_DIR)
 	require 'time'
 
 	variables = {
@@ -101,6 +103,7 @@ def create_debian_package_dir(distribution, passenger_version, nginx_version, pa
 
 	root = "#{output_dir}/#{distribution}"
 	orig_tarball = File.expand_path("#{PKG_DIR}/#{DEBIAN_NAME}_#{package_version}.orig.tar.gz")
+	passenger_tarball = File.expand_path("#{PKG_DIR}/#{passenger_package}-#{passenger_version}.tar.gz")
 
 	sh "rm -rf #{root}"
 	sh "mkdir -p #{root}"
@@ -110,6 +113,8 @@ def create_debian_package_dir(distribution, passenger_version, nginx_version, pa
 	recursive_copy_files(Dir["nginx-debian/**/*"], root,
 		true, variables)
 	sh "mv #{root}/nginx-debian #{root}/debian"
+	sh "cd #{root}/debian/modules && tar xzf #{passenger_tarball}"
+	sh "cd #{root}/debian/modules && mv #{passenger_package}-#{passenger_version} passenger"
 	changelog = File.read("#{root}/debian/changelog")
 	changelog =
 		"#{DEBIAN_NAME} (#{DEBIAN_EPOCH}:#{package_version}-1~#{distribution}1) #{distribution}; urgency=low\n" +
@@ -126,16 +131,16 @@ end
 def build_source_packages(passenger_dir)
 	$LOAD_PATH.unshift(File.expand_path("#{passenger_dir}/lib"))
 	require "phusion_passenger"
+	passenger_package = PhusionPassenger::PACKAGE_NAME
 	passenger_version = PhusionPassenger::VERSION_STRING
 	nginx_version = PhusionPassenger::PREFERRED_NGINX_VERSION
 	package_version = nginx_version
 
 	download_nginx_tarball(nginx_version)
-	create_passenger_tarball(passenger_dir, passenger_version)
+	create_passenger_tarball(passenger_dir, passenger_package, passenger_version)
 
 	sh "rm -rf #{PKG_DIR}/nginx-#{nginx_version}"
 	sh "cd #{PKG_DIR} && tar xzf #{DEBIAN_NAME}_#{nginx_version}.orig.tar.gz"
-	#sh "cd #{PKG_DIR} && tar -c #{DEBIAN_NAME}_#{package_version} | gzip --best > #{DEBIAN_NAME}_#{package_version}.orig.tar.gz"
 
 	if boolean_option('USE_CCACHE', false)
 		# The resulting Debian rules file must not set USE_CCACHE.
@@ -143,11 +148,12 @@ def build_source_packages(passenger_dir)
 	end
 
 	ALL_DISTRIBUTIONS.each do |distribution|
-		create_debian_package_dir(distribution, passenger_version, nginx_version, package_version)
+		create_debian_package_dir(distribution, passenger_package, passenger_version,
+			nginx_version, package_version)
 	end
-	#ALL_DISTRIBUTIONS.each do |distribution|
-	#	sh "cd #{pkg_dir}/#{distribution} && debuild -S -us -uc"
-	#end
+	ALL_DISTRIBUTIONS.each do |distribution|
+		sh "cd #{PKG_DIR}/#{distribution} && debuild -S -us -uc"
+	end
 
 	#files = Dir["nginx-debian/**/*"]
 	#recursive_copy_files(files, "#{PKG_DIR}/#{DEBIAN_NAME}_#{package_version}")
