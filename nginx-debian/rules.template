@@ -94,7 +94,6 @@ config.status.full: config.env.full config.sub config.guess
 	    --add-module=$(MODULESDIR)/nginx-upstream-fair \
 	    --add-module=$(MODULESDIR)/ngx_http_substitutions_filter_module \
 	    --add-module=$(MODULESDIR)/passenger/ext/nginx \
-	    --add-module=$(MODULESDIR)/nginx-upstream-check-module \
             $(CONFIGURE_OPTS) >$@
 	touch $@
 
@@ -190,7 +189,6 @@ config.status.extras: config.env.extras config.sub config.guess
 	    --add-module=$(MODULESDIR)/nginx-upstream-fair \
 	    --add-module=$(MODULESDIR)/ngx_http_substitutions_filter_module \
 	    --add-module=$(MODULESDIR)/passenger/ext/nginx \
-	    --add-module=$(MODULESDIR)/nginx-upstream-check-module \
             $(CONFIGURE_OPTS) >$@
 	touch $@
 
@@ -226,7 +224,6 @@ config.status.naxsi: config.env.naxsi config.sub config.guess
 	    --add-module=$(MODULESDIR)/naxsi/naxsi_src \
 	    --add-module=$(MODULESDIR)/nginx-cache-purge \
 	    --add-module=$(MODULESDIR)/nginx-upstream-fair \
-	    --add-module=$(MODULESDIR)/nginx-upstream-check-module \
 	    $(CONFIGURE_OPTS) >$@
 	touch $@
 

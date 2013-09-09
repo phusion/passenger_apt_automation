@@ -4,7 +4,8 @@ This repository contains tools for automatically creating a multi-distribution A
 
 First, install prerequisites and setup a user:
 
-    sudo apt-get install ubuntu-dev-tools reprepro
+    sudo apt-get install ubuntu-dev-tools reprepro debhelper source-highlight ruby1.9.3
+    sudo gem install bluecloth mizuho --no-rdoc --no-ri
     sudo adduser psg_apt_automation
 
 Add this to /etc/sudoers:

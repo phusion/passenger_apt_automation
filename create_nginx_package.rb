@@ -115,6 +115,7 @@ def create_debian_package_dir(distribution, passenger_package, passenger_version
 	sh "mv #{root}/nginx-debian #{root}/debian"
 	sh "cd #{root}/debian/modules && tar xzf #{passenger_tarball}"
 	sh "cd #{root}/debian/modules && mv #{passenger_package}-#{passenger_version} passenger"
+	sh "cd #{root}/debian/modules/passenger && rm -rf doc/images test rpm"
 	changelog = File.read("#{root}/debian/changelog")
 	changelog =
 		"#{DEBIAN_NAME} (#{DEBIAN_EPOCH}:#{package_version}-1~#{distribution}1) #{distribution}; urgency=low\n" +
