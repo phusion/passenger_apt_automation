@@ -71,7 +71,9 @@ config.status.full: config.env.full config.sub config.guess
 	    #else
 	        --pid-path=/run/nginx.pid \
 	    #endif
-	    --with-pcre-jit \
+	    #if is_distribution?(">= quantal")
+	        --with-pcre-jit \
+	    #endif
 	    --with-debug \
 	    --with-http_addition_module \
 	    --with-http_dav_module \
@@ -110,7 +112,9 @@ config.status.light: config.env.light config.sub config.guess
 	    #else
 	        --pid-path=/run/nginx.pid \
 	    #endif
-	    --with-pcre-jit \
+	    #if is_distribution?(">= quantal")
+	        --with-pcre-jit \
+	    #endif
 	    --with-http_gzip_static_module \
 	    --with-http_ssl_module \
 	    --with-ipv6 \
@@ -147,7 +151,9 @@ config.status.extras: config.env.extras config.sub config.guess
 	    #else
 	        --pid-path=/run/nginx.pid \
 	    #endif
-	    --with-pcre-jit \
+	    #if is_distribution?(">= quantal")
+	        --with-pcre-jit \
+	    #endif
 	    --with-debug \
 	    --with-http_addition_module \
 	    --with-http_dav_module \
@@ -203,7 +209,9 @@ config.status.naxsi: config.env.naxsi config.sub config.guess
 	    #else
 	        --pid-path=/run/nginx.pid \
 	    #endif
-	    --with-pcre-jit \
+	    #if is_distribution?(">= quantal")
+	        --with-pcre-jit \
+	    #endif
 	    --with-http_ssl_module \
 	    --without-mail_pop3_module \
 	    --without-mail_smtp_module \
