@@ -29,17 +29,24 @@ else
 fi
 git reset --hard "$REF"
 
-echo "Building packages..."
+echo "Building Phusion Passenger packages..."
 rm -rf "$PKG_DIR"
 mkdir -p "$PKG_DIR"
 rm -rf ~/pbuilder/*_result/*
 unset USE_CCACHE
 rake debian:source_packages
-rake debian:binary_packages
+rake debian:binary_packages -j$CONCURRENCY_LEVEL
+
+echo "Building Nginx packages..."
+cd "$BASE_DIR"
+export PASSENGER_DIR=$REPO_DIR
+./create_nginx_package source_packages
+./create_nginx_package binary_packages -j$CONCURRENCY_LEVEL
 
 echo "Signing packages..."
 cd "$BASE_DIR"
 export PATH="$BASE_DIR/dummygpg:$PATH"
+debsign -k$SIGNING_KEY $PKG_DIR/nginx*.changes
 debsign -k$SIGNING_KEY $PKG_DIR/official/*.changes
 debsign -k$SIGNING_KEY ~/pbuilder/*_result/*.changes
 
@@ -58,7 +65,9 @@ for DIST in $DEBIAN_DISTROS; do
 		reprepro --keepunusednewfiles -Vb . includedeb $DIST $result_dir/*_$ARCH.deb
 	done
 	reprepro --keepunusednewfiles -Vb . includedeb $DIST $HOME/pbuilder/${DIST}_result/*_all.deb
-	reprepro --keepunusednewfiles -Vb . includedsc $DIST $HOME/pbuilder/${DIST}_result/*.dsc
+	for F in $HOME/pbuilder/${DIST}_result/*.dsc; do
+		reprepro --keepunusednewfiles -Vb . includedsc $DIST $F
+	done
 done
 find . -name Release.gpg -print0 | xargs -0 rm -f
 find . -name Release -exec gpg --batch --sign --detach-sign --armor --local-user $SIGNING_KEY --output \{\}.gpg \{\} \;
