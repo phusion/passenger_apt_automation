@@ -57,7 +57,7 @@ http {
 	# Uncomment it if you installed nginx-naxsi
 	##
 
-	#include /etc/nginx/naxsi_core.rules;
+	# include /etc/nginx/naxsi_core.rules;
 
 	##
 	# nginx-passenger config
@@ -65,8 +65,8 @@ http {
 	# Uncomment it if you installed nginx-passenger
 	##
 	
-	#passenger_root /usr/lib/phusion-passenger;
-	#passenger_ruby /usr/bin/ruby;
+	# passenger_root /usr/lib/phusion-passenger;
+	# passenger_ruby /usr/bin/ruby;
 
 	##
 	# Virtual Host Configs
@@ -77,7 +77,7 @@ http {
 }
 
 
-#mail {
+# mail {
 #	# See sample authentication script at:
 #	# http://wiki.nginx.org/ImapAuthenticateWithApachePhpScript
 # 
@@ -96,4 +96,4 @@ http {
 #		protocol   imap;
 #		proxy      on;
 #	}
-#}
+# }

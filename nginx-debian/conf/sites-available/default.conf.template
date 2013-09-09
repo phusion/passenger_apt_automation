@@ -21,11 +21,11 @@ server {
 	listen 80 default_server;
 	listen [::]:80 default_server ipv6only=on;
 
-    #if is_distribution?("<= quantal")
-        root /usr/share/nginx/www;
-    #else
-	    root /usr/share/nginx/html;
-	#endif
+#if is_distribution?("<= quantal")
+	    root /usr/share/nginx/www;
+#else
+    	root /usr/share/nginx/html;
+#endif
 	index index.html index.htm;
 
 	# Make site accessible from http://localhost/
@@ -58,11 +58,11 @@ server {
 	#
 	# error_page 500 502 503 504 /50x.html;
 	# location = /50x.html {
-	#if is_distribution?("<= quantal")
-	    #	root /usr/share/nginx/www;
-	#else
-	    #	root /usr/share/nginx/html;
-	#endif
+#if is_distribution?("<= quantal")
+    	#	root /usr/share/nginx/www;
+#else
+    	#	root /usr/share/nginx/html;
+#endif
 	# }
 
 	# pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000

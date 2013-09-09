@@ -16,8 +16,7 @@ Build-Depends: autotools-dev,
                libssl-dev,
                libxslt1-dev,
                po-debconf,
-               zlib1g-dev,
-               passenger-dev (>= 3.0.19), passenger-dev (<< 3.0.20)
+               zlib1g-dev
 Standards-Version: 3.9.4
 Homepage: http://nginx.net
 Vcs-Git: git://github.com/brightbox/deb-nginx.git
@@ -72,14 +71,14 @@ Package: nginx-full
 Architecture: any
 Depends: nginx-common (= ${source:Version}),
          ${misc:Depends},
-         ${shlibs:Depends},
-         passenger-common (>= 3.0.19),
-         passenger-common (<< 3.0.20)
+         ${shlibs:Depends}
 Provides: httpd,
           nginx
 Conflicts: nginx-extras,
            nginx-light,
            nginx-naxsi
+Recommends: passenger-common (>= <%= @passenger_version %>),
+            passenger-common (<< <%= @next_passenger_version %>)
 Suggests: nginx-doc (= ${source:Version})
 Description: nginx web/proxy server (standard version)
  Nginx ("engine X") is a high-performance web and reverse proxy server
@@ -172,14 +171,14 @@ Priority: extra
 Depends: nginx-common (= ${source:Version}),
          ${misc:Depends},
          ${perl:Depends},
-         ${shlibs:Depends},
-         passenger-common (>= 3.0.19),
-         passenger-common (<< 3.0.20)
+         ${shlibs:Depends}
 Provides: httpd,
           nginx
 Conflicts: nginx-full,
            nginx-light,
            nginx-naxsi
+Recommends: passenger-common (>= <%= @passenger_version %>),
+            passenger-common (<< <%= @next_passenger_version %>)
 Suggests: nginx-doc (= ${source:Version})
 Description: nginx web/proxy server (extended version)
  Nginx ("engine X") is a high-performance web and reverse proxy server
