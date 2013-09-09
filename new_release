@@ -34,8 +34,8 @@ rm -rf "$PKG_DIR"
 mkdir -p "$PKG_DIR"
 rm -rf ~/pbuilder/*_result/*
 unset USE_CCACHE
-rake debian:source_packages
-rake debian:binary_packages -j$CONCURRENCY_LEVEL
+drake debian:source_packages
+drake debian:binary_packages -j$CONCURRENCY_LEVEL
 
 echo "Building Nginx packages..."
 cd "$BASE_DIR"
