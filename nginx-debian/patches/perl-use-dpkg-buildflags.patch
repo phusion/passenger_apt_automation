@@ -11,7 +11,7 @@ Author: Simon Ruderich <simon@ruderich.org>
  use ExtUtils::MakeMaker;
  
  WriteMakefile(
-@@ -13,7 +14,10 @@
+@@ -13,7 +14,10 @@ WriteMakefile(
      ABSTRACT_FROM     => 'nginx.pm',     # retrieve abstract from module
      AUTHOR            => 'Igor Sysoev',
  
@@ -22,4 +22,4 @@ Author: Simon Ruderich <simon@ruderich.org>
 +    LDDLFLAGS         => "$Config{lddlflags} $ENV{LDFLAGS}",
      OPTIMIZE          => '-O',
  
-     INC               => "-I ../../../../../src/core " .
+     INC               => join(" ", map {
