@@ -82,8 +82,8 @@ Provides: httpd,
 Conflicts: nginx-extras,
            nginx-light,
            nginx-naxsi
-Recommends: ruby-passenger (>= <%= @passenger_version %>),
-            ruby-passenger (<< <%= @next_passenger_version %>)
+Recommends: <%= PASSENGER_PACKAGE %> (>= <%= @passenger_version %>),
+            <%= PASSENGER_PACKAGE %> (<< <%= @next_passenger_version %>)
 Suggests: nginx-doc (= ${source:Version})
 Description: nginx web/proxy server (standard version)
  Nginx ("engine X") is a high-performance web and reverse proxy server
@@ -182,8 +182,8 @@ Provides: httpd,
 Conflicts: nginx-full,
            nginx-light,
            nginx-naxsi
-Recommends: ruby-passenger (>= <%= @passenger_version %>),
-            ruby-passenger (<< <%= @next_passenger_version %>)
+Recommends: <%= PASSENGER_PACKAGE %> (>= <%= @passenger_version %>),
+            <%= PASSENGER_PACKAGE %> (<< <%= @next_passenger_version %>)
 Suggests: nginx-doc (= ${source:Version})
 Description: nginx web/proxy server (extended version)
  Nginx ("engine X") is a high-performance web and reverse proxy server
