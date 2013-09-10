@@ -24,3 +24,21 @@ Architectures: i386 amd64 source
 Components: main
 Description: Phusion Passenger
 Update: phusion_misc
+
+Origin: Phusion
+Label: Phusion Passenger
+Suite: stable
+Codename: squeeze
+Architectures: i386 amd64 source
+Components: main
+Description: Phusion Passenger
+Update: phusion_misc
+
+Origin: Phusion
+Label: Phusion Passenger
+Suite: stable
+Codename: wheezy
+Architectures: i386 amd64 source
+Components: main
+Description: Phusion Passenger
+Update: phusion_misc
