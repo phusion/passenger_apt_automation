@@ -5,7 +5,6 @@ Codename: raring
 Architectures: i386 amd64 source
 Components: main
 Description: Phusion Passenger
-Update: phusion_misc
 
 Origin: Phusion
 Label: Phusion Passenger
@@ -14,7 +13,6 @@ Codename: precise
 Architectures: i386 amd64 source
 Components: main
 Description: Phusion Passenger
-Update: phusion_misc
 
 Origin: Phusion
 Label: Phusion Passenger
@@ -23,7 +21,6 @@ Codename: lucid
 Architectures: i386 amd64 source
 Components: main
 Description: Phusion Passenger
-Update: phusion_misc
 
 Origin: Phusion
 Label: Phusion Passenger
@@ -32,7 +29,6 @@ Codename: squeeze
 Architectures: i386 amd64 source
 Components: main
 Description: Phusion Passenger
-Update: phusion_misc
 
 Origin: Phusion
 Label: Phusion Passenger
@@ -41,4 +37,3 @@ Codename: wheezy
 Architectures: i386 amd64 source
 Components: main
 Description: Phusion Passenger
-Update: phusion_misc
