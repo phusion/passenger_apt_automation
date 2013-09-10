@@ -1,0 +1,57 @@
+#!/bin/bash
+set -e
+source configuration
+BASE_DIR=`dirname "$0"`
+BASE_DIR=`cd "$BASE_DIR"; pwd`
+set -x
+
+# Prepare
+export PKG_DIR=/tmp/passenger_apt_build
+rm -rf $PKG_DIR
+mkdir -p $PKG_DIR
+rm -rf ~/pbuilder/*_result/*
+
+# Clone repos
+rm -rf misc_packages
+mkdir -p misc_packages
+git clone git://github.com/FooBarWidget/daemon_controller.git misc_packages/daemon_controller
+git clone git://github.com/FooBarWidget/crash-watch.git misc_packages/crash-watch
+
+# Build daemon_controller
+cd $BASE_DIR/misc_packages/daemon_controller
+rake debian:source_packages
+for DIST in $DEBIAN_DISTROS; do
+	pbuilder-dist $DIST i386 build $PKG_DIR/ruby-daemon-controller_*$DIST*.dsc
+done
+
+# Build crash-watch
+cd $BASE_DIR/misc_packages/crash-watch
+rake debian:source_packages
+for DIST in $DEBIAN_DISTROS; do
+	pbuilder-dist $DIST i386 build $PKG_DIR/crash-watch_*$DIST*.dsc
+done
+
+# Sign packages
+cd $BASE_DIR
+export PATH="$BASE_DIR/dummygpg:$PATH"
+debsign -k$SIGNING_KEY $PKG_DIR/*.changes
+
+# Import into APT repositories
+cd $BASE_DIR
+for REPO in passenger.apt passenger-enterprise.apt; do
+	rm -rf $REPO.tmp $REPO.old
+	cp -dpR $REPO $REPO.tmp
+	pushd $REPO.tmp
+
+	for DIST in $DEBIAN_DISTROS; do
+		reprepro --keepunusednewfiles -Vb . includedeb $DIST $HOME/pbuilder/$DIST-i386_result/*.deb
+		for F in $HOME/pbuilder/$DIST-i386_result/*.dsc; do
+			reprepro --keepunusednewfiles -Vb . includedsc $DIST $F
+		done
+	done
+
+	popd
+	mv $REPO $REPO.old
+	mv $REPO.tmp $REPO
+	rm -rf $REPO.old
+done

@@ -38,10 +38,9 @@ Configure your GPG signing settings:
     sudo -u psg_apt_automation -H gpg --keyserver keyserver.ubuntu.com --recv-keys C324F5BB38EEB5A0
     sudo -u psg_apt_automation -H gpg --armor --export C324F5BB38EEB5A0 | sudo apt-key add -
 
-Import the [phusion.nl/misc PPA](https://launchpad.net/~phusion.nl/+archive/misc) into the local repositories:
+Import miscellaneous Phusion packages:
 
-    (cd passenger.apt && reprepro update)
-    (cd passenger-enterprise.apt && reprepro update)
+    ./import_misc_packages
 
 Then, every time a new Phusion Passenger version is released, run the following command to update the APT repository in `apt/`, as `psg_apt_automation`:
 
