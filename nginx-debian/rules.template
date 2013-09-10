@@ -71,12 +71,12 @@ config.status.full: config.env.full config.sub config.guess
 	    --http-scgi-temp-path=/var/lib/nginx/scgi \
 	    --http-uwsgi-temp-path=/var/lib/nginx/uwsgi \
 	    --lock-path=/var/lock/nginx.lock \
-#if is_distribution?("<= quantal")
+#if is_distribution?("<= quantal") || is_distribution?("<= wheezy")
     	    --pid-path=/var/run/nginx.pid \
 #else
     	    --pid-path=/run/nginx.pid \
 #endif
-#if is_distribution?(">= quantal")
+#if is_distribution?(">= quantal") || is_distribution?(">= wheezy")
     	    --with-pcre-jit \
 #endif
 	    --with-debug \
@@ -112,12 +112,12 @@ config.status.light: config.env.light config.sub config.guess
 	    --http-log-path=/var/log/nginx/access.log \
 	    --http-proxy-temp-path=/var/lib/nginx/proxy \
 	    --lock-path=/var/lock/nginx.lock \
-#if is_distribution?("<= quantal")
+#if is_distribution?("<= quantal") || is_distribution?("<= wheezy")
     	    --pid-path=/var/run/nginx.pid \
 #else
     	    --pid-path=/run/nginx.pid \
 #endif
-#if is_distribution?(">= quantal")
+#if is_distribution?(">= quantal") || is_distribution?(">= wheezy")
     	    --with-pcre-jit \
 #endif
 	    --with-http_gzip_static_module \
@@ -151,12 +151,12 @@ config.status.extras: config.env.extras config.sub config.guess
 	    --http-scgi-temp-path=/var/lib/nginx/scgi \
 	    --http-uwsgi-temp-path=/var/lib/nginx/uwsgi \
 	    --lock-path=/var/lock/nginx.lock \
-#if is_distribution?("<= quantal")
+#if is_distribution?("<= quantal") || is_distribution?(">= wheezy")
     	    --pid-path=/var/run/nginx.pid \
 #else
     	    --pid-path=/run/nginx.pid \
 #endif
-#if is_distribution?(">= quantal")
+#if is_distribution?(">= quantal") || is_distribution?(">= wheezy")
     	    --with-pcre-jit \
 #endif
 	    --with-debug \
@@ -171,7 +171,7 @@ config.status.extras: config.env.extras config.sub config.guess
 	    --with-http_random_index_module \
 	    --with-http_realip_module \
 	    --with-http_secure_link_module \
-#if is_distribution?(">= precise")
+#if is_distribution?(">= precise") || is_distribution?(">= wheezy")
     	    --with-http_spdy_module \
 #endif
 	    --with-http_stub_status_module \
@@ -209,12 +209,12 @@ config.status.naxsi: config.env.naxsi config.sub config.guess
 	    --http-scgi-temp-path=/var/lib/nginx/scgi \
 	    --http-uwsgi-temp-path=/var/lib/nginx/uwsgi \
 	    --lock-path=/var/lock/nginx.lock \
-#if is_distribution?("<= quantal")
+#if is_distribution?("<= quantal") || is_distribution?("<= wheezy")
     	    --pid-path=/var/run/nginx.pid \
 #else
     	    --pid-path=/run/nginx.pid \
 #endif
-#if is_distribution?(">= quantal")
+#if is_distribution?(">= quantal") || is_distribution?(">= wheezy")
     	    --with-pcre-jit \
 #endif
 	    --with-http_ssl_module \

@@ -1,6 +1,6 @@
 user www-data;
 worker_processes 4;
-#if is_distribution?("<= quantal")
+#if is_distribution?("<= quantal") || is_distribution?("<= wheezy")
     pid /var/run/nginx.pid;
 #else
     pid /run/nginx.pid;

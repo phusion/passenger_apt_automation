@@ -7,6 +7,6 @@ etc/logrotate.d
 usr/share/nginx
 var/log/nginx
 var/lib/nginx
-#if is_distribution?(">= raring")
+#if is_distribution?(">= raring") || is_distribution?("> wheezy")
     run
 #endif

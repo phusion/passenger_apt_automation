@@ -21,7 +21,7 @@ server {
 	listen 80 default_server;
 	listen [::]:80 default_server ipv6only=on;
 
-#if is_distribution?("<= quantal")
+#if is_distribution?("<= quantal") || is_distribution?("<= wheezy")
 	    root /usr/share/nginx/www;
 #else
     	root /usr/share/nginx/html;
@@ -58,7 +58,7 @@ server {
 	#
 	# error_page 500 502 503 504 /50x.html;
 	# location = /50x.html {
-#if is_distribution?("<= quantal")
+#if is_distribution?("<= quantal") || is_distribution?("<= wheezy")
     	#	root /usr/share/nginx/www;
 #else
     	#	root /usr/share/nginx/html;

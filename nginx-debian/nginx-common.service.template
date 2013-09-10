@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=forking
-#if is_distribution?("<= quantal")
+#if is_distribution?("<= quantal") || is_distribution?("<= wheezy")
     PIDFile=/var/run/nginx.pid
 #else
     PIDFile=/run/nginx.pid

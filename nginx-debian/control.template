@@ -18,7 +18,7 @@ Build-Depends: autotools-dev,
                po-debconf,
                zlib1g-dev,
                ruby, ruby-dev, rake,
-#if is_distribution?('>= precise')
+#if is_distribution?('>= precise') || is_distribution?(">= wheezy")
                    libev-dev (>= 1:4.0.0),
 #endif
                libcurl4-openssl-dev

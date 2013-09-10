@@ -1,6 +1,6 @@
 debian/conf/* etc/nginx
 debian/ufw/nginx etc/ufw/applications.d
-#if is_distribution?("<= quantal")
+#if is_distribution?("<= quantal") || is_distribution?("<= wheezy")
     html/* usr/share/nginx/www/
 #else
     html/* usr/share/nginx/html/
