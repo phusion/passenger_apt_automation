@@ -128,6 +128,13 @@ def create_debian_package_dir(distribution, output_dir = PKG_DIR)
 	sh "cd #{root}/debian/modules && tar xzf #{passenger_tarball}"
 	sh "cd #{root}/debian/modules && mv #{PASSENGER_PACKAGE}-#{PASSENGER_VERSION} passenger"
 	sh "cd #{root}/debian/modules/passenger && rm -rf doc/images test rpm"
+	Dir.chdir(root) do
+		Dir["debian/modules/passenger/doc/*.pdf"].each do |filename|
+			File.open("#{root}/debian/source/include-binaries", "a") do |f|
+				f.puts filename
+			end
+		end
+	end
 	changelog = File.read("#{root}/debian/changelog")
 	changelog =
 		"#{DEBIAN_NAME} (#{DEBIAN_EPOCH}:#{PACKAGE_VERSION}-#{VENDOR_VERSION}~#{distribution}1) #{distribution}; urgency=low\n" +
