@@ -17,7 +17,7 @@ NAME=nginx-naxsi-ui
 NAME_intercept=nginx-naxsi-ui_intercept
 NAME_extract=nginx-naxsi-ui_extract
 DESC=nginx-naxsi-ui
-#if is_distribution?("<= quantal")
+#if is_distribution?("<= quantal") || is_distribution?("<= wheezy")
     RUNDIR=/var/run
 #else
     RUNDIR=/run

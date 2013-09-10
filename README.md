@@ -17,7 +17,15 @@ Add this to /etc/sudoers:
     Defaults!PBUILDER env_keep="ARCHITECTURE DISTRIBUTION ARCH DIST DEB_BUILD_OPTIONS HOME"
     psg_apt_automation ALL=(root)NOPASSWD:PBUILDER
 
-Now install the pbuilder distributions:
+Now install the pbuilder distributions. You need to patch pbuilder-dist and add Debian Wheezy support first. Edit `/usr/lib/pbuilder/pbuilder-apt-config` and replace:
+
+    etch|lenny|squeeze|sid|oldstable|stable|testing|unstable|experimental)
+
+with:
+
+    etch|lenny|squeeze|sid|oldstable|stable|testing|unstable|experimental|wheezy)
+
+Then run:
 
     sudo -u psg_apt_automation -H ./setup-pbuilder-dist
 
