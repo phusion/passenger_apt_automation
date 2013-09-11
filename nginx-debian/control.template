@@ -197,7 +197,7 @@ Description: nginx web/proxy server (extended version)
  STANDARD HTTP MODULES: Core, Access, Auth Basic, Auto Index, Browser,
  Charset, Empty GIF, FastCGI, Geo, Gzip, Headers, Index, Limit Requests,
  Limit Zone, Log, Map, Memcached, Proxy, Referer, Rewrite, SCGI,
- Split Clients, SSI, Upstream, User ID, UWSGI.
+ <%= "SPDY, " if is_distribution?(">= precise") || is_distribution?(">= wheezy") %>Split Clients, SSI, Upstream, User ID, UWSGI.
  .
  OPTIONAL HTTP MODULES: Addition, Debug, Embedded Perl, FLV, GeoIP,
  Gzip Precompression, Image Filter, IPv6, MP4, Random Index, Real IP,
