@@ -8,8 +8,10 @@ GIT_URL="$1"
 REPO_DIR="$2"
 APT_DIR="$3"
 REF=${4:-origin/master}
+DEFAULT_NAMESPACE=`basename "$REPO_DIR" | sed 's/.git$//'`
+NAMESPACE=${DEFAULT_NAMESPACE:-default}
 source configuration
-export PKG_DIR=/tmp/passenger_apt_build
+export PKG_DIR=/tmp/passenger_apt_build.$NAMESPACE
 
 set -x
 
