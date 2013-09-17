@@ -139,7 +139,7 @@ def create_debian_package_dir(distribution, output_dir = PKG_DIR)
 	end
 	changelog = File.read("#{root}/debian/changelog")
 	changelog =
-		"#{DEBIAN_NAME} (#{DEBIAN_EPOCH}:#{PACKAGE_VERSION}-#{VENDOR_VERSION}~#{distribution}1) #{distribution}; urgency=low\n" +
+		"#{DEBIAN_NAME} (#{DEBIAN_EPOCH}:#{PACKAGE_VERSION}-#{VENDOR_VERSION}.#{PASSENGER_VERSION}~#{distribution}1) #{distribution}; urgency=low\n" +
 		"\n" +
 		"  * Package built.\n" +
 		"\n" +
@@ -182,7 +182,7 @@ end
 def create_binary_package_task(distribution, arch)
 	desc "Build Debian binary package for #{distribution} #{arch}"
 	task "binary_packages:#{distribution}_#{arch}" => 'binary_packages:prepare' do
-		base_name = "#{DEBIAN_NAME}_#{PACKAGE_VERSION}-#{VENDOR_VERSION}~#{distribution}1"
+		base_name = "#{DEBIAN_NAME}_#{PACKAGE_VERSION}-#{VENDOR_VERSION}.#{PASSENGER_VERSION}~#{distribution}1"
 		sh "cd #{PKG_DIR} && " +
 			"pbuilder-dist #{distribution} #{arch} build #{base_name}.dsc " +
 			"2>&1 | tee #{PKG_DIR}/nginx_#{distribution}_#{arch}.log"
