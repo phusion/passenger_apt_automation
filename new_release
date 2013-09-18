@@ -64,11 +64,11 @@ for DIST in $DEBIAN_DISTROS; do
 			pbase_name="$DIST-$ARCH"
 		fi
 		result_dir="$HOME/pbuilder/${pbase_name}_result"
-		reprepro --keepunusednewfiles -Vb . includedeb $DIST $result_dir/*_$ARCH.deb
+		reprepro --keepunusednewfiles --keepunreferencedfiles -Vb . includedeb $DIST $result_dir/*_$ARCH.deb
 	done
-	reprepro --keepunusednewfiles -Vb . includedeb $DIST $HOME/pbuilder/${DIST}_result/*_all.deb
+	reprepro --keepunusednewfiles --keepunreferencedfiles -Vb . includedeb $DIST $HOME/pbuilder/${DIST}_result/*_all.deb
 	for F in $HOME/pbuilder/${DIST}_result/*.dsc; do
-		reprepro --keepunusednewfiles -Vb . includedsc $DIST $F
+		reprepro --keepunusednewfiles --keepunreferencedfiles -Vb . includedsc $DIST $F
 	done
 done
 find . -name Release.gpg -print0 | xargs -0 rm -f
