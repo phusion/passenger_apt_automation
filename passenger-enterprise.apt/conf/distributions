@@ -1,6 +1,14 @@
 Origin: Phusion
 Label: Phusion Passenger Enterprise
 Suite: stable
+Codename: saucy
+Architectures: i386 amd64 source
+Components: main
+Description: Phusion Passenger Enterprise
+
+Origin: Phusion
+Label: Phusion Passenger Enterprise
+Suite: stable
 Codename: raring
 Architectures: i386 amd64 source
 Components: main
