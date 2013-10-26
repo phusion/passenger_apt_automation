@@ -183,9 +183,12 @@ def create_binary_package_task(distribution, arch)
 	desc "Build Debian binary package for #{distribution} #{arch}"
 	task "binary_packages:#{distribution}_#{arch}" => 'binary_packages:prepare' do
 		base_name = "#{DEBIAN_NAME}_#{PACKAGE_VERSION}-#{VENDOR_VERSION}.#{PASSENGER_VERSION}~#{distribution}1"
+		logfile = "#{PKG_DIR}/nginx_#{distribution}_#{arch}.log"
 		sh "cd #{PKG_DIR} && " +
 			"pbuilder-dist #{distribution} #{arch} build #{base_name}.dsc " +
-			"2>&1 | tee #{PKG_DIR}/nginx_#{distribution}_#{arch}.log"
+			"2>&1 | awk '{ print strftime(\"%Y-%m-%d %H:%M:%S -- \"), $0; fflush(); }'" +
+			" | tee #{logfile}"
+		sh "echo Done >> #{logfile}"
 	end
 	return "binary_packages:#{distribution}_#{arch}"
 end

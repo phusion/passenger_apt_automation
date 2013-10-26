@@ -11,12 +11,29 @@ REF=${4:-origin/master}
 DEFAULT_NAMESPACE=`basename "$REPO_DIR" | sed -E 's/\..*?$//'`
 NAMESPACE=${DEFAULT_NAMESPACE:-default}
 source configuration
-export PKG_DIR=/tmp/passenger_apt_build.$NAMESPACE
+source library
+export WORK_DIR="/tmp/passenger_apt_build.$NAMESPACE"
+export PKG_DIR="$WORK_DIR/pkg"
+export PBUILDFOLDER="$WORK_DIR/pbuilder"
+
+if [[ "$GIT_URL" = "" || "$REPO_DIR" = "" || "$APT_DIR" = "" ]]; then
+	echo "Usage: ./new_release GIT_URL REPO_DIR APT_DIR [REF]"
+	exit 1
+fi
 
 set -x
 
+echo "# Initializing..."
+rm -rf "$WORK_DIR"
+mkdir -p "$WORK_DIR"
+mkdir -p "$PKG_DIR"
+mkdir -p "$PBUILDFOLDER"
+ln -s ~/pbuilder/*.tgz "$PBUILDFOLDER"/
+unset USE_CCACHE
+trap "stage Error error" ERR
+
 if [[ -e "$REPO_DIR" ]]; then
-	echo "Updating repository..."
+	stage "Updating repository..." updating_repo
 	cd "$REPO_DIR"
 	if [[ "`git config remote.origin.url`" != "$GIT_URL" ]]; then
 		echo "Git repository URL does not match!"
@@ -25,34 +42,33 @@ if [[ -e "$REPO_DIR" ]]; then
 	git fetch
 	rm -rf *
 else
-	echo "Cloning repository..."
+	stage "Cloning repository..."
 	git clone "$GIT_URL" "$REPO_DIR"
 	cd "$REPO_DIR"
 fi
 git reset --hard "$REF"
 
-echo "Building Phusion Passenger packages..."
-rm -rf "$PKG_DIR"
-mkdir -p "$PKG_DIR"
-rm -rf ~/pbuilder/*_result/*
-unset USE_CCACHE
+stage "Building Phusion Passenger source packages..." building_passenger_source_packages
 drake debian:source_packages
+
+stage "Building Phusion Passenger binary packages..." building_passenger_binary_packages
 drake debian:binary_packages -j$CONCURRENCY_LEVEL
 
-echo "Building Nginx packages..."
+stage "Building Nginx source packages..." building_nginx_source_packages
 cd "$BASE_DIR"
-export PASSENGER_DIR=$REPO_DIR
+export PASSENGER_DIR="$REPO_DIR"
 ./create_nginx_package source_packages
+stage "Building Nginx binary packages..." building_nginx_binary_packages
 ./create_nginx_package binary_packages -j$CONCURRENCY_LEVEL
 
-echo "Signing packages..."
+stage "Signing packages..." signing_packages
 cd "$BASE_DIR"
 export PATH="$BASE_DIR/dummygpg:$PATH"
 debsign -k$SIGNING_KEY $PKG_DIR/nginx*.changes
 debsign -k$SIGNING_KEY $PKG_DIR/official/*.changes
-debsign -k$SIGNING_KEY ~/pbuilder/*_result/*.changes
+debsign -k$SIGNING_KEY $PBUILDFOLDER/*_result/*.changes
 
-echo "Importing packages into APT repository..."
+stage "Importing packages into APT repository..." importing_packages
 rm -rf "$APT_DIR.tmp" "$APT_DIR.old"
 cp -dpR "$APT_DIR" "$APT_DIR.tmp"
 cd "$APT_DIR.tmp"
@@ -63,17 +79,18 @@ for DIST in $DEBIAN_DISTROS; do
 		else
 			pbase_name="$DIST-$ARCH"
 		fi
-		result_dir="$HOME/pbuilder/${pbase_name}_result"
+		result_dir="$PBUILDFOLDER/${pbase_name}_result"
 		reprepro --keepunusednewfiles --keepunreferencedfiles -Vb . includedeb $DIST $result_dir/*_$ARCH.deb
 	done
-	reprepro --keepunusednewfiles --keepunreferencedfiles -Vb . includedeb $DIST $HOME/pbuilder/${DIST}_result/*_all.deb
-	for F in $HOME/pbuilder/${DIST}_result/*.dsc; do
+	reprepro --keepunusednewfiles --keepunreferencedfiles -Vb . includedeb $DIST $PBUILDFOLDER/${DIST}_result/*_all.deb
+	for F in $PBUILDFOLDER/${DIST}_result/*.dsc; do
 		reprepro --keepunusednewfiles --keepunreferencedfiles -Vb . includedsc $DIST $F
 	done
 done
-find . -name Release.gpg -print0 | xargs -0 rm -f
-find . -name Release -exec gpg --batch --sign --detach-sign --armor --local-user $SIGNING_KEY --output \{\}.gpg \{\} \;
+./sign_repo "`pwd`"
 cd ..
 mv "$APT_DIR" "$APT_DIR.old"
 mv "$APT_DIR.tmp" "$APT_DIR"
 rm -rf "$APT_DIR.old"
+
+stage "Done" done

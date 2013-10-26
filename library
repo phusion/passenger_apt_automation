@@ -1,0 +1,9 @@
+function stage()
+{
+	local display="$1"
+	local name="$2"
+	echo "####### Stage: $display #######"
+	if [[ "$WORK_DIR" != "" ]]; then
+		echo "$name" >> "$WORK_DIR/stage"
+	fi
+}
