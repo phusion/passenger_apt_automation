@@ -4,6 +4,6 @@ function stage()
 	local name="$2"
 	echo "####### Stage: $display ($name) #######"
 	if [[ "$WORK_DIR" != "" ]]; then
-		echo "$name" >> "$WORK_DIR/stage"
+		echo "`date` -- $name" >> "$WORK_DIR/stage"
 	fi
 }
