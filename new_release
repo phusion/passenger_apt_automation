@@ -21,18 +21,18 @@ if [[ "$GIT_URL" = "" || "$REPO_DIR" = "" || "$APT_DIR" = "" ]]; then
 	exit 1
 fi
 
+echo "# Initializing..."
+rm -rf "$WORK_DIR"
+mkdir -p "$WORK_DIR"
+
 (
 	set -x
-
-	echo "# Initializing..."
-	rm -rf "$WORK_DIR"
-	mkdir -p "$WORK_DIR"
 	mkdir -p "$PKG_DIR"
 	mkdir -p "$PBUILDFOLDER"
 	echo $$ > "$WORK_DIR/pid"
 	ln -s ~/pbuilder/*.tgz "$PBUILDFOLDER"/
 	unset USE_CCACHE
-	trap "stage Error error" ERR
+	trap "stage Error error; exit 1" ERR
 
 	if [[ -e "$REPO_DIR" ]]; then
 		stage "Updating repository..." updating_repo
@@ -90,10 +90,12 @@ fi
 			reprepro --keepunusednewfiles --keepunreferencedfiles -Vb . includedsc $DIST $F
 		done
 	done
-	./sign_repo "`pwd`"
+	../sign_repo "`pwd`"
 	cd ..
 
-	mv "$APT_DIR.bak" "$APT_DIR.bak2"
+	if [[ -e "$APT_DIR.bak" ]]; then
+		mv "$APT_DIR.bak" "$APT_DIR.bak2"
+	fi
 	cp -dpR "$APT_DIR" "$APT_DIR.bak"
 	rm -rf "$APT_DIR.bak2"
 
@@ -103,3 +105,4 @@ fi
 
 	stage "Done" done
 ) 2>&1 | awk '{ print strftime("%Y-%m-%d %H:%M:%S -- "), $0; fflush(); }' | tee "$WORK_DIR/full.log"
+test ${PIPESTATUS[0]} -eq 0
