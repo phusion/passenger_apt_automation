@@ -40,6 +40,12 @@ Configure your GPG signing settings:
     sudo -u psg_apt_automation -H gpg --keyserver keyserver.ubuntu.com --recv-keys C324F5BB38EEB5A0
     sudo -u psg_apt_automation -H gpg --armor --export C324F5BB38EEB5A0 | sudo apt-key add -
 
+Edit `/home/psg_apt_automation/.pbuilderrc` and set:
+
+    # Custom ccache directories per distro and architecture.
+    CCACHEDIR=/var/cache/pbuilder/ccache/$DIST-$ARCH
+    mkdir -p $CCACHEDIR
+
 Import miscellaneous Phusion packages:
 
     ./import_misc_packages
