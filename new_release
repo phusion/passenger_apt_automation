@@ -71,8 +71,9 @@ fi
 	debsign -k$SIGNING_KEY $PBUILDFOLDER/*_result/*.changes
 
 	stage "Importing packages into APT repository..." importing_packages
-	rm -rf "$APT_DIR.tmp" "$APT_DIR.old"
+	rm -rf "$APT_DIR.tmp" "$APT_DIR.old" "$APT_DIR.bak2"
 	cp -dpR "$APT_DIR" "$APT_DIR.tmp"
+
 	cd "$APT_DIR.tmp"
 	for DIST in $DEBIAN_DISTROS; do
 		for ARCH in $DEBIAN_ARCHS; do
@@ -91,6 +92,11 @@ fi
 	done
 	./sign_repo "`pwd`"
 	cd ..
+
+	mv "$APT_DIR.bak" "$APT_DIR.bak2"
+	cp -dpR "$APT_DIR" "$APT_DIR.bak"
+	rm -rf "$APT_DIR.bak2"
+
 	mv "$APT_DIR" "$APT_DIR.old"
 	mv "$APT_DIR.tmp" "$APT_DIR"
 	rm -rf "$APT_DIR.old"
