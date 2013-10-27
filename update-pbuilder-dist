@@ -1,0 +1,16 @@
+#!/bin/bash
+set -e
+source configuration
+for DIST in $DEBIAN_DISTROS; do
+	for ARCH in $DEBIAN_ARCHS; do
+		if [[ $ARCH == amd64 ]]; then
+			base_tgz="$DIST-base.tgz"
+		else
+			base_tgz="$DIST-$ARCH-base.tgz"
+		fi
+		if [[ -e ~/pbuilder/$base_tgz ]]; then
+			echo "Updating $DIST $ARCH"
+			pbuilder-dist $DIST $ARCH update
+		fi
+	done
+done
