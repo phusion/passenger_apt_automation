@@ -12,7 +12,7 @@ DEFAULT_NAMESPACE=`basename "$REPO_DIR" | sed -E 's/\..*?$//'`
 NAMESPACE=${DEFAULT_NAMESPACE:-default}
 source configuration
 source library
-export WORK_DIR="/tmp/passenger_apt_build.$NAMESPACE"
+export WORK_DIR="/var/cache/passenger_apt_automation/$NAMESPACE"
 export PKG_DIR="$WORK_DIR/pkg"
 export PBUILDFOLDER="$WORK_DIR/pbuilder"
 

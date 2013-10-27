@@ -7,6 +7,8 @@ First, install prerequisites and setup a user:
     sudo apt-get install ubuntu-dev-tools reprepro debhelper source-highlight ruby1.9.3
     sudo gem install bluecloth mizuho drake --no-rdoc --no-ri
     sudo adduser psg_apt_automation
+    sudo mkdir /var/cache/passenger_apt_automation
+    sudo chown psg_apt_automation: /var/cache/passenger_apt_automation
 
 Add this to /etc/sudoers:
 
@@ -58,6 +60,14 @@ For example:
     ./new_release https://github.com/phusion/passenger.git passenger.repo passenger.apt
 
 The `new_release` script is near-atomic: it is very unlikely that users will see an intermediate state in which only some packages have been built.
+
+## Troubleshooting
+
+The `./new_release` script stores build output, temporary files and logs in `/var/cache/passenger_apt_automation`. If anything goes wrong, please take a look at the various .log files in that directory. Of interest are:
+
+    /var/cache/passenger_apt_automation/<NAME>/stage
+    /var/cache/passenger_apt_automation/<NAME>/pkg/*.log
+    /var/cache/passenger_apt_automation/<NAME>/pkg/official/*.log
 
 ## Related project
 
