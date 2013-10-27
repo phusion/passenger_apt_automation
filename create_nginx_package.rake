@@ -182,12 +182,14 @@ end
 def create_binary_package_task(distribution, arch)
 	desc "Build Debian binary package for #{distribution} #{arch}"
 	task "binary_packages:#{distribution}_#{arch}" => 'binary_packages:prepare' do
+		require 'shellwords'
 		base_name = "#{DEBIAN_NAME}_#{PACKAGE_VERSION}-#{VENDOR_VERSION}.#{PASSENGER_VERSION}~#{distribution}1"
 		logfile = "#{PKG_DIR}/nginx_#{distribution}_#{arch}.log"
-		sh "cd #{PKG_DIR} && " +
+		command = "cd #{PKG_DIR} && " +
 			"pbuilder-dist #{distribution} #{arch} build #{base_name}.dsc " +
 			"2>&1 | awk '{ print strftime(\"%Y-%m-%d %H:%M:%S -- \"), $0; fflush(); }'" +
-			" | tee #{logfile}"
+			" | tee #{logfile}; test ${PIPESTATUS[0]} -eq 0"
+		sh "bash -c #{Shellwords.escape(command)}"
 		sh "echo Done >> #{logfile}"
 	end
 	return "binary_packages:#{distribution}_#{arch}"
