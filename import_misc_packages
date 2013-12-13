@@ -55,3 +55,6 @@ for REPO in passenger.apt passenger-enterprise.apt; do
 	mv $REPO.tmp $REPO
 	rm -rf $REPO.old
 done
+
+./sign_repo passenger.apt
+./sign_repo passenger-enterprise.apt
