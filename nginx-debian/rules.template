@@ -44,6 +44,9 @@ else
 	NUMJOBS = 1
 endif
 
+passenger_nginx_libs:
+	cd $(MODULESDIR)/passenger/ext/nginx && rake nginx
+
 config.sub:
 	dh_testdir
 ifneq "$(wildcard /usr/share/misc/config.sub)" ""
@@ -66,7 +69,7 @@ config.env.%:
 	cp -Pa $(CURDIR)/src $(BUILDDIR_$*)/
 	cp -Pa $(CURDIR)/man $(BUILDDIR_$*)/
 
-config.status.full: config.env.full config.sub config.guess
+config.status.full: config.env.full config.sub config.guess passenger_nginx_libs
 	cd $(BUILDDIR_full) && CFLAGS="$(CFLAGS)" CORE_LINK="$(LDFLAGS)" ./configure  \
 	    --prefix=/usr/share/nginx \
 	    --conf-path=/etc/nginx/nginx.conf \
@@ -146,7 +149,7 @@ config.status.light: config.env.light config.sub config.guess
             $(CONFIGURE_OPTS) >$@
 	touch $@
 
-config.status.extras: config.env.extras config.sub config.guess
+config.status.extras: config.env.extras config.sub config.guess passenger_nginx_libs
 	cd $(BUILDDIR_extras) && CFLAGS="$(CFLAGS)" CORE_LINK="$(LDFLAGS)" ./configure  \
 	    --prefix=/usr/share/nginx \
 	    --conf-path=/etc/nginx/nginx.conf \
@@ -320,4 +323,4 @@ binary-arch: install build-dbg
 
 binary: binary-indep binary-arch
 
-.PHONY: build clean binary-indep binary-arch binary install
+.PHONY: passenger_nginx_libs build clean binary-indep binary-arch binary install
