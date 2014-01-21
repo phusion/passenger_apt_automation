@@ -1,20 +1,20 @@
-/* Copyright (C) agentzh */
+
+/*
+ * Copyright (C) Yichun Zhang (agentzh)
+ */
+
 
 #ifndef DDEBUG
 #define DDEBUG 0
 #endif
-
 #include "ddebug.h"
+
 
 #include "ngx_http_headers_more_filter_module.h"
 #include "ngx_http_headers_more_headers_out.h"
 #include "ngx_http_headers_more_headers_in.h"
-
+#include "ngx_http_headers_more_util.h"
 #include <ngx_config.h>
-
-
-unsigned ngx_http_headers_more_handler_used = 0;
-unsigned ngx_http_headers_more_filter_used = 0;
 
 
 /* config handlers */
@@ -24,7 +24,6 @@ static char * ngx_http_headers_more_merge_loc_conf(ngx_conf_t *cf,
     void *parent, void *child);
 static void * ngx_http_headers_more_create_main_conf(ngx_conf_t *cf);
 static ngx_int_t ngx_http_headers_more_post_config(ngx_conf_t *cf);
-static ngx_int_t ngx_http_headers_more_pre_config(ngx_conf_t *cf);
 
 /* post-read-phase handler */
 
@@ -33,6 +32,8 @@ static ngx_int_t ngx_http_headers_more_handler(ngx_http_request_t *r);
 /* filter handlers */
 
 static ngx_int_t ngx_http_headers_more_filter_init(ngx_conf_t *cf);
+
+ngx_uint_t  ngx_http_headers_more_location_hash = 0;
 
 
 static ngx_command_t  ngx_http_headers_more_filter_commands[] = {
@@ -72,8 +73,9 @@ static ngx_command_t  ngx_http_headers_more_filter_commands[] = {
       ngx_null_command
 };
 
+
 static ngx_http_module_t  ngx_http_headers_more_filter_module_ctx = {
-    ngx_http_headers_more_pre_config,       /* preconfiguration */
+    NULL,                                   /* preconfiguration */
     ngx_http_headers_more_post_config,      /* postconfiguration */
 
     ngx_http_headers_more_create_main_conf, /* create main configuration */
@@ -85,6 +87,7 @@ static ngx_http_module_t  ngx_http_headers_more_filter_module_ctx = {
     ngx_http_headers_more_create_loc_conf,  /* create location configuration */
     ngx_http_headers_more_merge_loc_conf    /* merge location configuration */
 };
+
 
 ngx_module_t  ngx_http_headers_more_filter_module = {
     NGX_MODULE_V1,
@@ -105,6 +108,9 @@ ngx_module_t  ngx_http_headers_more_filter_module = {
 static ngx_http_output_header_filter_pt  ngx_http_next_header_filter;
 
 
+static volatile ngx_cycle_t  *ngx_http_headers_more_prev_cycle = NULL;
+
+
 static ngx_int_t
 ngx_http_headers_more_filter(ngx_http_request_t *r)
 {
@@ -114,7 +120,7 @@ ngx_http_headers_more_filter(ngx_http_request_t *r)
     ngx_http_headers_more_cmd_t         *cmd;
 
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
-            "headers more header filter, uri \"%V\"", &r->uri);
+                   "headers more header filter, uri \"%V\"", &r->uri);
 
     conf = ngx_http_get_module_loc_conf(r, ngx_http_headers_more_filter_module);
 
@@ -204,18 +210,35 @@ ngx_http_headers_more_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child)
 static ngx_int_t
 ngx_http_headers_more_post_config(ngx_conf_t *cf)
 {
+    int                              multi_http_blocks;
+    ngx_int_t                        rc;
     ngx_http_handler_pt             *h;
     ngx_http_core_main_conf_t       *cmcf;
-    ngx_int_t                       rc;
 
-    if (ngx_http_headers_more_filter_used) {
+    ngx_http_headers_more_main_conf_t       *hmcf;
+
+    ngx_http_headers_more_location_hash =
+                               ngx_http_headers_more_hash_literal("location");
+
+    hmcf = ngx_http_conf_get_module_main_conf(cf,
+                                         ngx_http_headers_more_filter_module);
+
+    if (ngx_http_headers_more_prev_cycle != ngx_cycle) {
+        ngx_http_headers_more_prev_cycle = ngx_cycle;
+        multi_http_blocks = 0;
+
+    } else {
+        multi_http_blocks = 1;
+    }
+
+    if (multi_http_blocks || hmcf->requires_filter) {
         rc = ngx_http_headers_more_filter_init(cf);
         if (rc != NGX_OK) {
             return rc;
         }
     }
 
-    if (!ngx_http_headers_more_handler_used) {
+    if (!hmcf->requires_handler) {
         return NGX_OK;
     }
 
@@ -242,12 +265,12 @@ ngx_http_headers_more_handler(ngx_http_request_t *r)
     ngx_http_headers_more_cmd_t         *cmd;
 
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
-            "headers more rewrite handler, uri \"%V\"", &r->uri);
+                   "headers more rewrite handler, uri \"%V\"", &r->uri);
 
     hmcf = ngx_http_get_module_main_conf(r,
-            ngx_http_headers_more_filter_module);
+                                         ngx_http_headers_more_filter_module);
 
-    if (! hmcf->postponed_to_phase_end) {
+    if (!hmcf->postponed_to_phase_end) {
         ngx_http_core_main_conf_t       *cmcf;
         ngx_http_phase_handler_t         tmp;
         ngx_http_phase_handler_t        *ph;
@@ -265,10 +288,10 @@ ngx_http_headers_more_handler(ngx_http_request_t *r)
         if (cur_ph < last_ph) {
             dd("swaping the contents of cur_ph and last_ph...");
 
-            tmp      = *cur_ph;
+            tmp = *cur_ph;
 
             memmove(cur_ph, cur_ph + 1,
-                (last_ph - cur_ph) * sizeof (ngx_http_phase_handler_t));
+                    (last_ph - cur_ph) * sizeof (ngx_http_phase_handler_t));
 
             *last_ph = tmp;
 
@@ -283,9 +306,13 @@ ngx_http_headers_more_handler(ngx_http_request_t *r)
     conf = ngx_http_get_module_loc_conf(r, ngx_http_headers_more_filter_module);
 
     if (conf->cmds) {
+        if (r->http_version < NGX_HTTP_VERSION_10) {
+            return NGX_DECLINED;
+        }
+
         cmd = conf->cmds->elts;
         for (i = 0; i < conf->cmds->nelts; i++) {
-            if ( ! cmd[i].is_input ) {
+            if (!cmd[i].is_input) {
                 continue;
             }
 
@@ -312,18 +339,10 @@ ngx_http_headers_more_create_main_conf(ngx_conf_t *cf)
     }
 
     /* set by ngx_pcalloc:
-     *      hmcf->postponed_to_phase_end = 0
+     *      hmcf->postponed_to_phase_end = 0;
+     *      hmcf->requires_filter        = 0;
+     *      hmcf->requires_handler       = 0;
      */
 
     return hmcf;
 }
-
-
-static ngx_int_t
-ngx_http_headers_more_pre_config(ngx_conf_t *cf)
-{
-    ngx_http_headers_more_handler_used = 0;
-    ngx_http_headers_more_filter_used = 0;
-    return NGX_OK;
-}
-

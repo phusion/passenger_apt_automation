@@ -5,7 +5,7 @@ use Test::Nginx::Socket; # 'no_plan';
 
 repeat_each(2);
 
-plan tests => repeat_each() * 73;
+plan tests => repeat_each() * 105;
 
 no_long_string();
 #no_diff;
@@ -356,6 +356,7 @@ User-Agent: my-sock
 "GET /proxy HTTP/1.0\r
 Host: 127.0.0.1:\$ServerPort\r
 Connection: close\r
+\r
 "
 --- skip_nginx: 3: < 0.7.46
 
@@ -377,6 +378,7 @@ Connection: close\r
 "GET /proxy HTTP/1.0\r
 Host: 127.0.0.1:\$ServerPort\r
 Connection: close\r
+\r
 "
 --- skip_nginx: 3: < 0.7.46
 
@@ -422,6 +424,7 @@ X-Foo15: 15\r
 X-Foo16: 16\r
 X-Foo17: 17\r
 X-Foo18: 18\r
+\r
 "
 --- skip_nginx: 3: < 0.7.46
 
@@ -542,6 +545,7 @@ Test-Header: 1
 --- response_body_like eval
 qr/Connection: close\r
 Test-Header: 1\r
+\r
 $/
 --- no_error_log
 [error]
@@ -626,7 +630,7 @@ Foo22: foo22\r
     }
 
     location = /back {
-        echo $echo_client_request_headers;
+        echo -n $echo_client_request_headers;
     }
 --- request
 GET /t
@@ -659,7 +663,7 @@ N: n\r
 O: o\r
 P: p\r
 Q: q\r
-
+\r
 "
 
 
@@ -680,7 +684,7 @@ Q: q\r
     }
 
     location = /back {
-        echo $echo_client_request_headers;
+        echo -n $echo_client_request_headers;
     }
 --- request
 GET /t
@@ -734,7 +738,7 @@ foo-18: 18\r
 foo-19: 19\r
 foo-20: 20\r
 foo-21: 21\r
-
+\r
 "
 
 
@@ -749,7 +753,7 @@ foo-21: 21\r
     }
 
     location = /back {
-        echo $echo_client_request_headers;
+        echo -n $echo_client_request_headers;
     }
 --- request
 GET /t
@@ -782,7 +786,7 @@ M: m\r
 N: n\r
 O: o\r
 P: p\r
-
+\r
 "
 
 
@@ -803,7 +807,7 @@ P: p\r
     }
 
     location = /back {
-        echo $echo_client_request_headers;
+        echo -n $echo_client_request_headers;
     }
 --- request
 GET /t
@@ -857,6 +861,308 @@ foo-18: 18\r
 foo-19: 19\r
 foo-20: 20\r
 foo-21: 21\r
-
+\r
 "
+
+
+
+=== TEST 34: clear X-Real-IP
+--- config
+    location /t {
+        more_clear_input_headers X-Real-IP;
+        echo "X-Real-IP: $http_x_real_ip";
+    }
+--- request
+GET /t
+--- more_headers
+X-Real-IP: 8.8.8.8
+
+--- stap
+F(ngx_http_headers_more_exec_input_cmd) {
+    if (@defined($r->headers_in->x_real_ip) && $r->headers_in->x_real_ip) {
+        printf("rewrite: x-real-ip: %s\n",
+               user_string_n($r->headers_in->x_real_ip->value->data,
+                             $r->headers_in->x_real_ip->value->len))
+    } else {
+        println("rewrite: no x-real-ip")
+    }
+}
+
+F(ngx_http_core_content_phase) {
+    if (@defined($r->headers_in->x_real_ip) && $r->headers_in->x_real_ip) {
+        printf("content: x-real-ip: %s\n",
+               user_string_n($r->headers_in->x_real_ip->value->data,
+                             $r->headers_in->x_real_ip->value->len))
+    } else {
+        println("content: no x-real-ip")
+    }
+}
+
+--- stap_out
+rewrite: x-real-ip: 8.8.8.8
+content: no x-real-ip
+
+--- response_body
+X-Real-IP: 
+
+--- no_error_log
+[error]
+
+
+
+=== TEST 35: set custom X-Real-IP
+--- config
+    location /t {
+        more_set_input_headers "X-Real-IP: 8.8.4.4";
+        echo "X-Real-IP: $http_x_real_ip";
+    }
+--- request
+GET /t
+
+--- stap
+F(ngx_http_headers_more_exec_input_cmd) {
+    if (@defined($r->headers_in->x_real_ip) && $r->headers_in->x_real_ip) {
+        printf("rewrite: x-real-ip: %s\n",
+               user_string_n($r->headers_in->x_real_ip->value->data,
+                             $r->headers_in->x_real_ip->value->len))
+    } else {
+        println("rewrite: no x-real-ip")
+    }
+
+}
+
+F(ngx_http_core_content_phase) {
+    if (@defined($r->headers_in->x_real_ip) && $r->headers_in->x_real_ip) {
+        printf("content: x-real-ip: %s\n",
+               user_string_n($r->headers_in->x_real_ip->value->data,
+                             $r->headers_in->x_real_ip->value->len))
+    } else {
+        println("content: no x-real-ip")
+    }
+}
+
+--- stap_out
+rewrite: no x-real-ip
+content: x-real-ip: 8.8.4.4
+
+--- response_body
+X-Real-IP: 8.8.4.4
+
+--- no_error_log
+[error]
+
+
+
+=== TEST 36: clear Via
+--- config
+    location /t {
+        more_clear_input_headers Via;
+        echo "Via: $http_via";
+    }
+--- request
+GET /t
+--- more_headers
+Via: 1.0 fred, 1.1 nowhere.com (Apache/1.1)
+
+--- stap
+F(ngx_http_headers_more_exec_input_cmd) {
+    if (@defined($r->headers_in->via) && $r->headers_in->via) {
+        printf("rewrite: via: %s\n",
+               user_string_n($r->headers_in->via->value->data,
+                             $r->headers_in->via->value->len))
+    } else {
+        println("rewrite: no via")
+    }
+}
+
+F(ngx_http_core_content_phase) {
+    if (@defined($r->headers_in->via) && $r->headers_in->via) {
+        printf("content: via: %s\n",
+               user_string_n($r->headers_in->via->value->data,
+                             $r->headers_in->via->value->len))
+    } else {
+        println("content: no via")
+    }
+}
+
+--- stap_out
+rewrite: via: 1.0 fred, 1.1 nowhere.com (Apache/1.1)
+content: no via
+
+--- response_body
+Via: 
+
+--- no_error_log
+[error]
+
+
+
+=== TEST 37: set custom Via
+--- config
+    location /t {
+        more_set_input_headers "Via: 1.0 fred, 1.1 nowhere.com (Apache/1.1)";
+        echo "Via: $http_via";
+    }
+--- request
+GET /t
+
+--- stap
+F(ngx_http_headers_more_exec_input_cmd) {
+    if (@defined($r->headers_in->via) && $r->headers_in->via) {
+        printf("rewrite: via: %s\n",
+               user_string_n($r->headers_in->via->value->data,
+                             $r->headers_in->via->value->len))
+    } else {
+        println("rewrite: no via")
+    }
+
+}
+
+F(ngx_http_core_content_phase) {
+    if (@defined($r->headers_in->via) && $r->headers_in->via) {
+        printf("content: via: %s\n",
+               user_string_n($r->headers_in->via->value->data,
+                             $r->headers_in->via->value->len))
+    } else {
+        println("content: no via")
+    }
+}
+
+--- stap_out
+rewrite: no via
+content: via: 1.0 fred, 1.1 nowhere.com (Apache/1.1)
+
+--- response_body
+Via: 1.0 fred, 1.1 nowhere.com (Apache/1.1)
+
+--- no_error_log
+[error]
+
+
+
+=== TEST 38: HTTP 0.9 (set)
+--- config
+    location /foo {
+        more_set_input_headers 'X-Foo: howdy';
+        echo "x-foo: $http_x_foo";
+    }
+--- raw_request eval
+"GET /foo\r\n"
+--- response_headers
+! X-Foo
+--- response_body
+x-foo: 
+--- http09
+
+
+
+=== TEST 39: HTTP 0.9 (clear)
+--- config
+    location /foo {
+        more_clear_input_headers 'X-Foo';
+        echo "x-foo: $http_x_foo";
+    }
+--- raw_request eval
+"GET /foo\r\n"
+--- response_headers
+! X-Foo
+--- response_body
+x-foo: 
+--- http09
+
+
+
+=== TEST 40: Host header with port and $host
+--- config
+    location /bar {
+        more_set_input_headers 'Host: agentzh.org:1984';
+        echo "host var: $host";
+        echo "http_host var: $http_host";
+    }
+--- request
+GET /bar
+--- response_body
+host var: agentzh.org
+http_host var: agentzh.org:1984
+
+
+
+=== TEST 41: Host header with upper case letters and $host
+--- config
+    location /bar {
+        more_set_input_headers 'Host: agentZH.org:1984';
+        echo "host var: $host";
+        echo "http_host var: $http_host";
+    }
+--- request
+GET /bar
+--- response_body
+host var: agentzh.org
+http_host var: agentZH.org:1984
+
+
+
+=== TEST 42: clear all and re-insert
+--- config
+    location = /t {
+        more_clear_input_headers Host Connection Cache-Control Accept
+                                 User-Agent Accept-Encoding Accept-Language
+                                 Cookie;
+
+        more_set_input_headers "Host: a" "Connection: b" "Cache-Control: c"
+                               "Accept: d" "User-Agent: e" "Accept-Encoding: f"
+                               "Accept-Language: g" "Cookie: h";
+
+        more_clear_input_headers Host Connection Cache-Control Accept
+                                 User-Agent Accept-Encoding Accept-Language
+                                 Cookie;
+
+        more_set_input_headers "Host: a" "Connection: b" "Cache-Control: c"
+                               "Accept: d" "User-Agent: e" "Accept-Encoding: f"
+                               "Accept-Language: g" "Cookie: h";
+
+        echo ok;
+    }
+
+--- raw_request eval
+"GET /t HTTP/1.1\r
+Host: localhost\r
+Connection: close\r
+Cache-Control: max-age=0\r
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\r
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.101 Safari/537.36\r
+Accept-Encoding: gzip,deflate,sdch\r
+Accept-Language: en-US,en;q=0.8\r
+Cookie: test=cookie;\r
+\r
+"
+--- response_body
+ok
+--- no_error_log
+[error]
+
+
+
+=== TEST 43: more_set_input_header does not override request headers with multiple values
+--- config
+    #lua_code_cache off;
+    location = /t {
+        more_set_input_headers "AAA: 111";
+
+        content_by_lua '
+            local headers = ngx.req.get_headers()
+            ngx.say(headers["AAA"])
+        ';
+    }
+--- request
+GET /t
+--- more_headers
+AAA: 123
+AAA: 456
+AAA: 678
+
+--- response_body
+111
+--- no_error_log
+[error]
 
