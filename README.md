@@ -27,8 +27,11 @@ with:
 
     etch|lenny|squeeze|sid|oldstable|stable|testing|unstable|experimental|wheezy)
 
-Then run:
+Then checkout this repository as `psg_apt_automation` and run the setup script:
 
+    sudo -u psg_apt_automation -H git clone https://github.com/phusion/passenger_apt_automation.git ~/passenger_apt_automation
+    sudo mv ~/passenger_apt_automation /srv/
+    cd /srv/passenger_apt_automation
     sudo -u psg_apt_automation -H ./setup-pbuilder-dist
 
 Configure your GPG signing settings:
@@ -48,7 +51,7 @@ Edit `/home/psg_apt_automation/.pbuilderrc` and set:
 
 Import miscellaneous Phusion packages:
 
-    ./import_misc_packages
+    sudo -u psg_apt_automation -H ./import_misc_packages
 
 Then, every time a new Phusion Passenger version is released, run the following command to update the APT repository in `apt/`, as `psg_apt_automation`:
 
@@ -75,6 +78,7 @@ The `./new_release` script stores build output, temporary files and logs in `/va
     /var/cache/passenger_apt_automation/<NAME>/pkg/*.log
     /var/cache/passenger_apt_automation/<NAME>/pkg/official/*.log
 
-## Related project
+## Related projects
 
  * https://github.com/phusion/passenger_autobuilder
+ * https://github.com/phusion/passenger_rpm_automation
