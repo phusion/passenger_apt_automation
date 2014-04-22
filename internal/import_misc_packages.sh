@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+BASE_DIR=`dirname "$0"`
+BASE_DIR=`cd "$BASE_DIR/.."; pwd`
 source lib/bashlib
 load_general_config
 
@@ -13,33 +15,35 @@ header "Clearing previous build results"
 run rm -rf ~/pbuilder/*_result/*
 
 header "Cloning repositories"
-rm -rf misc_packages
-mkdir -p misc_packages
+rm -rf /var/cache/passenger_apt_automation/misc_packages
+mkdir -p /var/cache/passenger_apt_automation/misc_packages
 if $build_daemon_controller; then
-	git clone git://github.com/FooBarWidget/daemon_controller.git misc_packages/daemon_controller
+	git clone git://github.com/FooBarWidget/daemon_controller.git /var/cache/passenger_apt_automation/misc_packages/daemon_controller
 fi
 if $build_crash_watch; then
-	git clone git://github.com/FooBarWidget/crash-watch.git misc_packages/crash-watch
+	git clone git://github.com/FooBarWidget/crash-watch.git /var/cache/passenger_apt_automation/misc_packages/crash-watch
 fi
 
 if $build_daemon_controller; then
 	header "Building daemon_controller"
-	cd $BASE_DIR/misc_packages/daemon_controller
-	echo "In $BASE_DIR/misc_packages/daemon_controller:"
+	pushd /var/cache/passenger_apt_automation/misc_packages/daemon_controller >/dev/null
+	echo "In /var/cache/passenger_apt_automation/misc_packages/daemon_controller:"
 	run rake debian:source_packages
 	for DIST in $DEBIAN_DISTROS; do
 		run pbuilder-dist $DIST i386 build $PKG_DIR/ruby-daemon-controller_*$DIST*.dsc
 	done
+	popd >/dev/null
 fi
 
 if $build_crash_watch; then
 	header "Building crash-watch"
-	cd $BASE_DIR/misc_packages/crash-watch
-	echo "In $BASE_DIR/misc_packages/crash-watch:"
+	pushd /var/cache/passenger_apt_automation/misc_packages/crash-watch >/dev/null
+	echo "In /var/cache/passenger_apt_automation/misc_packages/crash-watch:"
 	run rake debian:source_packages
 	for DIST in $DEBIAN_DISTROS; do
 		run pbuilder-dist $DIST i386 build $PKG_DIR/crash-watch_*$DIST*.dsc
 	done
+	popd >/dev/null
 fi
 
 header "Signing packages"

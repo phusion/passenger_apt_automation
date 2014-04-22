@@ -1,5 +1,7 @@
-BASE_DIR=`dirname "$0"`
-BASE_DIR=`cd "$BASE_DIR"; pwd`
+if [[ "$BASE_DIR" = "" ]]; then
+	BASE_DIR=`dirname "$0"`
+	BASE_DIR=`cd "$BASE_DIR"; pwd`
+fi
 cd "$BASE_DIR"
 
 function _cleanup()
@@ -27,6 +29,21 @@ function use_dummy_gpg()
 		exit 1
 	fi
 	export PATH="$BASE_DIR/lib/dummygpg:$PATH"
+}
+
+function require_running_as_psg_apt_automation_user()
+{
+	if [[ `whoami` != psg_apt_automation ]]; then
+		echo "This command must be run as psg_apt_automation. Please try:"
+		echo "sudo -u psg_apt_automation -H $0"
+		exit 1
+	fi
+
+	# Prevent pbuilder-dist from complaining about sudo.
+	unset SUDO_COMMAND
+	unset SUDO_USER
+	unset SUDO_UID
+	unset SUDO_GID
 }
 
 function header()

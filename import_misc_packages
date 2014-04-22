@@ -4,15 +4,10 @@ set -e
 build_daemon_controller=true
 build_crash_watch=true
 
-if [[ `whoami` != psg_apt_automation ]]; then
-	echo "This command must be run as psg_apt_automation. Please try:"
-	echo "sudo -u psg_apt_automation -H ./import_misc_packages"
-	exit 1
-fi
-
 source lib/bashlib
 load_general_config
 use_dummy_gpg
+require_running_as_psg_apt_automation_user
 
 header "Obtaining lock file"
 export build_daemon_controller
