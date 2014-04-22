@@ -1,0 +1,3 @@
+# Custom ccache directories per distro and architecture.
+CCACHEDIR=/var/cache/pbuilder/ccache/$DIST-$ARCH
+mkdir -p $CCACHEDIR

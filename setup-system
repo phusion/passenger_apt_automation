@@ -1,0 +1,132 @@
+#!/bin/bash
+# Prepares a system for use with passenger_apt_automation.
+# Installs dependencies, config files etc.
+
+set -e
+
+function header()
+{
+	echo
+	echo "----- $@ -----"
+}
+
+function run()
+{
+	echo "# $@"
+	"$@"
+}
+
+function create_user()
+{
+	local name="$1"
+	local full_name="$2"
+	local id="$3"
+	create_group $name $id
+	if ! grep -q "^$name:" /etc/passwd; then
+		sudo adduser --uid $id --gid $id --disabled-password --gecos "$full_name" $name
+	fi
+	sudo usermod -L $name
+}
+
+function create_group()
+{
+	local name="$1"
+	local id="$2"
+	if ! grep -q "^$name:" /etc/group >/dev/null; then
+		sudo addgroup --gid $id $name
+	fi
+}
+
+function usage()
+{
+	echo "./setup-system [OPTIONS]"
+	echo "Prepares a system for use with passenger_apt_automation. Installs dependencies, config files etc."
+	echo
+	echo "Optional options:"
+	echo "  -g                 Assume that the system is a Vagrant VM"
+	echo "  -h                 Show usage"
+}
+
+
+vagrant=false
+
+while getopts "gh" opt; do
+	case "$opt" in
+	g)
+		vagrant=true
+		;;
+	h)
+		usage
+		exit
+		;;
+	esac
+done
+
+if ([[ `whoami` = vagrant ]] || [[ "$SUDO_USER" = vagrant ]]) && ! $vagrant; then
+	echo "You are running in Vagrant. You must run ./setup-system with -g."
+	exit 1
+fi
+
+
+header "Creating users and directories"
+run create_user psg_apt_automation "Passenger APT Automation" 2446
+run sudo mkdir -p /var/cache/passenger_apt_automation
+run sudo chown psg_apt_automation: /var/cache/passenger_apt_automation
+run sudo cp lib/sudoers.conf /etc/sudoers.d/passenger_apt_automation
+run sudo chown root: /etc/sudoers.d/passenger_apt_automation
+run sudo chmod 400 /etc/sudoers.d/passenger_apt_automation
+run sudo cp lib/pbuilderrc ~psg_apt_automation/.pbuilderrc
+run sudo chown psg_apt_automation: ~psg_apt_automation/.pbuilderrc
+
+header "Importing public keys"
+run sudo -u psg_apt_automation -H gpg --keyserver keyserver.ubuntu.com --recv-keys C324F5BB38EEB5A0
+run sudo -u psg_apt_automation -H gpg --armor --export C324F5BB38EEB5A0 | sudo apt-key add -
+
+header "Installing dependencies"
+run sudo apt-get install -y ubuntu-dev-tools reprepro debhelper source-highlight ruby1.9.3 libsqlite3-dev
+if [[ ! -e /usr/local/bin/bluecloth ]]; then
+	run sudo gem install bluecloth --no-rdoc --no-ri
+fi
+if [[ ! -e /usr/local/bin/mizuho ]]; then
+	run sudo gem install mizuho --no-rdoc --no-ri
+fi
+if [[ ! -e /usr/local/bin/drake ]]; then
+	run sudo gem install drake --no-rdoc --no-ri
+fi
+
+header "Preparing configuration files"
+if [[ ! -e config ]]; then
+	if $vagrant; then
+		run sudo cp -R config.example ~vagrant/config
+		run chown vagrant: ~vagrant/config
+		run ln -s ~vagrant/config config
+	else
+		run cp -dpR config.example config
+	fi
+	if tty -s; then
+		run nano config/general
+	fi
+else
+	echo "Configuration file already exists: config/general"
+fi
+source config/general
+if [[ ! -e config/passphrase ]]; then
+	read -p "Passphrase for GPG signing key $SIGNING_KEY: " -s GPG_PASSPHRASE
+	echo
+	echo -n "$GPG_PASSPHRASE" > config/passphrase
+else
+	echo "Configuration file already exists: config/passphrase"
+fi
+run sudo chown psg_apt_automation:psg_apt_automation config/passphrase
+run sudo chmod 600 config/passphrase
+
+if [[ ! -e ~psg_apt_automation/pbuilder ]]; then
+	header "Setting up pbuilder-dist"
+	echo "This can take more than half an hour..."
+	run sudo -u psg_apt_automation -H ./setup-pbuilder-dist
+fi
+
+echo
+echo "**** Setup completed ***"
+echo "Be sure to install the GPG private key $SIGNING_KEY manually! This script does not do that for you!"
+echo "The key must be installed for the 'psg_apt_automation' account."

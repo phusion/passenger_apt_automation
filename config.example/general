@@ -1,8 +1,22 @@
-# If you update this list, don't forget to update
-# passenger.apt/conf/distributions
-# and passenger-enterprise.apt/conf/distributions
-export DEBIAN_DISTROS="saucy precise lucid squeeze wheezy"
+# This is the main passenger_apt_automation configuration file.
+# The defaults are good enough, but you can change settings here
+# if you wish.
+
+# Distributions that we should generate packages for.
+# If you update this list, don't forget to update these files too:
+# - passenger.apt/conf/distributions
+# - passenger-enterprise.apt/conf/distributions
+export DEBIAN_DISTROS="trusty precise lucid squeeze wheezy"
 export DEBIAN_ARCHS="i386 amd64"
 
+# If you're just developing, use this shorter list of distros:
+#export DEBIAN_DISTROS="trusty wheezy"
+#export DEBIAN_ARCHS="i386"
+
+# The GPG signing key to use. Make sure you install the private key
+# manually later on!
 SIGNING_KEY=561F9B9CAC40B2F7
+
+# Number of packages to build simultaneously. If your server has
+# less than 2 GB of RAM, you should lower this limit.
 CONCURRENCY_LEVEL=4
