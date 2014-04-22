@@ -1,60 +1,20 @@
 #!/bin/bash
 set -e
-source config/general
-BASE_DIR=`dirname "$0"`
-BASE_DIR=`cd "$BASE_DIR"; pwd`
-set -x
 
-# Prepare
-export PKG_DIR=/tmp/passenger_apt_build
-rm -rf $PKG_DIR
-mkdir -p $PKG_DIR
-rm -rf ~/pbuilder/*_result/*
+build_daemon_controller=true
+build_crash_watch=true
 
-# Clone repos
-rm -rf misc_packages
-mkdir -p misc_packages
-git clone git://github.com/FooBarWidget/daemon_controller.git misc_packages/daemon_controller
-git clone git://github.com/FooBarWidget/crash-watch.git misc_packages/crash-watch
+if [[ `whoami` != psg_apt_automation ]]; then
+	echo "This command must be run as psg_apt_automation. Please try:"
+	echo "sudo -u psg_apt_automation -H ./import_misc_packages"
+	exit 1
+fi
 
-# Build daemon_controller
-cd $BASE_DIR/misc_packages/daemon_controller
-rake debian:source_packages
-for DIST in $DEBIAN_DISTROS; do
-	pbuilder-dist $DIST i386 build $PKG_DIR/ruby-daemon-controller_*$DIST*.dsc
-done
+source lib/bashlib
+load_general_config
+use_dummy_gpg
 
-# Build crash-watch
-cd $BASE_DIR/misc_packages/crash-watch
-rake debian:source_packages
-for DIST in $DEBIAN_DISTROS; do
-	pbuilder-dist $DIST i386 build $PKG_DIR/crash-watch_*$DIST*.dsc
-done
-
-# Sign packages
-cd $BASE_DIR
-export PATH="$BASE_DIR/lib/dummygpg:$PATH"
-debsign -k$SIGNING_KEY $PKG_DIR/*.changes
-
-# Import into APT repositories
-cd $BASE_DIR
-for REPO in passenger.apt passenger-enterprise.apt; do
-	rm -rf $REPO.tmp $REPO.old
-	cp -dpR $REPO $REPO.tmp
-	pushd $REPO.tmp
-
-	for DIST in $DEBIAN_DISTROS; do
-		reprepro --keepunusednewfiles -Vb . includedeb $DIST $HOME/pbuilder/$DIST-i386_result/*.deb
-		for F in $HOME/pbuilder/$DIST-i386_result/*.dsc; do
-			reprepro --keepunusednewfiles -Vb . includedsc $DIST $F
-		done
-	done
-
-	popd
-	mv $REPO $REPO.old
-	mv $REPO.tmp $REPO
-	rm -rf $REPO.old
-done
-
-./sign_repo passenger.apt
-./sign_repo passenger-enterprise.apt
+header "Obtaining lock file"
+export build_daemon_controller
+export build_crash_watch
+exec chpst -l /var/cache/passenger_apt_automation/lock bash internal/import_misc_packages.sh

@@ -35,7 +35,8 @@ if [[ `whoami` != psg_apt_automation ]]; then
 fi
 
 
-source config/general
+source lib/bashlib
+load_general_config
 
 # Prevent pbuilder-dist from complaining about sudo.
 unset SUDO_COMMAND

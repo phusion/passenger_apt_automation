@@ -4,18 +4,6 @@
 
 set -e
 
-function header()
-{
-	echo
-	echo "----- $@ -----"
-}
-
-function run()
-{
-	echo "# $@"
-	"$@"
-}
-
 function create_user()
 {
 	local name="$1"
@@ -68,6 +56,8 @@ if ([[ `whoami` = vagrant ]] || [[ "$SUDO_USER" = vagrant ]]) && ! $vagrant; the
 fi
 
 
+source lib/bashlib
+
 header "Creating users and directories"
 run create_user psg_apt_automation "Passenger APT Automation" 2446
 run sudo mkdir -p /var/cache/passenger_apt_automation
@@ -83,7 +73,7 @@ run sudo -u psg_apt_automation -H gpg --keyserver keyserver.ubuntu.com --recv-ke
 run sudo -u psg_apt_automation -H gpg --armor --export C324F5BB38EEB5A0 | sudo apt-key add -
 
 header "Installing dependencies"
-run sudo apt-get install -y ubuntu-dev-tools reprepro debhelper source-highlight ruby1.9.3 libsqlite3-dev
+run sudo apt-get install -y ubuntu-dev-tools reprepro debhelper source-highlight ruby1.9.3 libsqlite3-dev runit
 if [[ ! -e /usr/local/bin/bluecloth ]]; then
 	run sudo gem install bluecloth --no-rdoc --no-ri
 fi

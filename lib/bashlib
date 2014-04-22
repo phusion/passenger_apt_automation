@@ -1,3 +1,46 @@
+BASE_DIR=`dirname "$0"`
+BASE_DIR=`cd "$BASE_DIR"; pwd`
+cd "$BASE_DIR"
+
+function _cleanup()
+{
+	set +e
+	local pids=`jobs -p`
+	if [[ "$pids" != "" ]]; then
+		kill $pids
+	fi
+}
+
+function load_general_config()
+{
+	if [[ ! -e config/general ]]; then
+		echo "The configuration file config/general does not exist. Please run ./setup-system first!"
+		exit 1
+	fi
+	source config/general
+}
+
+function use_dummy_gpg()
+{
+	if [[ ! -e config/passphrase ]]; then
+		echo "You have not yet configured a passphrase for the GPG signing key. Please run ./setup-system first!"
+		exit 1
+	fi
+	export PATH="$BASE_DIR/lib/dummygpg:$PATH"
+}
+
+function header()
+{
+	echo
+	echo "----- $@ -----"
+}
+
+function run()
+{
+	echo "# $@"
+	"$@"
+}
+
 function stage()
 {
 	local display="$1"
@@ -7,3 +50,5 @@ function stage()
 		echo "`date` -- $name" >> "$WORK_DIR/stage"
 	fi
 }
+
+trap _cleanup EXIT
