@@ -11,6 +11,9 @@ function _cleanup()
 	if [[ "$pids" != "" ]]; then
 		kill $pids
 	fi
+	if type cleanup 2>/dev/null | grep -q function; then
+		cleanup
+	fi
 }
 
 function load_general_config()
