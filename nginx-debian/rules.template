@@ -3,7 +3,7 @@
 #if is_distribution?("< precise")
     CFLAGS = -Wall -g
     export CFLAGS
-#else
+#elif is_distribution?("<= saucy") || is_distribution?("<= wheezy")
     CFLAGS = `dpkg-buildflags --get CFLAGS`
     CFLAGS += -Wall -DFORTIFY_SOURCE=2 -fstack-protector
     CFLAGS += `dpkg-buildflags --get CPPFLAGS`
@@ -11,6 +11,13 @@
     # export necessary for (hardening) flags for perl
     # (src/http/modules/perl/Makefile.PL).
     export CFLAGS LDFLAGS
+#else
+    debian_cflags:=$(shell dpkg-buildflags --get CFLAGS | sed 's/-O3/-O2/') $(shell dpkg-buildflags --get CPPFLAGS)
+    debian_ldflags:=$(shell dpkg-buildflags --get LDFLAGS)
+    # export necessary for (hardening) flags for perl
+    # (src/http/modules/perl/Makefile.PL).
+    DEBIAN_NGINX_PERL_LDFLAGS:= $(debian_ldflags)
+    export DEBIAN_NGINX_PERL_LDFLAGS
 #endif
 
 # Speed up ccache (reduce I/O) by lightly compressing things.
@@ -20,8 +27,13 @@ export CCACHE_COMPRESS
 CCACHE_COMPRESS_LEVEL=3
 export CCACHE_COMPRESS_LEVEL
 
-FLAVOURS:=full light extras naxsi
+#if is_distribution?(">= trusty")
+    FLAVOURS:=core full light extras naxsi
+#else
+    FLAVOURS:=full light extras naxsi
+#endif
 
+BUILDDIR_core = $(CURDIR)/debian/build-core
 BUILDDIR_full = $(CURDIR)/debian/build-full
 BUILDDIR_light = $(CURDIR)/debian/build-light
 BUILDDIR_extras = $(CURDIR)/debian/build-extras
@@ -31,7 +43,11 @@ BASEDIR = $(CURDIR)
 
 DEB_BUILD_ARCH ?=$(shell dpkg-architecture -qDEB_BUILD_ARCH)
 ifeq ($(DEB_BUILD_ARCH),sparc)
-	CONFIGURE_OPTS = --with-cc-opt="-m32 -mcpu=ultrasparc"
+#if is_distribution?(">= trusty") || is_distribution?(">= jessie")
+    	debian_cflags += -m32 -mcpu=ultrasparc
+#else
+    	CONFIGURE_OPTS = --with-cc-opt="-m32 -mcpu=ultrasparc"
+#endif
 endif
 
 
@@ -44,20 +60,36 @@ else
 	NUMJOBS = 1
 endif
 
+# configure flags
+common_configure_flags := \
+			--with-cc-opt="$(debian_cflags)" \
+			--with-ld-opt="$(debian_ldflags)" \
+			--prefix=/usr/share/nginx \
+			--conf-path=/etc/nginx/nginx.conf \
+			--http-log-path=/var/log/nginx/access.log \
+			--error-log-path=/var/log/nginx/error.log \
+			--lock-path=/var/lock/nginx.lock \
+#if is_distribution?("<= quantal") || is_distribution?("<= wheezy")
+    			--pid-path=/var/run/nginx.pid \
+#else
+    			--pid-path=/run/nginx.pid \
+#endif
+			--http-client-body-temp-path=/var/lib/nginx/body \
+			--http-fastcgi-temp-path=/var/lib/nginx/fastcgi \
+			--http-proxy-temp-path=/var/lib/nginx/proxy \
+			--http-scgi-temp-path=/var/lib/nginx/scgi \
+			--http-uwsgi-temp-path=/var/lib/nginx/uwsgi \
+			--with-debug \
+#if is_distribution?(">= quantal") || is_distribution?(">= wheezy")
+    			--with-pcre-jit \
+#endif
+			--with-ipv6 \
+			--with-http_ssl_module \
+			--with-http_stub_status_module \
+			--with-http_realip_module \
+
 passenger_nginx_libs:
 	cd $(MODULESDIR)/passenger/ext/nginx && rake nginx
-
-config.sub:
-	dh_testdir
-ifneq "$(wildcard /usr/share/misc/config.sub)" ""
-		cp -f /usr/share/misc/config.sub config.sub
-endif
-
-config.guess:
-	dh_testdir
-ifneq "$(wildcard /usr/share/misc/config.guess)" ""
-		cp -f /usr/share/misc/config.guess config.guess
-endif
 
 config.env.%:
 	dh_testdir
@@ -69,27 +101,27 @@ config.env.%:
 	cp -Pa $(CURDIR)/src $(BUILDDIR_$*)/
 	cp -Pa $(CURDIR)/man $(BUILDDIR_$*)/
 
-config.status.full: config.env.full config.sub config.guess passenger_nginx_libs
+#if is_distribution?(">= trusty")
+    config.status.core: config.env.core
+    	cd $(BUILDDIR_core) && ./configure  \
+    	    $(common_configure_flags) \
+    	    --with-http_addition_module \
+    	    --with-http_dav_module \
+    	    --with-http_geoip_module \
+    	    --with-http_gzip_static_module \
+    	    --with-http_image_filter_module \
+    	    --with-http_spdy_module \
+    	    --with-http_sub_module \
+    	    --with-http_xslt_module \
+    	    --with-mail \
+    	    --with-mail_ssl_module \
+    	        >$@
+    	touch $@
+#endif
+
+config.status.full: config.env.full passenger_nginx_libs
 	cd $(BUILDDIR_full) && CFLAGS="$(CFLAGS)" CORE_LINK="$(LDFLAGS)" ./configure  \
-	    --prefix=/usr/share/nginx \
-	    --conf-path=/etc/nginx/nginx.conf \
-	    --error-log-path=/var/log/nginx/error.log \
-	    --http-client-body-temp-path=/var/lib/nginx/body \
-	    --http-fastcgi-temp-path=/var/lib/nginx/fastcgi \
-	    --http-log-path=/var/log/nginx/access.log \
-	    --http-proxy-temp-path=/var/lib/nginx/proxy \
-	    --http-scgi-temp-path=/var/lib/nginx/scgi \
-	    --http-uwsgi-temp-path=/var/lib/nginx/uwsgi \
-	    --lock-path=/var/lock/nginx.lock \
-#if is_distribution?("<= quantal") || is_distribution?("<= wheezy")
-    	    --pid-path=/var/run/nginx.pid \
-#else
-    	    --pid-path=/run/nginx.pid \
-#endif
-#if is_distribution?(">= quantal") || is_distribution?(">= wheezy")
-    	    --with-pcre-jit \
-#endif
-	    --with-debug \
+	    $(common_configure_flags) \
 	    --with-http_addition_module \
 	    --with-http_dav_module \
 	    --with-http_geoip_module \
@@ -98,6 +130,9 @@ config.status.full: config.env.full config.sub config.guess passenger_nginx_libs
 	    --with-http_realip_module \
 	    --with-http_stub_status_module \
 	    --with-http_ssl_module \
+#if is_distribution?(">= trusty") || is_distribution?(">= jessie")
+    	    --with-http_spdy_module \
+#endif
 	    --with-http_sub_module \
 	    --with-http_xslt_module \
 	    --with-ipv6 \
@@ -109,27 +144,12 @@ config.status.full: config.env.full config.sub config.guess passenger_nginx_libs
 	    --add-module=$(MODULESDIR)/nginx-upstream-fair \
 	    --add-module=$(MODULESDIR)/ngx_http_substitutions_filter_module \
 	    --add-module=$(MODULESDIR)/passenger/ext/nginx \
-            $(CONFIGURE_OPTS) >$@
+            >$@
 	touch $@
 
-config.status.light: config.env.light config.sub config.guess
-	cd $(BUILDDIR_light) && CFLAGS="$(CFLAGS)" CORE_LINK="$(LDFLAGS)" ./configure  \
-	    --prefix=/usr/share/nginx \
-	    --conf-path=/etc/nginx/nginx.conf \
-	    --error-log-path=/var/log/nginx/error.log \
-	    --http-client-body-temp-path=/var/lib/nginx/body \
-	    --http-fastcgi-temp-path=/var/lib/nginx/fastcgi \
-	    --http-log-path=/var/log/nginx/access.log \
-	    --http-proxy-temp-path=/var/lib/nginx/proxy \
-	    --lock-path=/var/lock/nginx.lock \
-#if is_distribution?("<= quantal") || is_distribution?("<= wheezy")
-    	    --pid-path=/var/run/nginx.pid \
-#else
-    	    --pid-path=/run/nginx.pid \
-#endif
-#if is_distribution?(">= quantal") || is_distribution?(">= wheezy")
-    	    --with-pcre-jit \
-#endif
+config.status.light: config.env.light
+	cd $(BUILDDIR_light) && ./configure  \
+	    $(common_configure_flags) \
 	    --with-http_gzip_static_module \
 	    --with-http_ssl_module \
 	    --with-ipv6 \
@@ -146,30 +166,12 @@ config.status.light: config.env.light config.sub config.guess
 	    --without-http_userid_module \
 	    --without-http_uwsgi_module \
 	    --add-module=$(MODULESDIR)/nginx-echo \
-            $(CONFIGURE_OPTS) >$@
+            >$@
 	touch $@
 
-config.status.extras: config.env.extras config.sub config.guess passenger_nginx_libs
-	cd $(BUILDDIR_extras) && CFLAGS="$(CFLAGS)" CORE_LINK="$(LDFLAGS)" ./configure  \
-	    --prefix=/usr/share/nginx \
-	    --conf-path=/etc/nginx/nginx.conf \
-	    --error-log-path=/var/log/nginx/error.log \
-	    --http-client-body-temp-path=/var/lib/nginx/body \
-	    --http-fastcgi-temp-path=/var/lib/nginx/fastcgi \
-	    --http-log-path=/var/log/nginx/access.log \
-	    --http-proxy-temp-path=/var/lib/nginx/proxy \
-	    --http-scgi-temp-path=/var/lib/nginx/scgi \
-	    --http-uwsgi-temp-path=/var/lib/nginx/uwsgi \
-	    --lock-path=/var/lock/nginx.lock \
-#if is_distribution?("<= quantal") || is_distribution?(">= wheezy")
-    	    --pid-path=/var/run/nginx.pid \
-#else
-    	    --pid-path=/run/nginx.pid \
-#endif
-#if is_distribution?(">= quantal") || is_distribution?(">= wheezy")
-    	    --with-pcre-jit \
-#endif
-	    --with-debug \
+config.status.extras: config.env.extras passenger_nginx_libs
+	cd $(BUILDDIR_extras) && ./configure  \
+	    $(common_configure_flags) \
 	    --with-http_addition_module \
 	    --with-http_dav_module \
 	    --with-http_flv_module \
@@ -204,29 +206,12 @@ config.status.extras: config.env.extras config.sub config.guess passenger_nginx_
 	    --add-module=$(MODULESDIR)/nginx-upstream-fair \
 	    --add-module=$(MODULESDIR)/ngx_http_substitutions_filter_module \
 	    --add-module=$(MODULESDIR)/passenger/ext/nginx \
-            $(CONFIGURE_OPTS) >$@
+            >$@
 	touch $@
 
-config.status.naxsi: config.env.naxsi config.sub config.guess
-	cd $(BUILDDIR_naxsi) && CFLAGS="$(CFLAGS)" CORE_LINK="$(LDFLAGS)" ./configure  \
-	    --prefix=/usr/share/nginx \
-	    --conf-path=/etc/nginx/nginx.conf \
-	    --error-log-path=/var/log/nginx/error.log \
-	    --http-client-body-temp-path=/var/lib/nginx/body \
-	    --http-fastcgi-temp-path=/var/lib/nginx/fastcgi \
-	    --http-log-path=/var/log/nginx/access.log \
-	    --http-proxy-temp-path=/var/lib/nginx/proxy \
-	    --http-scgi-temp-path=/var/lib/nginx/scgi \
-	    --http-uwsgi-temp-path=/var/lib/nginx/uwsgi \
-	    --lock-path=/var/lock/nginx.lock \
-#if is_distribution?("<= quantal") || is_distribution?("<= wheezy")
-    	    --pid-path=/var/run/nginx.pid \
-#else
-    	    --pid-path=/run/nginx.pid \
-#endif
-#if is_distribution?(">= quantal") || is_distribution?(">= wheezy")
-    	    --with-pcre-jit \
-#endif
+config.status.naxsi: config.env.naxsi
+	cd $(BUILDDIR_naxsi) && ./configure  \
+	    $(common_configure_flags) \
 	    --with-http_ssl_module \
 	    --without-mail_pop3_module \
 	    --without-mail_smtp_module \
@@ -239,7 +224,7 @@ config.status.naxsi: config.env.naxsi config.sub config.guess
 	    --add-module=$(MODULESDIR)/naxsi/naxsi_src \
 	    --add-module=$(MODULESDIR)/nginx-cache-purge \
 	    --add-module=$(MODULESDIR)/nginx-upstream-fair \
-	    $(CONFIGURE_OPTS) >$@
+	    >$@
 	touch $@
 
 config.status.%:
@@ -271,14 +256,10 @@ build: build-indep build-arch
 clean:
 	dh_testdir
 	dh_testroot
-	rm -f build-stamp
-	rm -f config.sub config.guess
 	dh_clean
 	rm -rf $(CURDIR)/debian/build-*
-mime-types:
-	
 
-install: mime-types
+install:
 	dh_testdir
 	dh_testroot
 	dh_prep
@@ -293,11 +274,19 @@ binary-indep: build install
 	dh_installdocs -i
 	dh_installdebconf
 	dh_installexamples -i
-	dh_installinit -r --no-start -i --name=nginx
-	dh_installinit -r --no-start -i --name=nginx-naxsi-ui
-	cp debian/logrotate debian/nginx-common/etc/logrotate.d/nginx
-	mkdir -p debian/nginx-common/lib/systemd/system
-	cp debian/nginx-common.service debian/nginx-common/lib/systemd/system/nginx.service
+#if is_distribution?(">= trusty") || is_distribution?(">= jessie")
+    	dh_systemd_enable --name=nginx
+    	dh_installinit -i --no-restart-on-upgrade --no-start --name=nginx
+    	dh_installinit -i --no-restart-on-upgrade --no-start --name=nginx-naxsi-ui
+    	dh_systemd_start
+    	dh_installlogrotate -i -pnginx-common --name=nginx
+#else
+    	dh_installinit -r --no-start -i --name=nginx
+    	dh_installinit -r --no-start -i --name=nginx-naxsi-ui
+    	cp debian/nginx-common.nginx.logrotate debian/nginx-common/etc/logrotate.d/nginx
+    	mkdir -p debian/nginx-common/lib/systemd/system
+    	cp debian/nginx-common.nginx.service debian/nginx-common/lib/systemd/system/nginx.service
+#endif
 	dh_link -i
 	dh_compress -i
 	dh_fixperms -i
@@ -311,6 +300,7 @@ binary-arch: install build-dbg
 	dh_testroot
 	dh_installchangelogs -a -k CHANGES
 	dh_installdocs -a
+	dh_lintian -a
 	dh_link -aA
 	dh_compress -a
 	dh_perl -a

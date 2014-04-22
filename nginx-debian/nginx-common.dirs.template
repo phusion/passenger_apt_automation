@@ -3,10 +3,12 @@ etc/nginx/sites-available
 etc/nginx/sites-enabled
 etc/nginx/conf.d
 etc/ufw/applications.d
-etc/logrotate.d
+#if is_distribution?("<= saucy") || is_distribution?("<= wheezy")
+    etc/logrotate.d
+#endif
 usr/share/nginx
 var/log/nginx
 var/lib/nginx
-#if is_distribution?(">= raring") || is_distribution?("> wheezy")
+#if (is_distribution?(">= raring") && is_distribution?("<= saucy")) || is_distribution?(">= wheezy")
     run
 #endif

@@ -34,18 +34,20 @@ server {
 	location / {
 		# First attempt to serve request as file, then
 		# as directory, then fall back to displaying a 404.
-		try_files $uri $uri/ /index.html;
+		try_files $uri $uri/ =404;
 		# Uncomment to enable naxsi on this location
 		# include /etc/nginx/naxsi.rules
 	}
 
-	location /doc/ {
-		alias /usr/share/doc/;
-		autoindex on;
-		allow 127.0.0.1;
-		allow ::1;
-		deny all;
-	}
+#if is_distribution?("<= saucy") || is_distribution?("<= wheezy")
+    	location /doc/ {
+    		alias /usr/share/doc/;
+    		autoindex on;
+    		allow 127.0.0.1;
+    		allow ::1;
+    		deny all;
+    	}
+#endif
 
 	# Only for nginx-naxsi used with nginx-naxsi-ui : process denied requests
 	# location /RequestDenied {
@@ -118,8 +120,8 @@ server {
 #
 #	ssl_session_timeout 5m;
 #
-#	ssl_protocols SSLv3 TLSv1;
-#	ssl_ciphers ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv3:+EXP;
+#	ssl_protocols SSLv3 TLSv1 TLSv1.1 TLSv1.2;
+#	ssl_ciphers "HIGH:!aNULL:!MD5 or HIGH:!aNULL:!MD5:!3DES";
 #	ssl_prefer_server_ciphers on;
 #
 #	location / {

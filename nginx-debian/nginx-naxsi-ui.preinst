@@ -8,7 +8,7 @@ case "$1" in
       mv /etc/nginx/naxsi-ui.conf /etc/nginx/naxsi-ui.conf.before_upgrade_to_1.4.1
     fi
     ;;
-  install)
+  install|abort-upgrade)
   ;;
   *)
     echo "preinst called with unknown argument \`$1'" >&2

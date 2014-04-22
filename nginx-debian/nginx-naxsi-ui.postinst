@@ -8,6 +8,8 @@ case "$1" in
       cp /etc/nginx/naxsi-ui.conf.1.4.1 /etc/nginx/naxsi-ui.conf
     fi
     ;;
+  abort-upgrade|abort-remove|abort-deconfigure)
+    ;;
   *)
     echo "postinst called with unknown argument \`$1'" >&2
     exit 1

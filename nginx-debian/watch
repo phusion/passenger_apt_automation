@@ -1,2 +1,3 @@
 version=3
-http://nginx.org/download/nginx-(.+)\.tar\.gz
+opts=pgpsigurlmangle=s/$/.asc/ \
+http://nginx.org/download/nginx-(\d\.[02468]\.\d+)\.tar\.gz

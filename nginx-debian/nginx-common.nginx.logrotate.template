@@ -14,9 +14,9 @@
 	endscript
 	postrotate
 #if is_distribution?("<= quantal") || is_distribution?("<= wheezy")
-    		[ ! -f /var/run/nginx.pid ] || kill -USR1 `cat /var/run/nginx.pid`
+    		[ -s /var/run/nginx.pid ] && kill -USR1 `cat /var/run/nginx.pid`
 #else
-    		[ ! -f /run/nginx.pid ] || kill -USR1 `cat /run/nginx.pid`
+    		[ -s /run/nginx.pid ] && kill -USR1 `cat /run/nginx.pid`
 #endif
 	endscript
 }
