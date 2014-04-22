@@ -9,14 +9,19 @@ BEGIN {
         $ENV{LD_PRELOAD} = "mockeagain.so $ENV{LD_PRELOAD}";
     }
 
-    $ENV{MOCKEAGAIN} = 'w';
+    if ($ENV{MOCKEAGAIN} eq 'r') {
+        $ENV{MOCKEAGAIN} = 'rw';
+
+    } else {
+        $ENV{MOCKEAGAIN} = 'w';
+    }
 
     $ENV{TEST_NGINX_EVENT_TYPE} = 'poll';
     $ENV{MOCKEAGAIN_WRITE_TIMEOUT_PATTERN} = 'get helloworld';
 }
 
 use lib 'lib';
-use Test::Nginx::Socket;
+use Test::Nginx::Socket::Lua;
 
 repeat_each(2);
 
@@ -105,7 +110,7 @@ lua tcp socket connect timeout: 150
     lua_socket_log_errors off;
     lua_socket_connect_timeout 102ms;
     resolver $TEST_NGINX_RESOLVER;
-    resolver_timeout 1s;
+    #resolver_timeout 1s;
     location /t3 {
         rewrite_by_lua '
             local sock = ngx.socket.tcp()

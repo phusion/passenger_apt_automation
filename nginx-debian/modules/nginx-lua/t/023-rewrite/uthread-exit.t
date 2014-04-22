@@ -1,7 +1,7 @@
 # vim:set ft= ts=4 sw=4 et fdm=marker:
 
 use lib 'lib';
-use Test::Nginx::Socket;
+use Test::Nginx::Socket::Lua;
 use t::StapThread;
 
 our $GCScript = $t::StapThread::GCScript;
@@ -9,7 +9,7 @@ our $StapScript = $t::StapThread::StapScript;
 
 repeat_each(2);
 
-plan tests => repeat_each() * (blocks() * 4);
+plan tests => repeat_each() * (blocks() * 4 + 1);
 
 $ENV{TEST_NGINX_RESOLVER} ||= '8.8.8.8';
 $ENV{TEST_NGINX_MEMCACHED_PORT} ||= '11211';
@@ -171,6 +171,7 @@ hello in thread
 after
 --- no_error_log
 [error]
+[alert]
 
 
 
@@ -588,7 +589,7 @@ M(timer-expire) {
     }
 }
 
-F(ngx_http_lua_tcp_socket_cleanup) {
+F(ngx_http_lua_coctx_cleanup) {
     println("lua tcp socket cleanup")
 }
 _EOC_
@@ -691,7 +692,7 @@ M(timer-expire) {
     }
 }
 
-F(ngx_http_lua_tcp_socket_cleanup) {
+F(ngx_http_lua_coctx_cleanup) {
     println("lua tcp socket cleanup")
 }
 _EOC_
@@ -800,7 +801,7 @@ M(timer-expire) {
     }
 }
 
-F(ngx_http_lua_tcp_socket_cleanup) {
+F(ngx_http_lua_coctx_cleanup) {
     println("lua tcp socket cleanup")
 }
 _EOC_
@@ -993,7 +994,7 @@ M(timer-expire) {
     }
 }
 
-F(ngx_http_lua_tcp_socket_cleanup) {
+F(ngx_http_lua_coctx_cleanup) {
     println("lua tcp socket cleanup")
 }
 _EOC_

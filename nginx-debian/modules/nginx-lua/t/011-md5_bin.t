@@ -1,12 +1,13 @@
-# vim:set ft=perl ts=4 sw=4 et fdm=marker:
+# vim:set ft= ts=4 sw=4 et fdm=marker:
+
 use lib 'lib';
-use Test::Nginx::Socket;
+use Test::Nginx::Socket::Lua;
 
 #worker_connections(1014);
 #master_process_enabled(1);
 log_level('warn');
 
-repeat_each(1);
+repeat_each(2);
 
 plan tests => repeat_each() * (blocks() * 2);
 
@@ -149,4 +150,22 @@ d41d8cd98f00b204e9800998ecf8427e
 GET /md5_bin
 --- response_body
 d41d8cd98f00b204e9800998ecf8427e
+
+
+
+=== TEST 9: md5_bin(number)
+--- config
+    location = /t {
+        content_by_lua '
+            s = ngx.md5_bin(45)
+            s = string.gsub(s, ".", function (c)
+                    return string.format("%02x", string.byte(c))
+                end)
+            return s
+
+        ';
+    }
+--- request
+GET /t
+--- response_body
 

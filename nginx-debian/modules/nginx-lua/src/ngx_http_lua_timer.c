@@ -26,7 +26,9 @@ typedef struct {
     void        **srv_conf;
     void        **loc_conf;
 
-    ngx_http_lua_main_conf_t    *lmcf;
+    ngx_http_lua_main_conf_t          *lmcf;
+    ngx_http_lua_vm_state_t           *vm_state;
+
 } ngx_http_lua_timer_ctx_t;
 
 
@@ -54,12 +56,13 @@ ngx_http_lua_ngx_timer_at(lua_State *L)
 {
     int                      nargs, co_ref;
     u_char                  *p;
-    lua_State               *mt;  /* the main thread */
+    lua_State               *vm;  /* the main thread */
     lua_State               *co;
     ngx_msec_t               delay;
     ngx_event_t             *ev;
     ngx_http_request_t      *r;
     ngx_connection_t        *saved_c = NULL;
+    ngx_http_lua_ctx_t      *ctx;
 #if 0
     ngx_http_connection_t   *hc;
 #endif
@@ -81,16 +84,14 @@ ngx_http_lua_ngx_timer_at(lua_State *L)
     luaL_argcheck(L, lua_isfunction(L, 2) && !lua_iscfunction(L, 2), 2,
                  "Lua function expected");
 
-    lua_pushlightuserdata(L, &ngx_http_lua_request_key);
-    lua_rawget(L, LUA_GLOBALSINDEX);
-    r = lua_touserdata(L, -1);
-    lua_pop(L, 1);
-
+    r = ngx_http_lua_get_req(L);
     if (r == NULL) {
         return luaL_error(L, "no request");
     }
 
-    if (ngx_exiting) {
+    ctx = ngx_http_get_module_ctx(r, ngx_http_lua_module);
+
+    if (ngx_exiting && delay > 0) {
         lua_pushnil(L);
         lua_pushliteral(L, "process exiting");
         return 2;
@@ -124,42 +125,43 @@ ngx_http_lua_ngx_timer_at(lua_State *L)
             return luaL_error(L, "no memory");
         }
 
-        lmcf->watcher->fd = -2;  /* to work around the -1 check in
-                                    ngx_worker_process_cycle */
+        /* to work around the -1 check in ngx_worker_process_cycle: */
+        lmcf->watcher->fd = (ngx_socket_t) -2;
+
         lmcf->watcher->idle = 1;
         lmcf->watcher->read->handler = ngx_http_lua_abort_pending_timers;
         lmcf->watcher->data = lmcf;
     }
 
-    mt = lmcf->lua;
+    vm = ngx_http_lua_get_lua_vm(r, ctx);
 
-    co = lua_newthread(mt);
+    co = lua_newthread(vm);
 
     /* L stack: time func [args] thread */
 
     ngx_http_lua_probe_user_coroutine_create(r, L, co);
 
-    lua_createtable(co, 0, 0);  /* the new global table */
+    lua_createtable(co, 0, 0);  /* the new globals table */
 
     /* co stack: global_tb */
 
     lua_createtable(co, 0, 1);  /* the metatable */
-    lua_pushvalue(co, LUA_GLOBALSINDEX);
+    ngx_http_lua_get_globals_table(co);
     lua_setfield(co, -2, "__index");
     lua_setmetatable(co, -2);
 
     /* co stack: global_tb */
 
-    lua_replace(co, LUA_GLOBALSINDEX);
+    ngx_http_lua_set_globals_table(co);
 
     /* co stack: <empty> */
 
     dd("stack top: %d", lua_gettop(L));
 
-    lua_xmove(mt, L, 1);    /* move coroutine from main thread to L */
+    lua_xmove(vm, L, 1);    /* move coroutine from main thread to L */
 
     /* L stack: time func [args] thread */
-    /* mt stack: empty */
+    /* vm stack: empty */
 
     lua_pushvalue(L, 2);    /* copy entry function to top of L*/
 
@@ -170,7 +172,7 @@ ngx_http_lua_ngx_timer_at(lua_State *L)
     /* L stack: time func [args] thread */
     /* co stack: func */
 
-    lua_pushvalue(co, LUA_GLOBALSINDEX);
+    ngx_http_lua_get_globals_table(co);
     lua_setfenv(co, -2);
 
     /* co stack: func */
@@ -221,6 +223,14 @@ ngx_http_lua_ngx_timer_at(lua_State *L)
     tctx->loc_conf = r->loc_conf;
     tctx->lmcf = lmcf;
 
+    if (ctx && ctx->vm_state) {
+        tctx->vm_state = ctx->vm_state;
+        tctx->vm_state->count++;
+
+    } else {
+        tctx->vm_state = NULL;
+    }
+
     ev->handler = ngx_http_lua_timer_handler;
     ev->data = tctx;
     ev->log = ngx_cycle->log;
@@ -240,12 +250,11 @@ ngx_http_lua_timer_handler(ngx_event_t *ev)
     int                      n;
     lua_State               *L;
     ngx_int_t                rc;
-    ngx_log_t               *log;
-    ngx_connection_t        *c = NULL, *saved_c = NULL;
+    ngx_connection_t        *c = NULL;
     ngx_http_request_t      *r = NULL;
     ngx_http_lua_ctx_t      *ctx;
     ngx_http_cleanup_t      *cln;
-    ngx_http_log_ctx_t      *logctx;
+    ngx_pool_cleanup_t      *pcln;
 
     ngx_http_lua_timer_ctx_t         tctx;
     ngx_http_lua_main_conf_t        *lmcf;
@@ -266,150 +275,20 @@ ngx_http_lua_timer_handler(ngx_event_t *ev)
         ngx_log_error(NGX_LOG_ALERT, ngx_cycle->log, 0,
                       "%i lua_max_running_timers are not enough",
                       lmcf->max_running_timers);
-        goto abort;
+        goto failed;
     }
 
-    /* create the fake connection (we temporarily use a valid fd (0) to make
-       ngx_get_connection happy) */
-
-    if (ngx_cycle->files) {
-        saved_c = ngx_cycle->files[0];
-    }
-
-    c = ngx_get_connection(0, ngx_cycle->log);
-
-    if (ngx_cycle->files) {
-        ngx_cycle->files[0] = saved_c;
-    }
-
+    c = ngx_http_lua_create_fake_connection();
     if (c == NULL) {
-        goto abort;
+        goto failed;
     }
 
-    c->fd = -1;
-
-    c->pool = ngx_create_pool(NGX_CYCLE_POOL_SIZE, c->log);
-    if (c->pool == NULL) {
-        goto abort;
-    }
-
-    log = ngx_pcalloc(c->pool, sizeof(ngx_log_t));
-    if (log == NULL) {
-        goto abort;
-    }
-
-    logctx = ngx_palloc(c->pool, sizeof(ngx_http_log_ctx_t));
-    if (logctx == NULL) {
-        goto abort;
-    }
-
-    dd("c pool allocated: %d", (int) (sizeof(ngx_log_t)
-       + sizeof(ngx_http_log_ctx_t) + sizeof(ngx_http_request_t)));
-
-    logctx->connection = c;
-    logctx->request = NULL;
-    logctx->current_request = NULL;
-
-    c->log = log;
-    c->log->connection = c->number;
     c->log->handler = ngx_http_lua_log_timer_error;
-    c->log->data = logctx;
-    c->log->action = NULL;
 
-    c->log_error = NGX_ERROR_INFO;
-
-#if 0
-    c->buffer = ngx_create_temp_buf(c->pool, 2);
-    if (c->buffer == NULL) {
-        goto abort;
-    }
-
-    c->buffer->start[0] = CR;
-    c->buffer->start[1] = LF;
-#endif
-
-    /* create the fake request */
-
-    r = ngx_pcalloc(c->pool, sizeof(ngx_http_request_t));
+    r = ngx_http_lua_create_fake_request(c);
     if (r == NULL) {
-        goto abort;
+        goto failed;
     }
-
-    c->requests++;
-    logctx->request = r;
-    logctx->current_request = r;
-
-    r->pool = ngx_create_pool(NGX_CYCLE_POOL_SIZE, c->log);
-    if (r->pool == NULL) {
-        goto abort;
-    }
-
-    dd("r pool allocated: %d", (int) (sizeof(ngx_http_lua_ctx_t)
-       + sizeof(void *) * ngx_http_max_module + sizeof(ngx_http_cleanup_t)));
-
-#if 0
-    hc = ngx_pcalloc(c->pool, sizeof(ngx_http_connection_t));
-    if (hc == NULL) {
-        goto abort;
-    }
-
-    r->header_in = c->buffer;
-    r->header_end = c->buffer->start;
-
-    if (ngx_list_init(&r->headers_out.headers, r->pool, 0,
-                      sizeof(ngx_table_elt_t))
-        != NGX_OK)
-    {
-        goto abort;
-    }
-
-    if (ngx_list_init(&r->headers_in.headers, r->pool, 0,
-                      sizeof(ngx_table_elt_t))
-        != NGX_OK)
-    {
-        goto abort;
-    }
-#endif
-
-    r->ctx = ngx_pcalloc(r->pool, sizeof(void *) * ngx_http_max_module);
-    if (r->ctx == NULL) {
-        goto abort;
-    }
-
-#if 0
-    cmcf = ngx_http_get_module_main_conf(r, ngx_http_core_module);
-
-    r->variables = ngx_pcalloc(r->pool, cmcf->variables.nelts
-                                        * sizeof(ngx_http_variable_value_t));
-    if (r->variables == NULL) {
-        goto abort;
-    }
-#endif
-
-    ctx = ngx_http_lua_create_ctx(r);
-    if (ctx == NULL) {
-        goto abort;
-    }
-
-    r->headers_in.content_length_n = 0;
-    c->data = r;
-#if 0
-    hc->request = r;
-    r->http_connection = hc;
-#endif
-    r->signature = NGX_HTTP_MODULE;
-    r->connection = c;
-    r->main = r;
-    r->count = 1;
-
-    r->method = NGX_HTTP_UNKNOWN;
-
-    r->headers_in.keep_alive_n = -1;
-    r->uri_changes = NGX_HTTP_MAX_URI_CHANGES + 1;
-    r->subrequests = NGX_HTTP_MAX_SUBREQUESTS + 1;
-
-    r->http_state = NGX_HTTP_PROCESS_REQUEST_STATE;
-    r->discard_body = 1;
 
     r->main_conf = tctx.main_conf;
     r->srv_conf = tctx.srv_conf;
@@ -421,19 +300,36 @@ ngx_http_lua_timer_handler(ngx_event_t *ev)
         c->log->log_level = clcf->error_log->log_level;
     }
 
-    c->error = 1;
+    dd("lmcf: %p", lmcf);
+
+    ctx = ngx_http_lua_create_ctx(r);
+    if (ctx == NULL) {
+        goto failed;
+    }
+
+    if (tctx.vm_state) {
+        ctx->vm_state = tctx.vm_state;
+
+        pcln = ngx_pool_cleanup_add(r->pool, 0);
+        if (pcln == NULL) {
+            goto failed;
+        }
+
+        pcln->handler = ngx_http_lua_cleanup_vm;
+        pcln->data = tctx.vm_state;
+    }
 
     ctx->cur_co_ctx = &ctx->entry_co_ctx;
 
-    L = lmcf->lua;
+    L = ngx_http_lua_get_lua_vm(r, ctx);
 
     cln = ngx_http_cleanup_add(r, 0);
     if (cln == NULL) {
-        goto abort;
+        goto failed;
     }
 
-    cln->handler = ngx_http_lua_request_cleanup;
-    cln->data = r;
+    cln->handler = ngx_http_lua_request_cleanup_handler;
+    cln->data = ctx;
     ctx->cleanup = &cln->handler;
 
     ctx->entered_content_phase = 1;
@@ -448,12 +344,7 @@ ngx_http_lua_timer_handler(ngx_event_t *ev)
     dd("r connection: %p, log %p", r->connection, r->connection->log);
 
     /*  save the request in coroutine globals table */
-    lua_pushvalue(tctx.co, LUA_GLOBALSINDEX);
-    lua_pushlightuserdata(tctx.co, &ngx_http_lua_request_key);
-    lua_pushlightuserdata(tctx.co, r);
-    lua_rawset(tctx.co, -3);
-    lua_pop(tctx.co, 1);
-    /*  }}} */
+    ngx_http_lua_set_req(tctx.co, r);
 
     lmcf->running_timers++;
 
@@ -476,6 +367,7 @@ ngx_http_lua_timer_handler(ngx_event_t *ev)
 
     } else if (rc == NGX_DONE) {
         rc = ngx_http_lua_content_run_posted_threads(L, r, ctx, 1);
+
     } else {
         rc = NGX_OK;
     }
@@ -483,12 +375,17 @@ ngx_http_lua_timer_handler(ngx_event_t *ev)
     ngx_http_lua_finalize_request(r, rc);
     return;
 
-abort:
+failed:
+
     if (tctx.co_ref && tctx.co) {
         lua_pushlightuserdata(tctx.co, &ngx_http_lua_coroutines_key);
         lua_rawget(tctx.co, LUA_REGISTRYINDEX);
         luaL_unref(tctx.co, -1, tctx.co_ref);
         lua_settop(tctx.co, 0);
+    }
+
+    if (tctx.vm_state) {
+        ngx_http_lua_cleanup_vm(tctx.vm_state);
     }
 
     if (r && r->pool) {
@@ -527,7 +424,7 @@ ngx_http_lua_abort_pending_timers(ngx_event_t *ev)
     ngx_http_lua_main_conf_t    *lmcf;
 
     ngx_log_debug0(NGX_LOG_DEBUG_HTTP, ngx_cycle->log, 0,
-                   "lua abort pending timers HERE");
+                   "lua abort pending timers");
 
     c = ev->data;
     lmcf = c->data;
@@ -551,7 +448,7 @@ ngx_http_lua_abort_pending_timers(ngx_event_t *ev)
 
     ngx_free_connection(c);
 
-    c->fd = -1;
+    c->fd = (ngx_socket_t) -1;
 
     if (ngx_cycle->files) {
         ngx_cycle->files[0] = saved_c;
@@ -565,8 +462,8 @@ ngx_http_lua_abort_pending_timers(ngx_event_t *ev)
 
     sentinel = ngx_event_timer_rbtree.sentinel;
 
-    prev = NULL;
     cur = ngx_event_timer_rbtree.root;
+    prev = cur->parent;
 
     events = ngx_pcalloc(ngx_cycle->pool,
                          lmcf->pending_timers * sizeof(ngx_event_t));
@@ -578,13 +475,16 @@ ngx_http_lua_abort_pending_timers(ngx_event_t *ev)
 
     dd("root: %p, root parent: %p, sentinel: %p", cur, cur->parent, sentinel);
 
-    while (lmcf->pending_timers > n) {
+    while (n < lmcf->pending_timers) {
         if  (cur == sentinel || cur == NULL) {
             ngx_log_error(NGX_LOG_ALERT, ngx_cycle->log, 0,
                           "lua pending timer counter got out of sync: %i",
                           lmcf->pending_timers);
             break;
         }
+
+        dd("prev: %p, cur: %p, cur parent: %p, cur left: %p, cur right: %p",
+           prev, cur, cur->parent, cur->left, cur->right);
 
         if (prev == cur->parent) {
             next = cur->left;
@@ -622,6 +522,10 @@ ngx_http_lua_abort_pending_timers(ngx_event_t *ev)
         cur = next;
     }
 
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, ngx_cycle->log, 0,
+                   "lua found %i pending timers to be aborted prematurely",
+                   n);
+
     for (i = 0; i < n; i++) {
         ev = events[i];
 
@@ -640,14 +544,17 @@ ngx_http_lua_abort_pending_timers(ngx_event_t *ev)
         tctx = ev->data;
         tctx->premature = 1;
 
+        dd("calling timer handler prematurely");
         ev->handler(ev);
     }
 
-    if (lmcf->pending_timers) {
+#if 0
+    if (pending_timers) {
         ngx_log_error(NGX_LOG_ALERT, ngx_cycle->log, 0,
                       "lua pending timer counter got out of sync: %i",
-                      lmcf->pending_timers);
+                      pending_timers);
     }
+#endif
 }
 
 /* vi:set ft=c ts=4 sw=4 et fdm=marker: */

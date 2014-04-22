@@ -1,6 +1,6 @@
 # vim:set ft= ts=4 sw=4 et fdm=marker:
 use lib 'lib';
-use Test::Nginx::Socket;
+use Test::Nginx::Socket::Lua;
 use t::StapThread;
 
 our $GCScript = $t::StapThread::GCScript;
@@ -68,7 +68,7 @@ registered timer
 
 --- error_log eval
 [
-qr/\[lua\] \[string "content_by_lua"\]:\d+: elapsed: 0\.0(?:4[4-9]|5[0-6])/,
+qr/\[lua\] content_by_lua:\d+: elapsed: 0\.0(?:4[4-9]|5[0-6])/,
 "lua ngx.timer expired",
 "http lua close fake http connection"
 ]
@@ -108,7 +108,7 @@ delete thread 2
 --- response_body
 registered timer
 
---- wait: 0.12
+--- wait: 0.5
 --- no_error_log
 [error]
 [alert]
@@ -117,7 +117,7 @@ registered timer
 --- error_log eval
 [
 qr/\[lua\] .*? my lua timer handler/,
-qr/\[lua\] \[string "content_by_lua"\]:\d+: elapsed: 0\.0(?:6[4-9]|7[0-6])/,
+qr/\[lua\] content_by_lua:\d+: elapsed: 0\.0(?:6[4-9]|7[0-6])/,
 "lua ngx.timer expired",
 "http lua close fake http connection"
 ]
@@ -365,7 +365,7 @@ registered timer
 
 --- error_log eval
 [
-qr/\[lua\] \[string "content_by_lua"\]:\d+: elapsed: 0(?:[^.]|\.00)/,
+qr/\[lua\] content_by_lua:\d+: elapsed: 0(?:[^.]|\.00)/,
 "lua ngx.timer expired",
 "http lua close fake http connection"
 ]
@@ -500,7 +500,7 @@ hello world
 [
 "registered timer",
 qr/\[lua\] .*? my lua timer handler/,
-qr/\[lua\] \[string "log_by_lua"\]:\d+: elapsed: 0\.0(?:6[4-9]|7[0-6])/,
+qr/\[lua\] log_by_lua:\d+: elapsed: 0\.0(?:6[4-9]|7[0-6])/,
 "lua ngx.timer expired",
 "http lua close fake http connection"
 ]

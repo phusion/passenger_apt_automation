@@ -1,7 +1,7 @@
 # vim:set ft= ts=4 sw=4 et fdm=marker:
 
 use lib 'lib';
-use Test::Nginx::Socket;
+use Test::Nginx::Socket::Lua;
 use t::StapThread;
 
 our $GCScript = $t::StapThread::GCScript;
@@ -249,7 +249,7 @@ delete thread 3
 --- response_body
 after
 --- error_log
-lua user thread aborted: runtime error: [string "access_by_lua"]:3: attempt to call field 'blah' (a nil value)
+lua user thread aborted: runtime error: access_by_lua:3: attempt to call field 'blah' (a nil value)
 
 
 

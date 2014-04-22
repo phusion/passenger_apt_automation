@@ -1,7 +1,7 @@
 # vim:set ft= ts=4 sw=4 et fdm=marker:
 
 use lib 'lib';
-use Test::Nginx::Socket;
+use Test::Nginx::Socket::Lua;
 
 #worker_connections(1014);
 #master_process_enabled(1);
@@ -9,7 +9,7 @@ use Test::Nginx::Socket;
 
 repeat_each(2);
 
-plan tests => repeat_each() * (blocks() * 3 + 2);
+plan tests => repeat_each() * (blocks() * 3 + 13);
 
 #no_diff();
 no_long_string();
@@ -626,8 +626,8 @@ Cache-Control: private
     GET /lua
 --- response_headers
 Cache-Control: private, no-store
---- response_body
-Cache-Control: private; no-store
+--- response_body_like chop
+^Cache-Control: private[;,] no-store$
 
 
 
@@ -658,16 +658,16 @@ Cache-Control: no-cache
             ngx.header.cache_control = { "private", "no-store" }
             ngx.header.cache_control = { "no-cache", "blah", "foo" }
             ngx.say("Cache-Control: ", ngx.var.sent_http_cache_control)
-            ngx.say("Cache-Control: ", table.concat(ngx.header.cache_control, "; "))
+            ngx.say("Cache-Control: ", table.concat(ngx.header.cache_control, ", "))
         ';
     }
 --- request
     GET /lua
 --- response_headers
 Cache-Control: no-cache, blah, foo
---- response_body
-Cache-Control: no-cache; blah; foo
-Cache-Control: no-cache; blah; foo
+--- response_body_like chop
+^Cache-Control: no-cache[;,] blah[;,] foo
+Cache-Control: no-cache[;,] blah[;,] foo$
 
 
 
@@ -853,4 +853,368 @@ something: hello
 content_type: anything
 --- no_error_log
 [error]
+
+
+
+=== TEST 43: set multiple response header
+--- config
+    location /read {
+        content_by_lua '
+            for i = 1, 50 do
+                ngx.header["X-Direct-" .. i] = "text/my-plain-" .. i;
+            end
+
+            ngx.say(ngx.header["X-Direct-50"]);
+        ';
+    }
+--- request
+GET /read
+--- response_body
+text/my-plain-50
+--- no_error_log
+[error]
+
+
+
+=== TEST 44: set multiple response header and then reset and then clear
+--- config
+    location /read {
+        content_by_lua '
+            for i = 1, 50 do
+                ngx.header["X-Direct-" .. i] = "text/my-plain-" .. i;
+            end
+
+            for i = 1, 50 do
+                ngx.header["X-Direct-" .. i] = "text/my-plain"
+            end
+
+            for i = 1, 50 do
+                ngx.header["X-Direct-" .. i] = nil
+            end
+
+            ngx.say("ok");
+        ';
+    }
+--- request
+GET /read
+--- response_body
+ok
+--- no_error_log
+[error]
+
+
+
+=== TEST 45: set response content-type header for multiple times
+--- config
+    location /read {
+        content_by_lua '
+            ngx.header.content_type = "text/my-plain";
+            ngx.header.content_type = "text/my-plain-2";
+            ngx.say("Hi");
+        ';
+    }
+--- request
+GET /read
+--- response_headers
+Content-Type: text/my-plain-2
+--- response_body
+Hi
+
+
+
+=== TEST 46: set Last-Modified response header for multiple times
+--- config
+    location /read {
+        content_by_lua '
+            ngx.header.last_modified = ngx.http_time(1290079655)
+            ngx.header.last_modified = ngx.http_time(1290079654)
+            ngx.say("ok");
+        ';
+    }
+--- request
+GET /read
+--- response_headers
+Last-Modified: Thu, 18 Nov 2010 11:27:34 GMT
+--- response_body
+ok
+
+
+
+=== TEST 47: set Last-Modified response header and then clear
+--- config
+    location /read {
+        content_by_lua '
+            ngx.header.last_modified = ngx.http_time(1290079655)
+            ngx.header.last_modified = nil
+            ngx.say("ok");
+        ';
+    }
+--- request
+GET /read
+--- response_headers
+!Last-Modified
+--- response_body
+ok
+
+
+
+=== TEST 48: github #20: segfault caused by the nasty optimization in the nginx core (write)
+--- config
+    location = /t/ {
+        header_filter_by_lua '
+            ngx.header.foo = 1
+        ';
+        proxy_pass http://127.0.0.1:$server_port;
+    }
+--- request
+GET /t
+--- more_headers
+Foo: bar
+Bah: baz
+--- response_headers
+Location: http://localhost:$ServerPort/t/
+--- response_body_like: 301 Moved Permanently
+--- error_code: 301
+--- no_error_log
+[error]
+
+
+
+=== TEST 49: github #20: segfault caused by the nasty optimization in the nginx core (read)
+--- config
+    location = /t/ {
+        header_filter_by_lua '
+            local v = ngx.header.foo
+        ';
+        proxy_pass http://127.0.0.1:$server_port;
+    }
+--- request
+GET /t
+--- more_headers
+Foo: bar
+Bah: baz
+--- response_body_like: 301 Moved Permanently
+--- response_headers
+Location: http://localhost:$ServerPort/t/
+--- error_code: 301
+--- no_error_log
+[error]
+
+
+
+=== TEST 50: github #20: segfault caused by the nasty optimization in the nginx core (read Location)
+--- config
+    location = /t/ {
+        header_filter_by_lua '
+            ngx.header.Foo = ngx.header.location
+        ';
+        proxy_pass http://127.0.0.1:$server_port;
+    }
+--- request
+GET /t
+--- more_headers
+Foo: bar
+Bah: baz
+--- response_headers
+Location: http://localhost:$ServerPort/t/
+Foo: /t/
+--- response_body_like: 301 Moved Permanently
+--- error_code: 301
+--- no_error_log
+[error]
+
+
+
+=== TEST 51: github #20: segfault caused by the nasty optimization in the nginx core (set Foo and read Location)
+--- config
+    location = /t/ {
+        header_filter_by_lua '
+            ngx.header.Foo = 3
+            ngx.header.Foo = ngx.header.location
+        ';
+        proxy_pass http://127.0.0.1:$server_port;
+    }
+--- request
+GET /t
+--- more_headers
+Foo: bar
+Bah: baz
+--- response_headers
+Location: http://localhost:$ServerPort/t/
+Foo: /t/
+--- response_body_like: 301 Moved Permanently
+--- error_code: 301
+--- no_error_log
+[error]
+
+
+
+=== TEST 52: case sensitive cache-control header
+--- config
+    location /lua {
+        content_by_lua '
+            ngx.header["cache-Control"] = "private"
+            ngx.say("Cache-Control: ", ngx.var.sent_http_cache_control)
+        ';
+    }
+--- request
+    GET /lua
+--- raw_response_headers_like chop
+cache-Control: private
+--- response_body
+Cache-Control: private
+
+
+
+=== TEST 53: clear Cache-Control when there was no Cache-Control
+--- config
+    location /lua {
+        content_by_lua '
+            ngx.header["Cache-Control"] = nil
+            ngx.say("Cache-Control: ", ngx.var.sent_http_cache_control)
+        ';
+    }
+--- request
+    GET /lua
+--- raw_response_headers_unlike eval
+qr/Cache-Control/i
+--- response_body
+Cache-Control: nil
+
+
+
+=== TEST 54: set response content-type header
+--- config
+    location /read {
+        content_by_lua '
+            local s = "content_type"
+            local v = ngx.header[s]
+            ngx.say("s = ", s)
+        ';
+    }
+--- request
+GET /read
+--- response_body
+s = content_type
+
+--- no_error_log
+[error]
+
+
+
+=== TEST 55: set a number header name
+--- config
+    location /lua {
+        content_by_lua '
+            ngx.header[32] = "private"
+            ngx.say("32: ", ngx.var.sent_http_32)
+        ';
+    }
+--- request
+    GET /lua
+--- response_headers
+32: private
+--- response_body
+32: private
+--- no_error_log
+[error]
+
+
+
+=== TEST 56: set a number header name (in a table value)
+--- config
+    location /lua {
+        content_by_lua '
+            ngx.header.foo = {32}
+            ngx.say("foo: ", ngx.var.sent_http_foo)
+        ';
+    }
+--- request
+    GET /lua
+--- response_headers
+foo: 32
+--- response_body
+foo: 32
+--- no_error_log
+[error]
+
+
+
+=== TEST 57: random access resp headers
+--- config
+    location /resp-header {
+        content_by_lua '
+            ngx.header["Foo"] = "bar"
+            ngx.header["Bar"] = "baz"
+            ngx.say("Foo: ", ngx.resp.get_headers()["Foo"] or "nil")
+            ngx.say("foo: ", ngx.resp.get_headers()["foo"] or "nil")
+            ngx.say("Bar: ", ngx.resp.get_headers()["Bar"] or "nil")
+            ngx.say("bar: ", ngx.resp.get_headers()["bar"] or "nil")
+        ';
+    }
+--- request
+GET /resp-header
+--- response_headers
+Foo: bar
+Bar: baz
+--- response_body
+Foo: bar
+foo: bar
+Bar: baz
+bar: baz
+
+
+
+=== TEST 58: iterating through raw resp headers
+--- config
+    location /resp-header {
+        content_by_lua '
+            ngx.header["Foo"] = "bar"
+            ngx.header["Bar"] = "baz"
+            local h = {}
+            for k, v in pairs(ngx.resp.get_headers(nil, true)) do
+                h[k] = v
+            end
+            ngx.say("Foo: ", h["Foo"] or "nil")
+            ngx.say("foo: ", h["foo"] or "nil")
+            ngx.say("Bar: ", h["Bar"] or "nil")
+            ngx.say("bar: ", h["bar"] or "nil")
+        ';
+    }
+--- request
+GET /resp-header
+--- response_headers
+Foo: bar
+Bar: baz
+--- response_body
+Foo: bar
+foo: nil
+Bar: baz
+bar: nil
+
+
+
+=== TEST 59: removed response headers
+--- config
+    location /resp-header {
+        content_by_lua '
+            ngx.header["Foo"] = "bar"
+            ngx.header["Foo"] = nil
+            ngx.header["Bar"] = "baz"
+            ngx.say("Foo: ", ngx.resp.get_headers()["Foo"] or "nil")
+            ngx.say("foo: ", ngx.resp.get_headers()["foo"] or "nil")
+            ngx.say("Bar: ", ngx.resp.get_headers()["Bar"] or "nil")
+            ngx.say("bar: ", ngx.resp.get_headers()["bar"] or "nil")
+        ';
+    }
+--- request
+GET /resp-header
+--- response_headers
+!Foo
+Bar: baz
+--- response_body
+Foo: nil
+foo: nil
+Bar: baz
+bar: baz
 

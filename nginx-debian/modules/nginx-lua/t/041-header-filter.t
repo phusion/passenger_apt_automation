@@ -1,7 +1,7 @@
 # vim:set ft= ts=4 sw=4 et fdm=marker:
 
 use lib 'lib';
-use Test::Nginx::Socket;
+use Test::Nginx::Socket::Lua;
 
 #worker_connections(1014);
 #master_process_enabled(1);
@@ -455,7 +455,7 @@ GET /lua
 GET /lua
 --- ignore_response
 --- error_log
-failed to run header_filter_by_lua*: [string "header_filter_by_lua"]:2: Something bad
+failed to run header_filter_by_lua*: header_filter_by_lua:2: Something bad
 --- no_error_log
 [alert]
 
@@ -589,21 +589,7 @@ API disabled in the context of header_filter_by_lua*
 
 
 
-=== TEST 30: no ngx.exit
---- config
-    location /lua {
-        header_filter_by_lua 'ngx.exit(0)';
-        echo ok;
-    }
---- request
-GET /lua
---- ignore_response
---- error_log
-API disabled in the context of header_filter_by_lua*
-
-
-
-=== TEST 31: no ngx.redirect
+=== TEST 30: no ngx.redirect
 --- config
     location /lua {
         header_filter_by_lua 'ngx.redirect("/blah")';
@@ -617,7 +603,7 @@ API disabled in the context of header_filter_by_lua*
 
 
 
-=== TEST 32: no ngx.exec
+=== TEST 31: no ngx.exec
 --- config
     location /lua {
         header_filter_by_lua 'ngx.exec("/blah")';
@@ -631,7 +617,7 @@ API disabled in the context of header_filter_by_lua*
 
 
 
-=== TEST 33: no ngx.req.set_uri(uri, true)
+=== TEST 32: no ngx.req.set_uri(uri, true)
 --- config
     location /lua {
         header_filter_by_lua 'ngx.req.set_uri("/blah", true)';
@@ -645,7 +631,7 @@ API disabled in the context of header_filter_by_lua*
 
 
 
-=== TEST 34: ngx.req.set_uri(uri) exists
+=== TEST 33: ngx.req.set_uri(uri) exists
 --- config
     location /lua {
         header_filter_by_lua 'ngx.req.set_uri("/blah") return 1';
@@ -663,7 +649,7 @@ uri: /blah
 
 
 
-=== TEST 35: no ngx.req.read_body()
+=== TEST 34: no ngx.req.read_body()
 --- config
     location /lua {
         header_filter_by_lua 'ngx.req.read_body()';
@@ -677,7 +663,7 @@ API disabled in the context of header_filter_by_lua*
 
 
 
-=== TEST 36: no ngx.req.socket()
+=== TEST 35: no ngx.req.socket()
 --- config
     location /lua {
         header_filter_by_lua 'return ngx.req.socket()';
@@ -691,7 +677,7 @@ API disabled in the context of header_filter_by_lua*
 
 
 
-=== TEST 37: no ngx.socket.tcp()
+=== TEST 36: no ngx.socket.tcp()
 --- config
     location /lua {
         header_filter_by_lua 'return ngx.socket.tcp()';
@@ -705,7 +691,7 @@ API disabled in the context of header_filter_by_lua*
 
 
 
-=== TEST 38: no ngx.socket.connect()
+=== TEST 37: no ngx.socket.connect()
 --- config
     location /lua {
         header_filter_by_lua 'return ngx.socket.connect("127.0.0.1", 80)';
@@ -719,7 +705,7 @@ API disabled in the context of header_filter_by_lua*
 
 
 
-=== TEST 39: clear content-length
+=== TEST 38: clear content-length
 --- config
     location /lua {
         content_by_lua '
@@ -737,7 +723,7 @@ hello world
 
 
 
-=== TEST 40: backtrace
+=== TEST 39: backtrace
 --- config
     location /t {
         header_filter_by_lua '
@@ -762,4 +748,22 @@ stack traceback:
 in function 'error'
 in function 'bar'
 in function 'foo'
+
+
+
+=== TEST 40: Lua file does not exist
+--- config
+    location /lua {
+        echo ok;
+        header_filter_by_lua_file html/test2.lua;
+    }
+--- user_files
+>>> test.lua
+v = ngx.var["request_uri"]
+ngx.print("request_uri: ", v, "\n")
+--- request
+GET /lua?a=1&b=2
+--- ignore_response
+--- error_log eval
+qr/failed to load external Lua file ".*?test2\.lua": cannot open .*? No such file or directory/
 

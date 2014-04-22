@@ -1,7 +1,7 @@
 # vim:set ft= ts=4 sw=4 et fdm=marker:
 
 use lib 'lib';
-use Test::Nginx::Socket;
+use Test::Nginx::Socket::Lua;
 use t::StapThread;
 
 our $GCScript = <<_EOC_;
@@ -309,7 +309,7 @@ lua req cleanup
 --- error_log
 client prematurely closed connection
 on abort called
-lua user thread aborted: runtime error: [string "rewrite_by_lua"]:4: attempt to abort with pending subrequests
+lua user thread aborted: runtime error: rewrite_by_lua:4: attempt to abort with pending subrequests
 main handler done
 
 
@@ -366,7 +366,7 @@ delete thread 1
 
 --- timeout: 0.2
 --- abort
---- wait: 0.3
+--- wait: 0.4
 --- ignore_response
 --- no_error_log
 [error]

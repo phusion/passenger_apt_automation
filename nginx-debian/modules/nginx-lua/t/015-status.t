@@ -1,7 +1,7 @@
 # vim:set ft= ts=4 sw=4 et fdm=marker:
 
 use lib 'lib';
-use Test::Nginx::Socket;
+use Test::Nginx::Socket::Lua;
 
 #worker_connections(1014);
 #master_process_enabled(1);
@@ -10,7 +10,7 @@ log_level('warn');
 #repeat_each(120);
 repeat_each(2);
 
-plan tests => repeat_each() * (blocks() * 2 + 3);
+plan tests => repeat_each() * (blocks() * 2 + 7);
 
 #no_diff();
 #no_long_string();
@@ -150,8 +150,10 @@ GET /201
     }
 --- request
 GET /201
---- response_body_like: 500 Internal Server Error
---- error_code: 500
+--- response_body
+created
+--- no_error_log
+[error]
 
 
 
@@ -213,6 +215,59 @@ Range: bytes=0-4
 <html
 
 --- error_code: 200
+--- no_error_log
+[error]
+
+
+
+=== TEST 13: 101 response has a complete status line
+--- config
+    location /t {
+        content_by_lua '
+            ngx.status = 101
+            ngx.send_headers()
+        ';
+    }
+--- request
+GET /t
+--- raw_response_headers_like: ^HTTP/1.1 101 Switching Protocols\r\n
+--- error_code: 101
+--- no_error_log
+[error]
+
+
+
+=== TEST 14: reading error status code
+--- config
+    location = /t {
+        content_by_lua 'ngx.say("status = ", ngx.status)';
+    }
+--- raw_request eval
+"GET /t\r\n"
+--- http09
+--- response_body
+status = 9
+
+
+
+=== TEST 15: err status
+--- config
+    location /nil {
+        content_by_lua '
+            ngx.exit(502)
+        ';
+        body_filter_by_lua '
+            if ngx.arg[2] then
+                ngx.log(ngx.WARN, "ngx.status = ", ngx.status)
+            end
+        ';
+    }
+--- request
+GET /nil
+--- response_body_like: 502 Bad Gateway
+--- error_code: 502
+--- error_log
+ngx.status = 502
 --- no_error_log
 [error]
 

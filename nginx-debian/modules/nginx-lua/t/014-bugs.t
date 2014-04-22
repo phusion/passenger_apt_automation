@@ -1,7 +1,7 @@
 # vim:set ft= ts=4 sw=4 et fdm=marker:
 
 use lib 'lib';
-use Test::Nginx::Socket;
+use Test::Nginx::Socket::Lua;
 
 #worker_connections(1014);
 #master_on();
@@ -9,15 +9,19 @@ log_level('debug');
 
 repeat_each(3);
 
-plan tests => repeat_each() * (blocks() * 2 + 23);
+plan tests => repeat_each() * (blocks() * 2 + 27);
 
 our $HtmlDir = html_dir;
 #warn $html_dir;
+
+$ENV{TEST_NGINX_HTML_DIR} = $HtmlDir;
+$ENV{TEST_NGINX_REDIS_PORT} ||= 6379;
 
 #no_diff();
 #no_long_string();
 
 $ENV{TEST_NGINX_MEMCACHED_PORT} ||= 11211;
+$ENV{TEST_NGINX_RESOLVER} ||= '8.8.8.8';
 
 #no_shuffle();
 no_long_string();
@@ -382,6 +386,7 @@ It works!
 --- response_body
 status = 301
 Location: /foo/
+--- no_check_leak
 
 
 
@@ -696,10 +701,11 @@ Content-Type: application/json; charset=utf-8
 
 
 === TEST 32: hang on upstream_next (from kindy)
+--- no_check_leak
 --- http_config
     upstream xx {
-        server 127.0.0.1:$TEST_NGINX_SERVER_PORT;
-        server 127.0.0.1:$TEST_NGINX_SERVER_PORT;
+        server 127.0.0.1:$TEST_NGINX_SERVER_PORT max_fails=5;
+        server 127.0.0.1:$TEST_NGINX_SERVER_PORT max_fails=5;
     }
 
     server {
@@ -710,11 +716,8 @@ Content-Type: application/json; charset=utf-8
     }
 --- config
     location = /t {
+        proxy_next_upstream off;
         proxy_pass http://xx;
-    }
-
-    location = /bad {
-        return 444;
     }
 --- request
     GET /t
@@ -813,4 +816,120 @@ Hello, 502
 --- error_log
 not-exist.agentzh.org could not be resolved
 --- timeout: 3
+
+
+
+=== TEST 36: line comments in the last line of the inlined Lua code
+--- config
+    location /lua {
+        content_by_lua 'ngx.say("ok") -- blah';
+    }
+--- request
+GET /lua
+--- response_body
+ok
+--- no_error_log
+[error]
+
+
+
+=== TEST 37: resolving names with a trailing dot
+--- http_config eval
+    "lua_package_path '$::HtmlDir/?.lua;./?.lua';"
+--- config
+    location /t {
+        resolver $TEST_NGINX_RESOLVER;
+        set $myhost 'agentzh.org.';
+        proxy_pass http://$myhost/misc/.vimrc;
+    }
+--- request
+GET /t
+--- response_body_like: An example for a vimrc file
+--- no_error_log
+[error]
+
+
+
+=== TEST 38: resolving names with a trailing dot
+--- http_config eval
+    "lua_package_path '$::HtmlDir/?.lua;./?.lua';
+    server {
+        listen 12354;
+
+        location = /t {
+            echo 'args: \$args';
+        }
+    }
+"
+--- config
+    location = /t {
+        set $args "foo=1&bar=2";
+        proxy_pass http://127.0.0.1:12354;
+    }
+
+--- request
+GET /t
+--- response_body
+args: foo=1&bar=2
+--- no_error_log
+[error]
+--- no_check_leak
+
+
+
+=== TEST 39: lua_code_cache off + setkeepalive
+--- http_config eval
+    "lua_package_path '$::HtmlDir/?.lua;./?.lua';"
+--- config
+    lua_code_cache off;
+    location = /t {
+        set $port $TEST_NGINX_REDIS_PORT;
+        content_by_lua '
+            local test = require "test"
+            local port = ngx.var.port
+            test.go(port)
+        ';
+    }
+--- user_files
+>>> test.lua
+module("test", package.seeall)
+
+function go(port)
+    local sock = ngx.socket.tcp()
+    local sock2 = ngx.socket.tcp()
+
+    sock:settimeout(1000)
+    sock2:settimeout(6000000)
+
+    local ok, err = sock:connect("127.0.0.1", port)
+    if not ok then
+        ngx.say("failed to connect: ", err)
+        return
+    end
+
+    local ok, err = sock2:connect("127.0.0.1", port)
+    if not ok then
+        ngx.say("failed to connect: ", err)
+        return
+    end
+
+    local ok, err = sock:setkeepalive(100, 100)
+    if not ok then
+        ngx.say("failed to set reusable: ", err)
+    end
+
+    local ok, err = sock2:setkeepalive(200, 100)
+    if not ok then
+        ngx.say("failed to set reusable: ", err)
+    end
+
+    ngx.say("done")
+end
+--- request
+GET /t
+--- response_body
+done
+--- wait: 0.5
+--- no_error_log
+[error]
 

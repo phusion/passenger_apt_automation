@@ -1,7 +1,7 @@
 # vim:set ft= ts=4 sw=4 et fdm=marker:
 
 use lib 'lib';
-use Test::Nginx::Socket;
+use Test::Nginx::Socket::Lua;
 use t::StapThread;
 
 our $GCScript = $t::StapThread::GCScript;
@@ -570,7 +570,7 @@ M(timer-expire) {
     }
 }
 
-F(ngx_http_lua_tcp_socket_cleanup) {
+F(ngx_http_lua_coctx_cleanup) {
     println("lua tcp socket cleanup")
 }
 _EOC_
@@ -673,7 +673,7 @@ M(timer-expire) {
     }
 }
 
-F(ngx_http_lua_tcp_socket_cleanup) {
+F(ngx_http_lua_coctx_cleanup) {
     println("lua tcp socket cleanup")
 }
 _EOC_
@@ -782,7 +782,7 @@ M(timer-expire) {
     }
 }
 
-F(ngx_http_lua_tcp_socket_cleanup) {
+F(ngx_http_lua_coctx_cleanup) {
     println("lua tcp socket cleanup")
 }
 _EOC_
@@ -975,7 +975,7 @@ M(timer-expire) {
     }
 }
 
-F(ngx_http_lua_tcp_socket_cleanup) {
+F(ngx_http_lua_coctx_cleanup) {
     println("lua tcp socket cleanup")
 }
 _EOC_

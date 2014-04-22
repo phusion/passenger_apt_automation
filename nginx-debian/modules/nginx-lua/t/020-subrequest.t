@@ -1,6 +1,6 @@
 # vim:set ft= ts=4 sw=4 et fdm=marker:
 use lib 'lib';
-use Test::Nginx::Socket;
+use Test::Nginx::Socket::Lua;
 
 #master_on();
 #workers(1);
@@ -10,7 +10,7 @@ use Test::Nginx::Socket;
 
 repeat_each(2);
 
-plan tests => repeat_each() * (blocks() * 3 + 18);
+plan tests => repeat_each() * (blocks() * 3 + 21);
 
 $ENV{TEST_NGINX_MEMCACHED_PORT} ||= 11211;
 
@@ -120,7 +120,6 @@ POST
 --- request
 GET /lua
 --- response_body
-HEAD
 --- no_error_log
 [error]
 
@@ -1282,14 +1281,14 @@ F(ngx_http_finalize_request) {
 */
 --- stap_out
 upstream fin req: error=0 eof=1 rc=502
-post subreq: rc=-1, status=200
+post subreq: rc=0, status=200
 
 --- response_body
 status: 200
 body: hello world
 truncated: true
---- no_error_log
-[error]
+--- error_log
+upstream prematurely closed connection
 
 
 
@@ -1353,7 +1352,7 @@ F(ngx_http_finalize_request) {
 --- stap_out
 conn err: 110: upstream timed out
 upstream fin req: error=0 eof=0 rc=504
-post subreq: rc=-1, status=200
+post subreq: rc=0, status=200
 
 --- response_body_like chop
 ^status: 200
@@ -1415,15 +1414,15 @@ F(ngx_http_finalize_request) {
 */
 --- stap_out
 upstream fin req: error=0 eof=1 rc=502
-post subreq: rc=-1, status=200
+post subreq: rc=0, status=200
 
 --- response_body
 status: 200
 body: hello world
 truncated: true
 
---- no_error_log
-[error]
+--- error_log
+upstream prematurely closed connection
 
 
 
@@ -1476,7 +1475,7 @@ F(ngx_http_finalize_request) {
 --- stap_out
 conn err: 110: upstream timed out
 upstream fin req: error=0 eof=0 rc=502
-post subreq: rc=-1, status=200
+post subreq: rc=0, status=200
 
 --- response_body
 status: 200
@@ -1598,7 +1597,7 @@ F(ngx_http_finalize_request) {
 --- stap_out
 conn err: 110: upstream timed out
 upstream fin req: error=0 eof=0 rc=502
-post subreq: rc=-1, status=200
+post subreq: rc=0, status=200
 
 --- response_body
 status: 200
@@ -1721,7 +1720,7 @@ F(ngx_http_finalize_request) {
 --- stap_out
 conn err: 110: upstream timed out
 upstream fin req: error=0 eof=0 rc=504
-post subreq: rc=-1, status=200
+post subreq: rc=0, status=200
 
 --- response_body
 status: 200
@@ -1946,15 +1945,15 @@ F(ngx_http_finalize_request) {
 */
 --- stap_out
 upstream fin req: error=0 eof=1 rc=502
-post subreq: rc=-1, status=200
+post subreq: rc=0, status=200
 
 --- response_body
 status: 200
 body: hello world
 truncated: true
 
---- no_error_log
-[error]
+--- error_log
+upstream prematurely closed connection
 
 
 
@@ -2009,15 +2008,15 @@ F(ngx_http_finalize_request) {
 */
 --- stap_out
 upstream fin req: error=0 eof=1 rc=502
-post subreq: rc=-1, status=200
+post subreq: rc=0, status=200
 
 --- response_body
 status: 200
 body: hello world
 truncated: true
 
---- no_error_log
-[error]
+--- error_log
+upstream prematurely closed connection
 
 
 
@@ -2071,7 +2070,7 @@ F(ngx_http_finalize_request) {
 --- stap_out
 conn err: 110: upstream timed out
 upstream fin req: error=0 eof=0 rc=502
-post subreq: rc=-1, status=200
+post subreq: rc=0, status=200
 
 --- response_body
 status: 200
@@ -2249,13 +2248,515 @@ F(ngx_http_finalize_request) {
 */
 --- stap_out
 upstream fin req: error=0 eof=1 rc=502
-post subreq: rc=-1, status=200
+post subreq: rc=0, status=200
 
 --- response_body
 status: 200
 body: hello world
 truncated: true
 
+--- error_log
+upstream prematurely closed connection
+
+
+
+=== TEST 61: WebDAV methods
+--- config
+    location /other {
+        echo "method: $echo_request_method";
+    }
+
+    location /lua {
+        content_by_lua '
+            local methods = {
+                ngx.HTTP_MKCOL,
+                ngx.HTTP_COPY,
+                ngx.HTTP_MOVE,
+                ngx.HTTP_PROPFIND,
+                ngx.HTTP_PROPPATCH,
+                ngx.HTTP_LOCK,
+                ngx.HTTP_UNLOCK,
+                ngx.HTTP_PATCH,
+                ngx.HTTP_TRACE,
+            }
+
+            for i, method in ipairs(methods) do
+                res = ngx.location.capture("/other",
+                    { method = method })
+                ngx.print(res.body)
+            end
+        ';
+    }
+--- request
+GET /lua
+--- response_body
+method: MKCOL
+method: COPY
+method: MOVE
+method: PROPFIND
+method: PROPPATCH
+method: LOCK
+method: UNLOCK
+method: PATCH
+method: TRACE
+
+--- no_error_log
+[error]
+
+
+
+=== TEST 62: by default DELETE subrequests don't forward request bodies
+--- config
+    location /other {
+        default_type 'foo/bar';
+        content_by_lua '
+            ngx.req.read_body()
+            ngx.say(ngx.req.get_body_data())
+        ';
+    }
+
+    location /lua {
+        content_by_lua '
+            res = ngx.location.capture("/other",
+                { method = ngx.HTTP_DELETE });
+
+            ngx.print(res.body)
+        ';
+    }
+--- request
+DELETE /lua
+hello world
+--- response_body
+nil
+--- no_error_log
+[error]
+
+
+
+=== TEST 63: DELETE subrequests do forward request bodies when always_forward_body == true
+--- config
+    location = /other {
+        default_type 'foo/bar';
+        content_by_lua '
+            ngx.req.read_body()
+            ngx.say(ngx.req.get_body_data())
+        ';
+    }
+
+    location /lua {
+        content_by_lua '
+            ngx.req.read_body()
+            res = ngx.location.capture("/other",
+                { method = ngx.HTTP_DELETE, always_forward_body = true });
+
+            ngx.print(res.body)
+        ';
+    }
+--- request
+DELETE /lua
+hello world
+--- response_body
+hello world
+--- no_error_log
+[error]
+
+
+
+=== TEST 64: DELETE subrequests do forward request bodies when always_forward_body == true (on disk)
+--- config
+    location = /other {
+        default_type 'foo/bar';
+        content_by_lua '
+            ngx.req.read_body()
+            ngx.say(ngx.req.get_body_data())
+        ';
+    }
+
+    location /lua {
+        content_by_lua '
+            ngx.req.read_body()
+            res = ngx.location.capture("/other",
+                { method = ngx.HTTP_DELETE, always_forward_body = true });
+
+            ngx.print(res.body)
+        ';
+    }
+--- request
+DELETE /lua
+hello world
+--- stap2
+global c
+probe process("$LIBLUA_PATH").function("rehashtab") {
+    c++
+    //print_ubacktrace()
+    printf("rehash: %d\n", c)
+}
+--- stap_out2
+--- response_body
+hello world
+--- no_error_log
+[error]
+
+
+
+=== TEST 65: DELETE
+--- config
+    location = /t {
+        content_by_lua '
+            res = ngx.location.capture("/sub")
+            ngx.print(res.body)
+        ';
+    }
+    location = /sub {
+        echo hello;
+        echo world;
+    }
+--- request
+GET /t
+--- response_body
+hello
+world
+--- stap
+F(ngx_http_lua_capture_header_filter) {
+    println("capture header filter")
+}
+
+F(ngx_http_lua_capture_body_filter) {
+    println("capture body filter")
+}
+
+--- stap_out
+capture header filter
+capture body filter
+capture body filter
+capture body filter
+capture header filter
+capture body filter
+capture body filter
+--- no_error_log
+[error]
+
+
+
+=== TEST 66: leafo test case 1 for assertion failures
+--- config
+    location = /t {
+        echo hello;
+    }
+
+    location /proxy {
+        internal;
+        rewrite_by_lua "
+          local req = ngx.req
+          print(ngx.var._url)
+
+          for k,v in pairs(req.get_headers()) do
+            if k ~= 'content-length' then
+              req.clear_header(k)
+            end
+          end
+
+          if ngx.ctx.headers then
+            for k,v in pairs(ngx.ctx.headers) do
+              req.set_header(k, v)
+            end
+          end
+        ";
+
+        resolver 8.8.8.8;
+        proxy_http_version 1.1;
+        proxy_pass $_url;
+    }
+
+    location /first {
+      set $_url "";
+      content_by_lua '
+        local res = ngx.location.capture("/proxy", {
+          ctx = {
+            headers = {
+              ["Content-type"] = "application/x-www-form-urlencoded"
+            }
+          },
+          vars = { _url = "http://127.0.0.1:" .. ngx.var.server_port .. "/t" }
+        })
+
+        ngx.print(res.body)
+
+        local res = ngx.location.capture("/proxy", {
+          ctx = {
+            headers = {
+              ["x-some-date"] = "Sun, 01 Dec 2013 11:47:41 GMT",
+              ["x-hello-world-header"] = "123412341234",
+              ["Authorization"] = "Hello"
+            }
+          },
+          vars = { _url = "http://127.0.0.1:" .. ngx.var.server_port .. "/t" }
+        })
+
+        ngx.print(res.body)
+      ';
+    }
+--- request
+GET /first
+--- response_body
+hello
+hello
+--- no_error_log eval
+[
+"[error]",
+qr/Assertion .*? failed/
+]
+
+
+
+=== TEST 67: leafo test case 2 for assertion failures
+--- config
+    location = /t {
+        echo hello;
+    }
+
+    location /proxy {
+        internal;
+        rewrite_by_lua "
+          local req = ngx.req
+          print(ngx.var._url)
+
+          for k,v in pairs(req.get_headers()) do
+            if k ~= 'content-length' then
+              req.clear_header(k)
+            end
+          end
+
+          if ngx.ctx.headers then
+            for k,v in pairs(ngx.ctx.headers) do
+              req.set_header(k, v)
+            end
+          end
+        ";
+
+        resolver 8.8.8.8;
+        proxy_http_version 1.1;
+        proxy_pass $_url;
+    }
+
+    location /second {
+      set $_url "";
+      content_by_lua '
+        local res = ngx.location.capture("/proxy", {
+          method = ngx.HTTP_POST,
+          body = ("x"):rep(600),
+          ctx = {
+            headers = {
+              ["Content-type"] = "application/x-www-form-urlencoded"
+            }
+          },
+          vars = { _url = "http://127.0.0.1:" .. ngx.var.server_port .. "/t" }
+        })
+
+        ngx.print(res.body)
+
+        local res = ngx.location.capture("/proxy", {
+          ctx = {
+            headers = {
+              ["x-some-date"] = "Sun, 01 Dec 2013 11:47:41 GMT",
+              ["x-hello-world-header"] = "123412341234",
+              ["Authorization"] = "Hello"
+            }
+          },
+          vars = { _url = "http://127.0.0.1:" .. ngx.var.server_port .. "/t" }
+        })
+
+        ngx.print(res.body)
+
+        local res = ngx.location.capture("/proxy", {
+          vars = { _url = "http://127.0.0.1:" .. ngx.var.server_port .. "/t" }
+        })
+
+        ngx.print(res.body)
+      ';
+    }
+--- request
+GET /second
+--- response_body
+hello
+hello
+hello
+--- no_error_log eval
+[
+"[error]",
+qr/Assertion .*? failed/
+]
+
+
+
+=== TEST 68: fetch subrequest's builtin request headers
+--- config
+    location = /sub {
+        echo "sr: User-Agent: $http_user_agent";
+        echo "sr: Host: $http_host";
+    }
+
+    location = /t {
+        content_by_lua '
+            res = ngx.location.capture("/sub")
+            ngx.print(res.body)
+            ngx.say("pr: User-Agent: ", ngx.var.http_user_agent)
+            ngx.say("pr: Host: ", ngx.var.http_host)
+        ';
+    }
+--- request
+    GET /t
+--- more_headers
+User-Agent: foo
+--- response_body
+sr: User-Agent: foo
+sr: Host: localhost
+pr: User-Agent: foo
+pr: Host: localhost
+
+--- no_error_log
+[error]
+
+
+
+=== TEST 69: modify subrequest's builtin request headers
+--- config
+    location = /sub {
+        rewrite_by_lua '
+            ngx.req.set_header("User-Agent", "bar")
+        ';
+        echo "sr: User-Agent: $http_user_agent";
+        echo "sr: Host: $http_host";
+    }
+
+    location = /t {
+        content_by_lua '
+            res = ngx.location.capture("/sub")
+            ngx.print(res.body)
+            ngx.say("pr: User-Agent: ", ngx.var.http_user_agent)
+            ngx.say("pr: Host: ", ngx.var.http_host)
+        ';
+    }
+--- request
+    GET /t
+--- more_headers
+User-Agent: foo
+--- response_body
+sr: User-Agent: bar
+sr: Host: localhost
+pr: User-Agent: foo
+pr: Host: localhost
+
+--- no_error_log
+[error]
+
+
+
+=== TEST 70: modify subrequest's builtin request headers (main req is POST)
+--- config
+    location = /sub {
+        rewrite_by_lua '
+            ngx.req.set_header("User-Agent", "bar")
+        ';
+        echo "sr: User-Agent: $http_user_agent";
+        echo "sr: Host: $http_host";
+    }
+
+    location = /t {
+        content_by_lua '
+            res = ngx.location.capture("/sub")
+            ngx.print(res.body)
+            ngx.say("pr: User-Agent: ", ngx.var.http_user_agent)
+            ngx.say("pr: Host: ", ngx.var.http_host)
+        ';
+    }
+--- request
+POST /t
+hello world
+--- more_headers
+User-Agent: foo
+--- response_body
+sr: User-Agent: bar
+sr: Host: localhost
+pr: User-Agent: foo
+pr: Host: localhost
+
+--- no_error_log
+[error]
+
+
+
+=== TEST 71: duplicate request headers (main req is POST)
+--- config
+    location = /sub {
+        echo "sr: Cookie: $http_cookie";
+    }
+
+    location = /t {
+        content_by_lua '
+            res = ngx.location.capture("/sub")
+            ngx.print(res.body)
+            ngx.say("pr: Cookie: ", ngx.var.http_cookie)
+        ';
+    }
+--- request
+POST /t
+hello world
+--- more_headers
+Cookie: foo
+Cookie: bar
+--- response_body
+sr: Cookie: foo; bar
+pr: Cookie: foo; bar
+
+--- no_error_log
+[error]
+
+
+
+=== TEST 72: duplicate request headers (main req is GET)
+--- config
+    location = /sub {
+        echo "sr: Cookie: $http_cookie";
+    }
+
+    location = /t {
+        content_by_lua '
+            res = ngx.location.capture("/sub")
+            ngx.print(res.body)
+            ngx.say("pr: Cookie: ", ngx.var.http_cookie)
+        ';
+    }
+--- request
+GET /t
+--- more_headers
+Cookie: foo
+Cookie: bar
+--- response_body
+sr: Cookie: foo; bar
+pr: Cookie: foo; bar
+
+--- no_error_log
+[error]
+
+
+
+=== TEST 73: HEAD subrequest (github #347)
+--- config
+    location /lua {
+        content_by_lua '
+            res = ngx.location.capture("/index.html",
+                { method = ngx.HTTP_HEAD });
+            ngx.say("content-length: ", res.header["Content-Length"])
+            ngx.say("body: [", res.body, "]")
+        ';
+    }
+--- request
+GET /lua
+--- response_body_like chop
+^content-length: \d+
+body: \[\]
+$
 --- no_error_log
 [error]
 

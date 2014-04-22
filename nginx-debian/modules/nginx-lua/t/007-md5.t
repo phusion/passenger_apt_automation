@@ -1,6 +1,6 @@
 # vim:set ft= ts=4 sw=4 et fdm=marker:
 use lib 'lib';
-use Test::Nginx::Socket;
+use Test::Nginx::Socket::Lua;
 
 #worker_connections(1014);
 #master_process_enabled(1);
@@ -88,4 +88,16 @@ d41d8cd98f00b204e9800998ecf8427e
 GET /md5
 --- response_body
 d41d8cd98f00b204e9800998ecf8427e
+
+
+
+=== TEST 7: md5(number)
+--- config
+    location = /md5 {
+        content_by_lua 'ngx.say(ngx.md5(45))';
+    }
+--- request
+GET /md5
+--- response_body
+6c8349cc7260ae62e3b1396831a8398f
 

@@ -1,6 +1,6 @@
 # vim:set ft= ts=4 sw=4 et fdm=marker:
 use lib 'lib';
-use Test::Nginx::Socket;
+use Test::Nginx::Socket::Lua;
 
 #worker_connections(1014);
 #master_on();
@@ -9,7 +9,7 @@ use Test::Nginx::Socket;
 
 repeat_each(5);
 
-plan tests => repeat_each() * (blocks() * 2 + 3);
+plan tests => repeat_each() * (blocks() * 2 + 7);
 
 our $HtmlDir = html_dir;
 
@@ -699,7 +699,7 @@ not matched!
 --- request
     GET /re
 --- response_body
-error: failed to compile regex "(abc": pcre_compile() failed: missing ) in "(abc"
+error: pcre_compile() failed: missing ) in "(abc"
 --- no_error_log
 [error]
 
@@ -736,8 +736,170 @@ error: failed to compile regex "(abc": pcre_compile() failed: missing ) in "(abc
 --- request
 GET /t
 --- response_body_like chop
-error: pcre_exec\(\) failed: -10 on "你.*?"
+error: pcre_exec\(\) failed: -10
 
 --- no_error_log
 [error]
+
+
+
+=== TEST 28: UTF-8 mode without UTF-8 sequence checks
+--- config
+    location /re {
+        content_by_lua '
+            local it = ngx.re.gmatch("你好", ".", "U")
+            local m = it()
+            if m then
+                ngx.say(m[0])
+            else
+                ngx.say("not matched!")
+            end
+        ';
+    }
+--- stap
+probe process("$LIBPCRE_PATH").function("pcre_compile") {
+    printf("compile opts: %x\n", $options)
+}
+
+probe process("$LIBPCRE_PATH").function("pcre_exec") {
+    printf("exec opts: %x\n", $options)
+}
+
+--- stap_out
+compile opts: 800
+exec opts: 2000
+
+--- request
+    GET /re
+--- response_body
+你
+--- no_error_log
+[error]
+
+
+
+=== TEST 29: UTF-8 mode with UTF-8 sequence checks
+--- config
+    location /re {
+        content_by_lua '
+            local it = ngx.re.gmatch("你好", ".", "u")
+            local m = it()
+            if m then
+                ngx.say(m[0])
+            else
+                ngx.say("not matched!")
+            end
+        ';
+    }
+--- stap
+probe process("$LIBPCRE_PATH").function("pcre_compile") {
+    printf("compile opts: %x\n", $options)
+}
+
+probe process("$LIBPCRE_PATH").function("pcre_exec") {
+    printf("exec opts: %x\n", $options)
+}
+
+--- stap_out
+compile opts: 800
+exec opts: 0
+
+--- request
+    GET /re
+--- response_body
+你
+--- no_error_log
+[error]
+
+
+
+=== TEST 30: just hit match limit
+--- http_config
+    lua_regex_match_limit 5600;
+--- config
+    location /re {
+        content_by_lua_file html/a.lua;
+    }
+
+--- user_files
+>>> a.lua
+local re = [==[(?i:([\s'\"`´’‘\(\)]*)?([\d\w]+)([\s'\"`´’‘\(\)]*)?(?:=|<=>|r?like|sounds\s+like|regexp)([\s'\"`´’‘\(\)]*)?\2|([\s'\"`´’‘\(\)]*)?([\d\w]+)([\s'\"`´’‘\(\)]*)?(?:!=|<=|>=|<>|<|>|\^|is\s+not|not\s+like|not\s+regexp)([\s'\"`´’‘\(\)]*)?(?!\6)([\d\w]+))]==]
+
+s = string.rep([[ABCDEFG]], 10)
+
+local start = ngx.now()
+
+local it, err = ngx.re.gmatch(s, re, "o")
+if not it then
+    ngx.say("failed to gen iterator: ", err)
+    return
+end
+
+local res, err = it()
+
+--[[
+ngx.update_time()
+local elapsed = ngx.now() - start
+ngx.say(elapsed, " sec elapsed.")
+]]
+
+if not res then
+    if err then
+        ngx.say("error: ", err)
+        return
+    end
+    ngx.say("failed to match")
+    return
+end
+
+--- request
+    GET /re
+--- response_body
+error: pcre_exec() failed: -8
+
+
+
+=== TEST 31: just not hit match limit
+--- http_config
+    lua_regex_match_limit 5700;
+--- config
+    location /re {
+        content_by_lua_file html/a.lua;
+    }
+
+--- user_files
+>>> a.lua
+local re = [==[(?i:([\s'\"`´’‘\(\)]*)?([\d\w]+)([\s'\"`´’‘\(\)]*)?(?:=|<=>|r?like|sounds\s+like|regexp)([\s'\"`´’‘\(\)]*)?\2|([\s'\"`´’‘\(\)]*)?([\d\w]+)([\s'\"`´’‘\(\)]*)?(?:!=|<=|>=|<>|<|>|\^|is\s+not|not\s+like|not\s+regexp)([\s'\"`´’‘\(\)]*)?(?!\6)([\d\w]+))]==]
+
+s = string.rep([[ABCDEFG]], 10)
+
+local start = ngx.now()
+
+local it, err = ngx.re.gmatch(s, re, "o")
+if not it then
+    ngx.say("failed to gen iterator: ", err)
+    return
+end
+
+res, err = it()
+
+--[[
+ngx.update_time()
+local elapsed = ngx.now() - start
+ngx.say(elapsed, " sec elapsed.")
+]]
+
+if not res then
+    if err then
+        ngx.say("error: ", err)
+        return
+    end
+    ngx.say("failed to match")
+    return
+end
+
+--- request
+    GET /re
+--- response_body
+failed to match
 

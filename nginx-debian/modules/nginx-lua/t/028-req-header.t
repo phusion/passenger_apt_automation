@@ -1,7 +1,7 @@
 # vim:set ft= ts=4 sw=4 et fdm=marker:
 
 use lib 'lib';
-use Test::Nginx::Socket;
+use Test::Nginx::Socket::Lua;
 
 #worker_connections(1014);
 #master_process_enabled(1);
@@ -9,10 +9,10 @@ use Test::Nginx::Socket;
 
 repeat_each(2);
 
-plan tests => (2 * blocks() + 6) * repeat_each();
+plan tests => repeat_each() * (2 * blocks() + 21);
 
 #no_diff();
-no_long_string();
+#no_long_string();
 
 run_tests();
 
@@ -34,6 +34,9 @@ Bar: baz
 --- response_body
 Foo: bar
 Bar: baz
+--- log_level: debug
+--- no_error_log
+lua exceeding request header limit
 
 
 
@@ -120,7 +123,7 @@ Foo:
 --- config
     location /bar {
         rewrite_by_lua '
-            ngx.req.set_header("content_length", 2048)
+            ngx.req.set_header("content-length", 2048)
         ';
         echo_read_request_body;
         echo_request_body;
@@ -316,6 +319,7 @@ Foo 3: nil
 --- config
     location /foo {
         content_by_lua '
+            collectgarbage()
             local vals = ngx.req.get_headers()["Foo"]
             ngx.say("value is of type ", type(vals), ".")
             if type(vals) == "table" then
@@ -427,7 +431,7 @@ for my $k (@k) {
 CORE::join("", @k);
 --- timeout: 4
 --- error_log
-lua hit request header limit 100
+lua exceeding request header limit 100
 
 
 
@@ -475,7 +479,7 @@ for my $k (@k) {
 CORE::join("", @k);
 --- timeout: 4
 --- error_log
-lua hit request header limit 102
+lua exceeding request header limit 102
 
 
 
@@ -1061,6 +1065,366 @@ Host: localhost
 Bar: baz
 My-Foo: bar
 Connection: Close
+--- no_error_log
+[error]
+
+
+
+=== TEST 35: clear X-Real-IP
+--- config
+    location /t {
+        rewrite_by_lua '
+           ngx.req.set_header("X-Real-IP", nil)
+        ';
+        echo "X-Real-IP: $http_x_real_ip";
+    }
+--- request
+GET /t
+--- more_headers
+X-Real-IP: 8.8.8.8
+
+--- stap
+F(ngx_http_lua_rewrite_by_chunk) {
+    if (@defined($r->headers_in->x_real_ip) && $r->headers_in->x_real_ip) {
+        printf("rewrite: x-real-ip: %s\n",
+               user_string_n($r->headers_in->x_real_ip->value->data,
+                             $r->headers_in->x_real_ip->value->len))
+    } else {
+        println("rewrite: no x-real-ip")
+    }
+}
+
+F(ngx_http_core_content_phase) {
+    if (@defined($r->headers_in->x_real_ip) && $r->headers_in->x_real_ip) {
+        printf("content: x-real-ip: %s\n",
+               user_string_n($r->headers_in->x_real_ip->value->data,
+                             $r->headers_in->x_real_ip->value->len))
+    } else {
+        println("content: no x-real-ip")
+    }
+}
+
+--- stap_out
+rewrite: x-real-ip: 8.8.8.8
+content: no x-real-ip
+
+--- response_body
+X-Real-IP: 
+
+--- no_error_log
+[error]
+
+
+
+=== TEST 36: set custom X-Real-IP
+--- config
+    location /t {
+        rewrite_by_lua '
+           ngx.req.set_header("X-Real-IP", "8.8.4.4")
+        ';
+        echo "X-Real-IP: $http_x_real_ip";
+    }
+--- request
+GET /t
+
+--- stap
+F(ngx_http_lua_rewrite_by_chunk) {
+    if (@defined($r->headers_in->x_real_ip) && $r->headers_in->x_real_ip) {
+        printf("rewrite: x-real-ip: %s\n",
+               user_string_n($r->headers_in->x_real_ip->value->data,
+                             $r->headers_in->x_real_ip->value->len))
+    } else {
+        println("rewrite: no x-real-ip")
+    }
+
+}
+
+F(ngx_http_core_content_phase) {
+    if (@defined($r->headers_in->x_real_ip) && $r->headers_in->x_real_ip) {
+        printf("content: x-real-ip: %s\n",
+               user_string_n($r->headers_in->x_real_ip->value->data,
+                             $r->headers_in->x_real_ip->value->len))
+    } else {
+        println("content: no x-real-ip")
+    }
+}
+
+--- stap_out
+rewrite: no x-real-ip
+content: x-real-ip: 8.8.4.4
+
+--- response_body
+X-Real-IP: 8.8.4.4
+
+--- no_error_log
+[error]
+
+
+
+=== TEST 37: clear Via
+--- config
+    location /t {
+        rewrite_by_lua '
+           ngx.req.set_header("Via", nil)
+        ';
+        echo "Via: $http_via";
+    }
+--- request
+GET /t
+--- more_headers
+Via: 1.0 fred, 1.1 nowhere.com (Apache/1.1)
+
+--- stap
+F(ngx_http_lua_rewrite_by_chunk) {
+    if (@defined($r->headers_in->via) && $r->headers_in->via) {
+        printf("rewrite: via: %s\n",
+               user_string_n($r->headers_in->via->value->data,
+                             $r->headers_in->via->value->len))
+    } else {
+        println("rewrite: no via")
+    }
+}
+
+F(ngx_http_core_content_phase) {
+    if (@defined($r->headers_in->via) && $r->headers_in->via) {
+        printf("content: via: %s\n",
+               user_string_n($r->headers_in->via->value->data,
+                             $r->headers_in->via->value->len))
+    } else {
+        println("content: no via")
+    }
+}
+
+--- stap_out
+rewrite: via: 1.0 fred, 1.1 nowhere.com (Apache/1.1)
+content: no via
+
+--- response_body
+Via: 
+
+--- no_error_log
+[error]
+
+
+
+=== TEST 38: set custom Via
+--- config
+    location /t {
+        rewrite_by_lua '
+           ngx.req.set_header("Via", "1.0 fred, 1.1 nowhere.com (Apache/1.1)")
+        ';
+        echo "Via: $http_via";
+    }
+--- request
+GET /t
+
+--- stap
+F(ngx_http_lua_rewrite_by_chunk) {
+    if (@defined($r->headers_in->via) && $r->headers_in->via) {
+        printf("rewrite: via: %s\n",
+               user_string_n($r->headers_in->via->value->data,
+                             $r->headers_in->via->value->len))
+    } else {
+        println("rewrite: no via")
+    }
+
+}
+
+F(ngx_http_core_content_phase) {
+    if (@defined($r->headers_in->via) && $r->headers_in->via) {
+        printf("content: via: %s\n",
+               user_string_n($r->headers_in->via->value->data,
+                             $r->headers_in->via->value->len))
+    } else {
+        println("content: no via")
+    }
+}
+
+--- stap_out
+rewrite: no via
+content: via: 1.0 fred, 1.1 nowhere.com (Apache/1.1)
+
+--- response_body
+Via: 1.0 fred, 1.1 nowhere.com (Apache/1.1)
+
+--- no_error_log
+[error]
+
+
+
+=== TEST 39: set input header (with underscores in the header name)
+--- config
+    location /req-header {
+        rewrite_by_lua '
+            ngx.req.set_header("foo_bar", "some value");
+        ';
+        proxy_pass http://127.0.0.1:$server_port/back;
+    }
+    location = /back {
+        echo -n $echo_client_request_headers;
+    }
+--- request
+GET /req-header
+--- response_body_like eval
+qr{^GET /back HTTP/1.0\r
+Host: 127.0.0.1:\d+\r
+Connection: close\r
+foo_bar: some value\r
+\r
+$}
+
+
+
+=== TEST 40: HTTP 0.9 (set & get)
+--- config
+    location /foo {
+        content_by_lua '
+            ngx.req.set_header("X-Foo", "howdy");
+            ngx.say("X-Foo: ", ngx.req.get_headers()["X-Foo"])
+        ';
+    }
+--- raw_request eval
+"GET /foo\r\n"
+--- response_headers
+! X-Foo
+--- response_body
+X-Foo: nil
+--- http09
+--- no_error_log
+[error]
+
+
+
+=== TEST 41: HTTP 0.9 (clear)
+--- config
+    location /foo {
+        content_by_lua '
+            ngx.req.set_header("X-Foo", "howdy");
+            ngx.say("X-Foo: ", ngx.req.get_headers()["X-Foo"])
+        ';
+    }
+--- raw_request eval
+"GET /foo\r\n"
+--- response_headers
+! X-Foo
+--- response_body
+X-Foo: nil
+--- http09
+--- no_error_log
+[error]
+
+
+
+=== TEST 42: Host header with port and $host (github issue #292)
+--- config
+    location /bar {
+        rewrite_by_lua '
+            ngx.req.set_header("Host", "agentzh.org:1984")
+        ';
+        echo "host var: $host";
+        echo "http_host var: $http_host";
+    }
+--- request
+GET /bar
+--- response_body
+host var: agentzh.org
+http_host var: agentzh.org:1984
+
+
+
+=== TEST 43: Host header with upper case letters and $host (github issue #292)
+--- config
+    location /bar {
+        rewrite_by_lua '
+            ngx.req.set_header("Host", "agentZH.org:1984")
+        ';
+        echo "host var: $host";
+        echo "http_host var: $http_host";
+    }
+--- request
+GET /bar
+--- response_body
+host var: agentzh.org
+http_host var: agentZH.org:1984
+
+
+
+=== TEST 44: clear all and re-insert
+--- config
+    location = /t {
+        content_by_lua '
+            local headers = ngx.req.get_headers(100, true)
+            local n = 0
+            for header, _ in pairs(headers) do
+                n = n + 1
+                ngx.req.clear_header(header)
+            end
+            ngx.say("got ", n, " headers")
+            local i = 0
+            for header, value in pairs(headers) do
+                i = i + 1
+                print("1: reinsert header ", header, ": ", i)
+                ngx.req.set_header(header, value)
+            end
+            local headers = ngx.req.get_headers(100, true)
+            n = 0
+            for header, _ in pairs(headers) do
+                n = n + 1
+                ngx.req.clear_header(header)
+            end
+            ngx.say("got ", n, " headers")
+            -- do return end
+            local i = 0
+            for header, value in pairs(headers) do
+                i = i + 1
+                if i > 8 then
+                    break
+                end
+                print("2: reinsert header ", header, ": ", i)
+                ngx.req.set_header(header, value)
+            end
+        ';
+    }
+
+--- raw_request eval
+"GET /t HTTP/1.1\r
+Host: localhost\r
+Connection: close\r
+Cache-Control: max-age=0\r
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\r
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.101 Safari/537.36\r
+Accept-Encoding: gzip,deflate,sdch\r
+Accept-Language: en-US,en;q=0.8\r
+Cookie: test=cookie;\r
+\r
+"
+--- response_body
+got 8 headers
+got 8 headers
+--- no_error_log
+[error]
+
+
+
+=== TEST 45: github issue #314: ngx.req.set_header does not override request headers with multiple values
+--- config
+    #lua_code_cache off;
+    location = /t {
+        content_by_lua '
+            ngx.req.set_header("AAA", "111")
+            local headers = ngx.req.get_headers()
+            ngx.say(headers["AAA"])
+        ';
+    }
+--- request
+GET /t
+--- more_headers
+AAA: 123
+AAA: 456
+AAA: 678
+
+--- response_body
+111
 --- no_error_log
 [error]
 

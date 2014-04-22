@@ -1,7 +1,7 @@
 # vim:set ft= ts=4 sw=4 et fdm=marker:
 
 use lib 'lib';
-use Test::Nginx::Socket;
+use Test::Nginx::Socket::Lua;
 use t::StapThread;
 
 our $GCScript = $t::StapThread::GCScript;
@@ -224,7 +224,7 @@ delete thread 1
 --- response_body
 after
 --- error_log
-lua user thread aborted: runtime error: [string "content_by_lua"]:3: attempt to call field 'blah' (a nil value)
+lua user thread aborted: runtime error: content_by_lua:3: attempt to call field 'blah' (a nil value)
 
 
 
@@ -1365,15 +1365,15 @@ delete thread 1
 finalize request /t: rc:-4 c:4 a:1
 terminate 4: ok
 delete thread 4
-finalize request /proxy/1: rc:201 c:3 a:0
-post subreq: /proxy/1 rc=201, status=201 a=0
+finalize request /proxy/1: rc:0 c:3 a:0
+post subreq: /proxy/1 rc=0, status=201 a=0
 subrequest /proxy/1 done
 terminate 2: ok
 delete thread 2
 terminate 5: ok
 delete thread 5
-finalize request /proxy/2: rc:201 c:2 a:0
-post subreq: /proxy/2 rc=201, status=201 a=0
+finalize request /proxy/2: rc:0 c:2 a:0
+post subreq: /proxy/2 rc=0, status=201 a=0
 subrequest /proxy/2 done
 terminate 3: ok
 delete thread 3

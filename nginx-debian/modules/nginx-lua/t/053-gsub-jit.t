@@ -1,6 +1,6 @@
 # vim:set ft= ts=4 sw=4 et fdm=marker:
 use lib 'lib';
-use Test::Nginx::Socket;
+use Test::Nginx::Socket::Lua;
 
 #worker_connections(1014);
 #master_on();
@@ -75,8 +75,12 @@ pcre JIT compiling result: 1
     GET /re
 --- response_body
 hello, world world: 2
---- error_log
-pcre JIT compiling result: 1
+
+--- grep_error_log eval
+qr/pcre JIT compiling result: \d+/
+
+--- grep_error_log_out eval
+["pcre JIT compiling result: 1\n", ""]
 
 
 
@@ -96,8 +100,12 @@ pcre JIT compiling result: 1
     GET /re
 --- response_body
 hello, world: 0
---- error_log
-pcre JIT compiling result: 1
+
+--- grep_error_log eval
+qr/pcre JIT compiling result: \d+/
+
+--- grep_error_log_out eval
+["pcre JIT compiling result: 1\n", ""]
 
 
 
@@ -116,7 +124,7 @@ pcre JIT compiling result: 1
 --- request
     GET /re
 --- response_body
-error: failed to compile regex "(abc": pcre_compile() failed: missing ) in "(abc"
+error: pcre_compile() failed: missing ) in "(abc"
 --- no_error_log
 [error]
 
@@ -137,7 +145,7 @@ error: failed to compile regex "(abc": pcre_compile() failed: missing ) in "(abc
 --- request
     GET /re
 --- response_body
-error: failed to compile regex "(abc": pcre_compile() failed: missing ) in "(abc"
+error: pcre_compile() failed: missing ) in "(abc"
 --- no_error_log
 [error]
 

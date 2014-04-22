@@ -9,7 +9,12 @@ BEGIN {
         $ENV{LD_PRELOAD} = "mockeagain.so $ENV{LD_PRELOAD}";
     }
 
-    $ENV{MOCKEAGAIN} = 'w';
+    if ($ENV{MOCKEAGAIN} eq 'r') {
+        $ENV{MOCKEAGAIN} = 'rw';
+
+    } else {
+        $ENV{MOCKEAGAIN} = 'w';
+    }
 
     $ENV{TEST_NGINX_EVENT_TYPE} = 'poll';
     $ENV{MOCKEAGAIN_WRITE_TIMEOUT_PATTERN} = 'hello, world';
@@ -17,7 +22,7 @@ BEGIN {
 }
 
 use lib 'lib';
-use Test::Nginx::Socket;
+use Test::Nginx::Socket::Lua;
 use t::StapThread;
 
 our $GCScript = $t::StapThread::GCScript;
@@ -172,7 +177,7 @@ M(timer-expire) {
     }
 }
 
-F(ngx_http_lua_tcp_socket_cleanup) {
+F(ngx_http_lua_coctx_cleanup) {
     println("lua tcp socket cleanup")
 }
 

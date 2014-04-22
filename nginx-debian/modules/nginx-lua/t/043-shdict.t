@@ -1,6 +1,6 @@
 # vim:set ft= ts=4 sw=4 et fdm=marker:
 use lib 'lib';
-use Test::Nginx::Socket;
+use Test::Nginx::Socket::Lua;
 
 #worker_connections(1014);
 #master_process_enabled(1);
@@ -8,7 +8,7 @@ use Test::Nginx::Socket;
 
 #repeat_each(2);
 
-plan tests => repeat_each() * (blocks() * 2 + 15);
+plan tests => repeat_each() * (blocks() * 3 + 15);
 
 #no_diff();
 no_long_string();
@@ -39,6 +39,8 @@ GET /test
 --- response_body
 32 number
 10502 number
+--- no_error_log
+[error]
 
 
 
@@ -63,6 +65,8 @@ GET /test
 --- response_body
 3.14159 number
 3.96 number
+--- no_error_log
+[error]
 
 
 
@@ -86,6 +90,8 @@ GET /test
 --- response_body
 true boolean
 false boolean
+--- no_error_log
+[error]
 
 
 
@@ -114,6 +120,8 @@ truenilfalse
 dog
 dog
 bird string
+--- no_error_log
+[error]
 
 
 
@@ -138,6 +146,8 @@ GET /test
 hello
 hello, world
 hello
+--- no_error_log
+[error]
 
 
 
@@ -160,6 +170,8 @@ hello
 GET /test
 --- response_body
 nil
+--- no_error_log
+[error]
 
 
 
@@ -184,6 +196,8 @@ nil
 GET /test
 --- response_body
 nil
+--- no_error_log
+[error]
 
 
 
@@ -206,6 +220,8 @@ nil
 GET /test
 --- response_body
 32
+--- no_error_log
+[error]
 
 
 
@@ -243,6 +259,8 @@ my $a = "true nil true\nabort at (353|705)\ncur value: " . (" hello" x 10) . "\\
 [qr/$a/,
 "true nil true\nabort at 1\ncur value: " . (" hello" x 10) . "1\n"
 ]
+--- no_error_log
+[error]
 
 
 
@@ -283,6 +301,8 @@ my $a = "true nil true\nabort at (353|705)\ncur value: " . (" hello" x 10) . "\\
 [qr/$a/,
 "true nil true\nabort at 2\ncur value: " . (" hello" x 10) . "2\n1st value: " . (" hello" x 10) . "1\n"
 ]
+--- no_error_log
+[error]
 
 
 
@@ -311,6 +331,8 @@ GET /test
 hello, world
 56
 hello, world
+--- no_error_log
+[error]
 
 
 
@@ -330,10 +352,13 @@ GET /test
 --- response_body
 nil
 nil
+--- no_error_log
+[error]
 
 
 
 === TEST 13: not feed the object into the call
+--- SKIP
 --- http_config
     lua_shared_dict dogs 1m;
 --- config
@@ -354,6 +379,8 @@ GET /test
 false bad argument #1 to '?' (userdata expected, got string)
 false expecting 3, 4 or 5 arguments, but only seen 2
 false expecting exactly two arguments, but only seen 1
+--- no_error_log
+[error]
 
 
 
@@ -376,10 +403,12 @@ false no memory false
 --- log_level: info
 --- error_log eval
 qr/\[info\] .* ngx_slab_alloc\(\) failed: no memory in lua_shared_dict zone "dogs"/
+--- no_error_log
+[error]
 
 
 
-=== TEST 15: too big key
+=== TEST 15: set too large key
 --- http_config
     lua_shared_dict dogs 1m;
 --- config
@@ -392,8 +421,12 @@ qr/\[info\] .* ngx_slab_alloc\(\) failed: no memory in lua_shared_dict zone "dog
             ngx.say(dogs:get(key))
 
             key = string.rep("a", 65536)
-            rc, err = pcall(dogs.set, dogs, key, "world")
-            ngx.say(rc, " ", err)
+            ok, err = dogs:set(key, "world")
+            if not ok then
+                ngx.say("not ok: ", err)
+                return
+            end
+            ngx.say("ok")
 
         ';
     }
@@ -402,7 +435,9 @@ GET /test
 --- response_body
 true nil
 hello
-false the key argument is more than 65535 bytes: 65536
+not ok: key too long
+--- no_error_log
+[error]
 
 
 
@@ -413,14 +448,20 @@ false the key argument is more than 65535 bytes: 65536
     location = /test {
         content_by_lua '
             local dogs = ngx.shared.dogs
-            local rc, err = pcall(dogs.set, dogs, "foo", dogs)
-            ngx.say(rc, " ", err)
+            local ok, err = dogs:set("foo", dogs)
+            if not ok then
+                ngx.say("not ok: ", err)
+                return
+            end
+            ngx.say("ok")
         ';
     }
 --- request
 GET /test
 --- response_body
-false unsupported value type for key "foo" in shared_dict "dogs": userdata
+not ok: bad value type
+--- no_error_log
+[error]
 
 
 
@@ -445,6 +486,8 @@ GET /test
 32
 nil
 hello, world
+--- no_error_log
+[error]
 
 
 
@@ -466,6 +509,8 @@ GET /test
 --- response_body
 nil
 hello, world
+--- no_error_log
+[error]
 
 
 
@@ -490,6 +535,8 @@ GET /test
 32
 nil
 hello, world
+--- no_error_log
+[error]
 
 
 
@@ -511,6 +558,8 @@ GET /test
 --- response_body
 nil
 hello, world
+--- no_error_log
+[error]
 
 
 
@@ -538,6 +587,8 @@ hello, world
 GET /test
 --- response_body_like
 ^true nil true\nabort at (?:139|140)$
+--- no_error_log
+[error]
 
 
 
@@ -562,6 +613,8 @@ GET /test
 --- response_body
 32 number
 10502 number
+--- no_error_log
+[error]
 
 
 
@@ -586,6 +639,8 @@ GET /test
 --- response_body
 32 number
 10502 number
+--- no_error_log
+[error]
 
 
 
@@ -605,6 +660,8 @@ GET /test
 GET /test
 --- response_body
 32
+--- no_error_log
+[error]
 
 
 
@@ -626,6 +683,8 @@ GET /test
 X-Foo: 32
 --- response_body
 hello
+--- no_error_log
+[error]
 
 
 
@@ -649,6 +708,8 @@ false no memory true
 --- log_level: info
 --- error_log eval
 qr/\[info\] .* ngx_slab_alloc\(\) failed: no memory in lua_shared_dict zone "dogs"/
+--- no_error_log
+[error]
 
 
 
@@ -670,6 +731,8 @@ GET /test
 --- response_body
 add: false exists false
 foo = 32
+--- no_error_log
+[error]
 
 
 
@@ -691,6 +754,8 @@ GET /test
 --- response_body
 add: true nil false
 foo = 10502
+--- no_error_log
+[error]
 
 
 
@@ -718,6 +783,8 @@ GET /test
 --- response_body
 add: true nil false
 foo = 10502
+--- no_error_log
+[error]
 
 
 
@@ -745,6 +812,8 @@ GET /test
 --- response_body
 add: true nil false
 foo = hello
+--- no_error_log
+[error]
 
 
 
@@ -773,6 +842,8 @@ replace: true nil false
 foo = 10502
 replace: true nil false
 foo = hello
+--- no_error_log
+[error]
 
 
 
@@ -794,6 +865,8 @@ GET /test
 --- response_body
 replace: false not found false
 foo = nil
+--- no_error_log
+[error]
 
 
 
@@ -821,6 +894,8 @@ GET /test
 --- response_body
 replace: false not found false
 foo = nil
+--- no_error_log
+[error]
 
 
 
@@ -848,6 +923,8 @@ GET /test
 --- response_body
 replace: false not found false
 foo = nil
+--- no_error_log
+[error]
 
 
 
@@ -869,6 +946,8 @@ GET /test
 --- response_body
 incr: 10534 nil
 foo = 10534
+--- no_error_log
+[error]
 
 
 
@@ -890,6 +969,8 @@ GET /test
 --- response_body
 incr: nil not found
 foo = nil
+--- no_error_log
+[error]
 
 
 
@@ -917,6 +998,8 @@ GET /test
 --- response_body
 incr: nil not found
 foo = nil
+--- no_error_log
+[error]
 
 
 
@@ -938,6 +1021,8 @@ GET /test
 --- response_body
 incr: 32 nil
 foo = 32
+--- no_error_log
+[error]
 
 
 
@@ -959,6 +1044,8 @@ GET /test
 --- response_body
 incr: 32.14 nil
 foo = 32.14
+--- no_error_log
+[error]
 
 
 
@@ -980,6 +1067,8 @@ GET /test
 --- response_body
 incr: 31.86 nil
 foo = 31.86
+--- no_error_log
+[error]
 
 
 
@@ -1001,6 +1090,8 @@ GET /test
 --- response_body
 incr: nil not a number
 foo = true
+--- no_error_log
+[error]
 
 
 
@@ -1028,6 +1119,8 @@ GET /test
 199 number
 10502 number
 nil nil
+--- no_error_log
+[error]
 
 
 
@@ -1051,6 +1144,8 @@ nil nil
 GET /test
 --- response_body
 res = nil, flags = nil
+--- no_error_log
+[error]
 
 
 
@@ -1084,6 +1179,8 @@ GET /t
 10502 number
 nil nil
 nil nil
+--- no_error_log
+[error]
 
 
 
@@ -1108,6 +1205,8 @@ nil nil
 GET /t
 --- response_body
 1
+--- no_error_log
+[error]
 
 
 
@@ -1136,6 +1235,8 @@ GET /t
 GET /t
 --- response_body
 42
+--- no_error_log
+[error]
 
 
 
@@ -1155,6 +1256,8 @@ GET /t
 GET /t
 --- response_body
 0
+--- no_error_log
+[error]
 
 
 
@@ -1177,6 +1280,8 @@ GET /t
 GET /t
 --- response_body
 0
+--- no_error_log
+[error]
 
 
 
@@ -1204,6 +1309,8 @@ GET /t
 2
 bah
 bar
+--- no_error_log
+[error]
 
 
 
@@ -1225,6 +1332,8 @@ bar
 GET /t
 --- response_body
 1
+--- no_error_log
+[error]
 
 
 
@@ -1249,6 +1358,8 @@ GET /t
 GET /t
 --- response_body
 2
+--- no_error_log
+[error]
 
 
 
@@ -1270,6 +1381,8 @@ GET /t
 GET /t
 --- response_body
 2
+--- no_error_log
+[error]
 
 
 
@@ -1288,6 +1401,8 @@ GET /t
 GET /t
 --- response_body
 0
+--- no_error_log
+[error]
 
 
 
@@ -1306,6 +1421,8 @@ GET /t
 GET /t
 --- response_body
 0
+--- no_error_log
+[error]
 
 
 
@@ -1330,6 +1447,8 @@ GET /t
 GET /t
 --- response_body
 0
+--- no_error_log
+[error]
 
 
 
@@ -1351,6 +1470,8 @@ GET /t
 GET /t
 --- response_body
 1024
+--- no_error_log
+[error]
 
 
 
@@ -1372,6 +1493,8 @@ GET /t
 GET /t
 --- response_body
 2048
+--- no_error_log
+[error]
 
 
 
@@ -1405,7 +1528,7 @@ GET /t
 --- pipelined_requests eval
 ["GET /test", "GET /test"]
 --- response_body eval
-my $a = "nil no memory\nabort at (353|705)\ncur value: nil\n1st value: " . (" hello" x 10) . "1\n2nd value: " . (" hello" x 10) . "2\n";
+my $a = "false no memory\nabort at (353|705)\ncur value: nil\n1st value: " . (" hello" x 10) . "1\n2nd value: " . (" hello" x 10) . "2\n";
 [qr/$a/, qr/$a/]
 --- no_error_log
 [error]
@@ -1442,13 +1565,736 @@ my $a = "nil no memory\nabort at (353|705)\ncur value: nil\n1st value: " . (" he
 --- pipelined_requests eval
 ["GET /test", "GET /test"]
 --- response_body eval
-my $a = "nil no memory\nabort at (353|705)\ncur value: nil\n1st value: " . (" hello" x 10) . "1\n2nd value: " . (" hello" x 10) . "2\n";
+my $a = "false no memory\nabort at (353|705)\ncur value: nil\n1st value: " . (" hello" x 10) . "1\n2nd value: " . (" hello" x 10) . "2\n";
 [qr/$a/,
 q{false exists
 abort at 1
 cur value:  hello hello hello hello hello hello hello hello hello hello1
 }
 ]
+--- no_error_log
+[error]
+
+
+
+=== TEST 60: get_stale: expired entries can still be fetched
+--- http_config
+    lua_shared_dict dogs 1m;
+--- config
+    location = /test {
+        content_by_lua '
+            local dogs = ngx.shared.dogs
+            dogs:set("foo", 32, 0.01)
+            dogs:set("blah", 33, 0.1)
+            ngx.sleep(0.02)
+            local val, flags, stale = dogs:get_stale("foo")
+            ngx.say(val, ", ", flags, ", ", stale)
+            local val, flags, stale = dogs:get_stale("blah")
+            ngx.say(val, ", ", flags, ", ", stale)
+        ';
+    }
+--- request
+GET /test
+--- response_body
+32, nil, true
+33, nil, false
+--- no_error_log
+[error]
+
+
+
+=== TEST 61: set nil key
+--- http_config
+    lua_shared_dict dogs 1m;
+--- config
+    location = /test {
+        content_by_lua '
+            local dogs = ngx.shared.dogs
+            local ok, err = dogs:set(nil, 32)
+            if not ok then
+                ngx.say("not ok: ", err)
+                return
+            end
+            ngx.say("ok")
+        ';
+    }
+--- request
+GET /test
+--- response_body
+not ok: nil key
+--- no_error_log
+[error]
+
+
+
+=== TEST 62: set bad zone argument
+--- http_config
+    lua_shared_dict dogs 1m;
+--- config
+    location = /test {
+        content_by_lua '
+            local dogs = ngx.shared.dogs
+            local ok, err = dogs.set(nil, "foo", 32)
+            if not ok then
+                ngx.say("not ok: ", err)
+                return
+            end
+            ngx.say("ok")
+        ';
+    }
+--- request
+GET /test
+--- response_body_like: 500 Internal Server Error
+--- error_code: 500
+--- error_log
+bad "zone" argument
+
+
+
+=== TEST 63: set empty string keys
+--- http_config
+    lua_shared_dict dogs 1m;
+--- config
+    location = /test {
+        content_by_lua '
+            local dogs = ngx.shared.dogs
+            local ok, err = dogs:set("", 32)
+            if not ok then
+                ngx.say("not ok: ", err)
+                return
+            end
+            ngx.say("ok")
+        ';
+    }
+--- request
+GET /test
+--- response_body
+not ok: empty key
+--- no_error_log
+[error]
+
+
+
+=== TEST 64: get bad zone argument
+--- http_config
+    lua_shared_dict dogs 1m;
+--- config
+    location = /test {
+        content_by_lua '
+            local dogs = ngx.shared.dogs
+            local ok, err = dogs.get(nil, "foo")
+            if not ok then
+                ngx.say("not ok: ", err)
+                return
+            end
+            ngx.say("ok")
+        ';
+    }
+--- request
+GET /test
+--- response_body_like: 500 Internal Server Error
+--- error_code: 500
+--- error_log
+bad "zone" argument
+
+
+
+=== TEST 65: get nil key
+--- http_config
+    lua_shared_dict dogs 1m;
+--- config
+    location = /test {
+        content_by_lua '
+            local dogs = ngx.shared.dogs
+            local ok, err = dogs:get(nil)
+            if not ok then
+                ngx.say("not ok: ", err)
+                return
+            end
+            ngx.say("ok")
+        ';
+    }
+--- request
+GET /test
+--- response_body
+not ok: nil key
+--- no_error_log
+[error]
+
+
+
+=== TEST 66: get empty key
+--- http_config
+    lua_shared_dict dogs 1m;
+--- config
+    location = /test {
+        content_by_lua '
+            local dogs = ngx.shared.dogs
+            local ok, err = dogs:get("")
+            if not ok then
+                ngx.say("not ok: ", err)
+                return
+            end
+            ngx.say("ok")
+        ';
+    }
+--- request
+GET /test
+--- response_body
+not ok: empty key
+--- no_error_log
+[error]
+
+
+
+=== TEST 67: get a too-long key
+--- http_config
+    lua_shared_dict dogs 1m;
+--- config
+    location = /test {
+        content_by_lua '
+            local dogs = ngx.shared.dogs
+            local ok, err = dogs:get(string.rep("a", 65536))
+            if not ok then
+                ngx.say("not ok: ", err)
+                return
+            end
+            ngx.say("ok")
+        ';
+    }
+--- request
+GET /test
+--- response_body
+not ok: key too long
+--- no_error_log
+[error]
+
+
+
+=== TEST 68: set & get large values
+--- http_config
+    lua_shared_dict dogs 1m;
+--- config
+    location = /test {
+        content_by_lua '
+            local dogs = ngx.shared.dogs
+            local ok, err = dogs:set("foo", string.rep("helloworld", 1024))
+            if not ok then
+                ngx.say("set not ok: ", err)
+                return
+            end
+            ngx.say("set ok")
+
+            local data, err = dogs:get("foo")
+            if data == nil and err then
+                ngx.say("get not ok: ", err)
+                return
+            end
+            ngx.say("get ok: ", #data)
+
+        ';
+    }
+--- request
+GET /test
+--- response_body
+set ok
+get ok: 10240
+--- no_error_log
+[error]
+
+
+
+=== TEST 69: get_stale nil key
+--- http_config
+    lua_shared_dict dogs 1m;
+--- config
+    location = /test {
+        content_by_lua '
+            local dogs = ngx.shared.dogs
+            local ok, err = dogs:get_stale(nil)
+            if not ok then
+                ngx.say("not ok: ", err)
+                return
+            end
+            ngx.say("ok")
+        ';
+    }
+--- request
+GET /test
+--- response_body
+not ok: nil key
+--- no_error_log
+[error]
+
+
+
+=== TEST 70: get_stale empty key
+--- http_config
+    lua_shared_dict dogs 1m;
+--- config
+    location = /test {
+        content_by_lua '
+            local dogs = ngx.shared.dogs
+            local ok, err = dogs:get_stale("")
+            if not ok then
+                ngx.say("not ok: ", err)
+                return
+            end
+            ngx.say("ok")
+        ';
+    }
+--- request
+GET /test
+--- response_body
+not ok: empty key
+--- no_error_log
+[error]
+
+
+
+=== TEST 71: get_stale number key
+--- http_config
+    lua_shared_dict dogs 1m;
+--- config
+    location = /test {
+        content_by_lua '
+            local dogs = ngx.shared.dogs
+            local ok, err = dogs:set(1024, "hello")
+            if not ok then
+                ngx.say("set not ok: ", err)
+                return
+            end
+            ngx.say("set ok")
+            local data, err = dogs:get_stale(1024)
+            if not ok then
+                ngx.say("get_stale not ok: ", err)
+                return
+            end
+            ngx.say("get_stale: ", data)
+        ';
+    }
+--- request
+GET /test
+--- response_body
+set ok
+get_stale: hello
+--- no_error_log
+[error]
+
+
+
+=== TEST 72: get_stale a too-long key
+--- http_config
+    lua_shared_dict dogs 1m;
+--- config
+    location = /test {
+        content_by_lua '
+            local dogs = ngx.shared.dogs
+            local ok, err = dogs:get_stale(string.rep("a", 65536))
+            if not ok then
+                ngx.say("not ok: ", err)
+                return
+            end
+            ngx.say("ok")
+        ';
+    }
+--- request
+GET /test
+--- response_body
+not ok: key too long
+--- no_error_log
+[error]
+
+
+
+=== TEST 73: get_stale a non-existent key
+--- http_config
+    lua_shared_dict dogs 1m;
+--- config
+    location = /test {
+        content_by_lua '
+            local dogs = ngx.shared.dogs
+            local data, err = dogs:get_stale("not_found")
+            if data == nil and err then
+                ngx.say("get not ok: ", err)
+                return
+            end
+            ngx.say("get ok: ", data)
+        ';
+    }
+--- request
+GET /test
+--- response_body
+get ok: nil
+--- no_error_log
+[error]
+
+
+
+=== TEST 74: set & get_stale large values
+--- http_config
+    lua_shared_dict dogs 1m;
+--- config
+    location = /test {
+        content_by_lua '
+            local dogs = ngx.shared.dogs
+            local ok, err = dogs:set("foo", string.rep("helloworld", 1024))
+            if not ok then
+                ngx.say("set not ok: ", err)
+                return
+            end
+            ngx.say("set ok")
+
+            local data, err, stale = dogs:get_stale("foo")
+            if data == nil and err then
+                ngx.say("get not ok: ", err)
+                return
+            end
+            ngx.say("get_stale ok: ", #data, ", stale: ", stale)
+
+        ';
+    }
+--- request
+GET /test
+--- response_body
+set ok
+get_stale ok: 10240, stale: false
+--- no_error_log
+[error]
+
+
+
+=== TEST 75: set & get_stale boolean values (true)
+--- http_config
+    lua_shared_dict dogs 1m;
+--- config
+    location = /test {
+        content_by_lua '
+            local dogs = ngx.shared.dogs
+            local ok, err = dogs:set("foo", true)
+            if not ok then
+                ngx.say("set not ok: ", err)
+                return
+            end
+            ngx.say("set ok")
+
+            local data, err, stale = dogs:get_stale("foo")
+            if data == nil and err then
+                ngx.say("get not ok: ", err)
+                return
+            end
+            ngx.say("get_stale ok: ", data, ", stale: ", stale)
+
+        ';
+    }
+--- request
+GET /test
+--- response_body
+set ok
+get_stale ok: true, stale: false
+--- no_error_log
+[error]
+
+
+
+=== TEST 76: set & get_stale boolean values (false)
+--- http_config
+    lua_shared_dict dogs 1m;
+--- config
+    location = /test {
+        content_by_lua '
+            local dogs = ngx.shared.dogs
+            local ok, err = dogs:set("foo", false)
+            if not ok then
+                ngx.say("set not ok: ", err)
+                return
+            end
+            ngx.say("set ok")
+
+            local data, err, stale = dogs:get_stale("foo")
+            if data == nil and err then
+                ngx.say("get not ok: ", err)
+                return
+            end
+            ngx.say("get_stale ok: ", data, ", stale: ", stale)
+
+        ';
+    }
+--- request
+GET /test
+--- response_body
+set ok
+get_stale ok: false, stale: false
+--- no_error_log
+[error]
+
+
+
+=== TEST 77: set & get_stale with a flag
+--- http_config
+    lua_shared_dict dogs 1m;
+--- config
+    location = /test {
+        content_by_lua '
+            local dogs = ngx.shared.dogs
+            local ok, err = dogs:set("foo", false, 0, 325)
+            if not ok then
+                ngx.say("set not ok: ", err)
+                return
+            end
+            ngx.say("set ok")
+
+            local data, err, stale = dogs:get_stale("foo")
+            if data == nil and err then
+                ngx.say("get not ok: ", err)
+                return
+            end
+            flags = err
+            ngx.say("get_stale ok: ", data, ", flags: ", flags,
+                    ", stale: ", stale)
+
+        ';
+    }
+--- request
+GET /test
+--- response_body
+set ok
+get_stale ok: false, flags: 325, stale: false
+--- no_error_log
+[error]
+
+
+
+=== TEST 78: incr nil key
+--- http_config
+    lua_shared_dict dogs 1m;
+--- config
+    location = /test {
+        content_by_lua '
+            local dogs = ngx.shared.dogs
+            local ok, err = dogs:incr(nil, 32)
+            if not ok then
+                ngx.say("not ok: ", err)
+                return
+            end
+            ngx.say("ok")
+        ';
+    }
+--- request
+GET /test
+--- response_body
+not ok: nil key
+--- no_error_log
+[error]
+
+
+
+=== TEST 79: incr bad zone argument
+--- http_config
+    lua_shared_dict dogs 1m;
+--- config
+    location = /test {
+        content_by_lua '
+            local dogs = ngx.shared.dogs
+            local ok, err = dogs.incr(nil, "foo", 32)
+            if not ok then
+                ngx.say("not ok: ", err)
+                return
+            end
+            ngx.say("ok")
+        ';
+    }
+--- request
+GET /test
+--- response_body_like: 500 Internal Server Error
+--- error_code: 500
+--- error_log
+bad "zone" argument
+
+
+
+=== TEST 80: incr empty string keys
+--- http_config
+    lua_shared_dict dogs 1m;
+--- config
+    location = /test {
+        content_by_lua '
+            local dogs = ngx.shared.dogs
+            local ok, err = dogs:incr("", 32)
+            if not ok then
+                ngx.say("not ok: ", err)
+                return
+            end
+            ngx.say("ok")
+        ';
+    }
+--- request
+GET /test
+--- response_body
+not ok: empty key
+--- no_error_log
+[error]
+
+
+
+=== TEST 81: incr too long key
+--- http_config
+    lua_shared_dict dogs 1m;
+--- config
+    location = /test {
+        content_by_lua '
+            local dogs = ngx.shared.dogs
+            local key = string.rep("a", 65536)
+            local ok, err = dogs:incr(key, 32)
+            if not ok then
+                ngx.say("not ok: ", err)
+                return
+            end
+            ngx.say("ok")
+
+        ';
+    }
+--- request
+GET /test
+--- response_body
+not ok: key too long
+--- no_error_log
+[error]
+
+
+
+=== TEST 82: incr number key
+--- http_config
+    lua_shared_dict dogs 1m;
+--- config
+    location = /test {
+        content_by_lua '
+            local dogs = ngx.shared.dogs
+            local key = 56
+            local ok, err = dogs:set(key, 1)
+            if not ok then
+                ngx.say("set not ok: ", err)
+                return
+            end
+            ngx.say("set ok")
+            ok, err = dogs:incr(key, 32)
+            if not ok then
+                ngx.say("incr not ok: ", err)
+                return
+            end
+            ngx.say("incr ok")
+            local data, err = dogs:get(key)
+            if data == nil and err then
+                ngx.say("get not ok: ", err)
+                return
+            end
+            local flags = err
+            ngx.say("get ok: ", data, ", flags: ", flags)
+
+        ';
+    }
+--- request
+GET /test
+--- response_body
+set ok
+incr ok
+get ok: 33, flags: nil
+--- no_error_log
+[error]
+
+
+
+=== TEST 83: incr a number-like string key
+--- http_config
+    lua_shared_dict dogs 1m;
+--- config
+    location = /test {
+        content_by_lua '
+            local dogs = ngx.shared.dogs
+            local key = 56
+            local ok, err = dogs:set(key, 1)
+            if not ok then
+                ngx.say("set not ok: ", err)
+                return
+            end
+            ngx.say("set ok")
+            ok, err = dogs:incr(key, "32")
+            if not ok then
+                ngx.say("incr not ok: ", err)
+                return
+            end
+            ngx.say("incr ok")
+            local data, err = dogs:get(key)
+            if data == nil and err then
+                ngx.say("get not ok: ", err)
+                return
+            end
+            local flags = err
+            ngx.say("get ok: ", data, ", flags: ", flags)
+
+        ';
+    }
+--- request
+GET /test
+--- response_body
+set ok
+incr ok
+get ok: 33, flags: nil
+--- no_error_log
+[error]
+
+
+
+=== TEST 84: add nil values
+--- http_config
+    lua_shared_dict dogs 1m;
+--- config
+    location = /test {
+        content_by_lua '
+            local dogs = ngx.shared.dogs
+            local ok, err = dogs:add("foo", nil)
+            if not ok then
+                ngx.say("not ok: ", err)
+                return
+            end
+            ngx.say("ok")
+        ';
+    }
+--- request
+GET /test
+--- response_body
+not ok: attempt to add or replace nil values
+--- no_error_log
+[error]
+
+
+
+=== TEST 85: replace key with exptime
+--- http_config
+    lua_shared_dict dogs 1m;
+--- config
+    location = /test {
+        content_by_lua '
+            local dogs = ngx.shared.dogs
+            dogs:set("foo", 2, 0)
+            dogs:replace("foo", 32, 0.01)
+            local data = dogs:get("foo")
+            ngx.say("get foo: ", data)
+            ngx.location.capture("/sleep/0.02")
+            local res, err, forcible = dogs:replace("foo", 10502)
+            ngx.say("replace: ", res, " ", err, " ", forcible)
+            ngx.say("foo = ", dogs:get("foo"))
+        ';
+    }
+    location ~ ^/sleep/(.+) {
+        echo_sleep $1;
+    }
+--- request
+GET /test
+--- response_body
+get foo: 32
+replace: false not found false
+foo = nil
 --- no_error_log
 [error]
 

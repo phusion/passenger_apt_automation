@@ -1,7 +1,7 @@
 # vim:set ft= ts=4 sw=4 et fdm=marker:
 
 use lib 'lib';
-use Test::Nginx::Socket;
+use Test::Nginx::Socket::Lua;
 
 #worker_connections(1014);
 #master_process_enabled(1);
@@ -318,7 +318,7 @@ hiya globe
 GET /t
 --- ignore_response
 --- error_log
-failed to run body_filter_by_lua*: [string "body_filter_by_lua"]:4: something bad happened!
+failed to run body_filter_by_lua*: body_filter_by_lua:4: something bad happened!
 
 
 
@@ -506,4 +506,70 @@ GET /t
 hello worldhello world
 --- no_error_log
 [error]
+
+
+
+=== TEST 19: Lua file does not exist
+--- config
+    location /lua {
+        echo ok;
+        body_filter_by_lua_file html/test2.lua;
+    }
+--- user_files
+>>> test.lua
+v = ngx.var["request_uri"]
+ngx.print("request_uri: ", v, "\n")
+--- request
+GET /lua?a=1&b=2
+--- ignore_response
+--- error_log eval
+qr/failed to load external Lua file ".*?test2\.lua": cannot open .*? No such file or directory/
+
+
+
+=== TEST 20: overwrite eof
+--- config
+    location /read {
+        return 200 "hello world";
+
+        body_filter_by_lua '
+            local chunk, eof = ngx.arg[1], ngx.arg[2]
+            if eof then
+                ngx.arg[2] = false
+            end
+        ';
+    }
+
+    location = /t {
+        content_by_lua '
+            local res = ngx.location.capture("/read")
+            ngx.say("truncated: ", res.truncated)
+        ';
+    }
+--- request
+GET /t
+--- response_body
+truncated: true
+--- no_error_log
+[error]
+[alert]
+
+
+
+=== TEST 21: zero-size bufs
+--- config
+    location = /t {
+        echo hello;
+        echo world;
+
+        body_filter_by_lua '
+            ngx.arg[1] = ""
+        ';
+    }
+--- request
+GET /t
+--- response_body
+--- no_error_log
+[error]
+[alert]
 

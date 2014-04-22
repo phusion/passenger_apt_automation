@@ -5,7 +5,7 @@ BEGIN {
 }
 
 use lib 'lib';
-use Test::Nginx::Socket;
+use Test::Nginx::Socket::Lua;
 
 #worker_connections(1014);
 #master_on();
@@ -14,7 +14,7 @@ use Test::Nginx::Socket;
 
 repeat_each(2);
 
-plan tests => repeat_each() * 44;
+plan tests => repeat_each() * 55;
 
 #no_diff();
 no_long_string();
@@ -27,7 +27,11 @@ __DATA__
     location /test {
         content_by_lua '
             ngx.say("hello, world")
-            ngx.flush(true)
+            local ok, err = ngx.flush(true)
+            if not ok then
+                ngx.log(ngx.ERR, "flush failed: ", err)
+                return
+            end
             ngx.say("hiya")
         ';
     }
@@ -36,6 +40,8 @@ GET /test
 --- response_body
 hello, world
 hiya
+--- no_error_log
+[error]
 --- error_log
 lua reuse free buf memory 13 >= 5
 
@@ -47,7 +53,11 @@ lua reuse free buf memory 13 >= 5
     location /test {
         content_by_lua '
             ngx.say("hello, world")
-            ngx.flush(false)
+            local ok, err = ngx.flush(false)
+            if not ok then
+                ngx.log(ngx.ERR, "flush failed: ", err)
+                return
+            end
             ngx.say("hiya")
         ';
     }
@@ -126,9 +136,15 @@ lua http 1.0 buffering makes ngx.flush() a no-op
     location /test {
         content_by_lua '
             ngx.say("hello, world")
-            ngx.flush(false)
+            local ok, err = ngx.flush(false)
+            if not ok then
+                ngx.log(ngx.WARN, "1: failed to flush: ", err)
+            end
             ngx.say("hiya")
-            ngx.flush(false)
+            local ok, err = ngx.flush(false)
+            if not ok then
+                ngx.log(ngx.WARN, "2: failed to flush: ", err)
+            end
             ngx.say("blah")
         ';
     }
@@ -143,6 +159,8 @@ Content-Length: 23
 --- error_log
 lua buffering output bufs for the HTTP 1.0 request
 lua http 1.0 buffering makes ngx.flush() a no-op
+1: failed to flush: buffering
+2: failed to flush: buffering
 --- timeout: 5
 
 
@@ -389,4 +407,85 @@ hiya
 true
 --- error_log
 lua reuse free buf memory 13 >= 5
+
+
+
+=== TEST 14: flush before sending out the header
+--- config
+    location /test {
+        content_by_lua '
+            ngx.flush()
+            ngx.status = 404
+            ngx.say("not found")
+        ';
+    }
+--- request
+GET /test
+--- response_body
+not found
+--- error_code: 404
+--- no_error_log
+[error]
+
+
+
+=== TEST 15: flush wait - gzip
+--- config
+    gzip             on;
+    gzip_min_length  1;
+    gzip_types       text/plain;
+
+    location /test {
+        content_by_lua '
+            ngx.say("hello, world")
+            local ok, err = ngx.flush(true)
+            if not ok then
+                ngx.log(ngx.ERR, "flush failed: ", err)
+                return
+            end
+            ngx.say("hiya")
+        ';
+    }
+--- request
+GET /test
+--- more_headers
+Accept-Encoding: gzip
+--- response_body_like: .{15}
+--- response_headers
+Content-Encoding: gzip
+--- no_error_log
+[error]
+
+
+
+=== TEST 16: flush wait - gunzip
+--- config
+    location /test {
+        gunzip on;
+        content_by_lua '
+            local f, err = io.open(ngx.var.document_root .. "/gzip.bin", "r")
+            if not f then
+                ngx.say("failed to open file: ", err)
+                return
+            end
+            local data = f:read(100)
+            ngx.header.content_encoding = "gzip"
+            ngx.print(data)
+            local ok, err = ngx.flush(true)
+            if not ok then
+                ngx.log(ngx.ERR, "flush failed: ", err)
+                return
+            end
+            data = f:read("*a")
+            ngx.print(data)
+        ';
+    }
+--- user_files eval
+">>> gzip.bin
+\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\x03\x62\x64\x62\x62\x61\x62\x64\x63\x61\xe4\xe0\xe2\xe6\xe4\x61\xe4\xe4\xe7\x63\x12\xe4\xe1\xe0\x60\x14\x12\xe3\x91\xe4\xe4\xe4\x13\x60\xe3\x95\x12\x90\x15\xe0\x11\x50\x92\xd1\x16\x17\xe2\xd3\x17\x14\x11\x95\x95\x57\x96\x63\x37\xd2\x36\xd6\x51\x34\xb1\xe6\x62\x17\x95\xb0\x77\x60\xe3\x96\x33\x95\xb6\x91\x75\x97\x30\xe4\x66\x0c\xd0\xe3\xe0\xb5\xd3\x33\xf6\x90\x16\xb2\x90\x77\x56\x31\xe7\x55\x32\x11\x74\xe0\x02\x00\x00\x00\xff\xff\xcb\xc8\xac\x4c\xe4\x02\x00\x19\x15\xa9\x77\x6a\x00\x00\x00"
+--- request
+GET /test
+--- ignore_response
+--- no_error_log
+[error]
 

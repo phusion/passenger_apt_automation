@@ -13,9 +13,14 @@
 #include <ngx_http.h>
 
 #include <lua.h>
+#include <stdint.h>
 
 
 /* Public API for other Nginx modules */
+
+
+#define ngx_http_lua_version  9007
+
 
 typedef struct {
     uint8_t         type;

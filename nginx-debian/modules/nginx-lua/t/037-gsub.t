@@ -1,6 +1,6 @@
 # vim:set ft= ts=4 sw=4 et fdm=marker:
 use lib 'lib';
-use Test::Nginx::Socket;
+use Test::Nginx::Socket::Lua;
 
 #worker_connections(1014);
 #master_on();
@@ -9,7 +9,7 @@ log_level('warn');
 
 repeat_each(2);
 
-plan tests => repeat_each() * (blocks() * 2 + 10);
+plan tests => repeat_each() * (blocks() * 2 + 14);
 
 #no_diff();
 no_long_string();
@@ -425,8 +425,151 @@ n: 1
 --- request
 GET /t
 --- response_body_like chop
-error: pcre_exec\(\) failed: -10 on "你.*?" using "你好"
+error: pcre_exec\(\) failed: -10
 
 --- no_error_log
 [error]
+
+
+
+=== TEST 21: UTF-8 mode without UTF-8 sequence checks
+--- config
+    location /re {
+        content_by_lua '
+            local s, n, err = ngx.re.gsub("你好", ".", "a", "U")
+            if s then
+                ngx.say("s: ", s)
+            end
+        ';
+    }
+--- stap
+probe process("$LIBPCRE_PATH").function("pcre_compile") {
+    printf("compile opts: %x\n", $options)
+}
+
+probe process("$LIBPCRE_PATH").function("pcre_exec") {
+    printf("exec opts: %x\n", $options)
+}
+
+--- stap_out
+compile opts: 800
+exec opts: 2000
+exec opts: 2000
+exec opts: 2000
+
+--- request
+    GET /re
+--- response_body
+s: aa
+--- no_error_log
+[error]
+
+
+
+=== TEST 22: UTF-8 mode with UTF-8 sequence checks
+--- config
+    location /re {
+        content_by_lua '
+            local s, n, err = ngx.re.gsub("你好", ".", "a", "u")
+            if s then
+                ngx.say("s: ", s)
+            end
+        ';
+    }
+--- stap
+probe process("$LIBPCRE_PATH").function("pcre_compile") {
+    printf("compile opts: %x\n", $options)
+}
+
+probe process("$LIBPCRE_PATH").function("pcre_exec") {
+    printf("exec opts: %x\n", $options)
+}
+
+--- stap_out
+compile opts: 800
+exec opts: 0
+exec opts: 0
+exec opts: 0
+
+--- request
+    GET /re
+--- response_body
+s: aa
+--- no_error_log
+[error]
+
+
+
+=== TEST 23: just hit match limit
+--- http_config
+    lua_regex_match_limit 5600;
+--- config
+    location /re {
+        content_by_lua_file html/a.lua;
+    }
+
+--- user_files
+>>> a.lua
+local re = [==[(?i:([\s'\"`´’‘\(\)]*)?([\d\w]+)([\s'\"`´’‘\(\)]*)?(?:=|<=>|r?like|sounds\s+like|regexp)([\s'\"`´’‘\(\)]*)?\2|([\s'\"`´’‘\(\)]*)?([\d\w]+)([\s'\"`´’‘\(\)]*)?(?:!=|<=|>=|<>|<|>|\^|is\s+not|not\s+like|not\s+regexp)([\s'\"`´’‘\(\)]*)?(?!\6)([\d\w]+))]==]
+
+s = string.rep([[ABCDEFG]], 10)
+
+local start = ngx.now()
+
+local res, cnt, err = ngx.re.gsub(s, re, "", "o")
+
+--[[
+ngx.update_time()
+local elapsed = ngx.now() - start
+ngx.say(elapsed, " sec elapsed.")
+]]
+
+if err then
+    ngx.say("error: ", err)
+    return
+end
+ngx.say("gsub: ", cnt)
+
+--- request
+    GET /re
+--- response_body
+error: pcre_exec() failed: -8
+
+
+
+=== TEST 24: just not hit match limit
+--- http_config
+    lua_regex_match_limit 5700;
+--- config
+    location /re {
+        content_by_lua_file html/a.lua;
+    }
+
+--- user_files
+>>> a.lua
+local re = [==[(?i:([\s'\"`´’‘\(\)]*)?([\d\w]+)([\s'\"`´’‘\(\)]*)?(?:=|<=>|r?like|sounds\s+like|regexp)([\s'\"`´’‘\(\)]*)?\2|([\s'\"`´’‘\(\)]*)?([\d\w]+)([\s'\"`´’‘\(\)]*)?(?:!=|<=|>=|<>|<|>|\^|is\s+not|not\s+like|not\s+regexp)([\s'\"`´’‘\(\)]*)?(?!\6)([\d\w]+))]==]
+
+local s = string.rep([[ABCDEFG]], 10)
+
+local start = ngx.now()
+
+local res, cnt, err = ngx.re.gsub(s, re, "", "o")
+
+--[[
+ngx.update_time()
+local elapsed = ngx.now() - start
+ngx.say(elapsed, " sec elapsed.")
+]]
+
+if err then
+    ngx.say("error: ", err)
+    return
+end
+ngx.say("gsub: ", cnt)
+
+--- request
+    GET /re
+--- response_body
+gsub: 0
+--- timeout: 10
 
