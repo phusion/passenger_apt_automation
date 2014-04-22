@@ -36,10 +36,11 @@ Then checkout this repository as `psg_apt_automation` and run the setup script:
 
 Configure your GPG signing settings:
 
-    sudo nano configuration   # setup your key ID
-    sudo nano passphrase      # put your password here
+    sudo cp -dpR config.example config
+    sudo nano config/general          # setup your key ID
+    sudo nano config/passphrase       # put your password here
     sudo chown psg_apt_automation:psg_apt_automation passphrase
-    sudo chmod 600 passphrase
+    sudo chmod 600 config/passphrase
     sudo -u psg_apt_automation -H gpg --keyserver keyserver.ubuntu.com --recv-keys C324F5BB38EEB5A0
     sudo -u psg_apt_automation -H gpg --armor --export C324F5BB38EEB5A0 | sudo apt-key add -
 

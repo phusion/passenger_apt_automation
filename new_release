@@ -10,8 +10,8 @@ APT_DIR="$3"
 REF=${4:-origin/master}
 DEFAULT_NAMESPACE=`basename "$REPO_DIR" | sed -E 's/\..*?$//'`
 NAMESPACE=${DEFAULT_NAMESPACE:-default}
-source configuration
-source library
+source config/general
+source lib/bashlib
 export WORK_DIR="/var/cache/passenger_apt_automation/$NAMESPACE"
 export PKG_DIR="$WORK_DIR/pkg"
 export PBUILDFOLDER="$WORK_DIR/pbuilder"
@@ -65,7 +65,7 @@ mkdir -p "$WORK_DIR"
 
 	stage "Signing packages..." signing_packages
 	cd "$BASE_DIR"
-	export PATH="$BASE_DIR/dummygpg:$PATH"
+	export PATH="$BASE_DIR/lib/dummygpg:$PATH"
 	debsign -k$SIGNING_KEY $PKG_DIR/nginx*.changes
 	debsign -k$SIGNING_KEY $PKG_DIR/official/*.changes
 	debsign -k$SIGNING_KEY $PBUILDFOLDER/*_result/*.changes

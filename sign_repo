@@ -2,8 +2,8 @@
 set -e
 BASE_DIR=`dirname "$0"`
 BASE_DIR=`cd "$BASE_DIR"; pwd`
-export PATH="$BASE_DIR/dummygpg:$PATH"
-source "$BASE_DIR/configuration"
+export PATH="$BASE_DIR/lib/dummygpg:$PATH"
+source "$BASE_DIR/config/general"
 
 DIR="$1"
 if [[ "$DIR" = "" ]]; then

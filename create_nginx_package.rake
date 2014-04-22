@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-require './preprocessor'
+require './lib/preprocessor'
 
 def string_option(name, default_value = nil)
 	value = ENV[name]

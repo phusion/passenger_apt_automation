@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-source configuration
+source config/general
 BASE_DIR=`dirname "$0"`
 BASE_DIR=`cd "$BASE_DIR"; pwd`
 set -x
@@ -33,7 +33,7 @@ done
 
 # Sign packages
 cd $BASE_DIR
-export PATH="$BASE_DIR/dummygpg:$PATH"
+export PATH="$BASE_DIR/lib/dummygpg:$PATH"
 debsign -k$SIGNING_KEY $PKG_DIR/*.changes
 
 # Import into APT repositories

@@ -1,3 +1,5 @@
+/.vagrant
+/config
 /passenger.repo
 /passenger.apt/db
 /passenger.apt/dists

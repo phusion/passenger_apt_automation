@@ -1,0 +1,13 @@
+#!/bin/bash
+# A wrapper around gpg that makes gpg non-interactive, and makes it
+# read a passphrase from the passphrase configuration file. To use
+# this wrapper, prepend the containing directory to PATH.
+
+set -e
+if [[ "$1" == "--version" ]]; then
+	exec /usr/bin/gpg --version
+else
+	BASE_DIR=`dirname "$0"`
+	BASE_DIR=`cd "$BASE_DIR/../.."; pwd`
+	exec /usr/bin/gpg --batch --passphrase-fd 3 "$@" 3<"$BASE_DIR/config/passphrase"
+fi

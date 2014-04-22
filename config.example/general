@@ -1,6 +1,8 @@
-# Don't forget to update passenger.apt/conf/distributions
+# If you update this list, don't forget to update
+# passenger.apt/conf/distributions
 # and passenger-enterprise.apt/conf/distributions
 export DEBIAN_DISTROS="saucy precise lucid squeeze wheezy"
 export DEBIAN_ARCHS="i386 amd64"
+
 SIGNING_KEY=561F9B9CAC40B2F7
 CONCURRENCY_LEVEL=4

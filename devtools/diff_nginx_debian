@@ -6,7 +6,8 @@ def quiet_sh(*command)
 end
 
 if !ARGV[0]
-	abort "Usage: ./diff_nginx_debian <PATH TO DEBIAN DIR>"
+	abort "Usage: ./diff_nginx_debian <PATH TO DEBIAN DIR>\n" +
+		"View differences between our Debian packaging directory and one provided by Debian."
 end
 
 begin
@@ -14,7 +15,7 @@ begin
 	Dir["nginx-debian.tmp/**/*.template"].each do |filename|
 		File.rename(filename, filename.sub(/.template$/, ''))
 	end
-	system("diff", "-ru", "nginx-debian.tmp", ARGV[0])
+	system("git", "diff", "nginx-debian.tmp", ARGV[0])
 ensure
 	quiet_sh "rm -rf nginx-debian.tmp"
 end
