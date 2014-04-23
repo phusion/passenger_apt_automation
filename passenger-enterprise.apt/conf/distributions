@@ -1,6 +1,14 @@
 Origin: Phusion
 Label: Phusion Passenger Enterprise
 Suite: stable
+Codename: trusty
+Architectures: i386 amd64 source
+Components: main
+Description: Phusion Passenger Enterprise
+
+Origin: Phusion
+Label: Phusion Passenger Enterprise
+Suite: stable
 Codename: saucy
 Architectures: i386 amd64 source
 Components: main
@@ -33,7 +41,7 @@ Description: Phusion Passenger Enterprise
 Origin: Phusion
 Label: Phusion Passenger Enterprise
 Suite: stable
-Codename: squeeze
+Codename: wheezy
 Architectures: i386 amd64 source
 Components: main
 Description: Phusion Passenger Enterprise
@@ -41,7 +49,7 @@ Description: Phusion Passenger Enterprise
 Origin: Phusion
 Label: Phusion Passenger Enterprise
 Suite: stable
-Codename: wheezy
+Codename: squeeze
 Architectures: i386 amd64 source
 Components: main
 Description: Phusion Passenger Enterprise
