@@ -28,9 +28,9 @@ Then move the directory to `/srv/passenger_apt_automation`:
     sudo mv ~/passenger_apt_automation /srv/
     sudo chown -R psg_apt_automation: /srv/passenger_apt_automation
 
-Import miscellaneous Phusion packages:
+Create packages for gems that Phusion Passenger depends on:
 
-    sudo -u psg_apt_automation -H ./import_misc_packages
+    sudo -u psg_apt_automation -H ./create-dependency-packages -a
 
 Then, every time a new Phusion Passenger version is released, run the following command to update the APT repository in `apt/`, as `psg_apt_automation`:
 

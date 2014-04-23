@@ -1,0 +1,57 @@
+#!/bin/bash
+# Create packages for various gems that Phusion Passenger depends on.
+
+set -e
+
+function usage()
+{
+	echo "./create-dependency-packages [OPTIONS]"
+	echo "Create packages for various gems that Phusion Passenger depends on."
+	echo
+	echo "Required options:"
+	echo "  -a                 Import all packages"
+	echo "  -d                 Import daemon_controller"
+	echo "  -c                 Import crash-watch"
+	echo
+	echo "Optional options:"
+	echo "  -h                 Show usage"
+}
+
+
+build_daemon_controller=false
+build_crash_watch=false
+
+while getopts "adch" opt; do
+	case "$opt" in
+	a)
+		build_daemon_controller=true
+		build_crash_watch=true
+		;;
+	d)
+		build_daemon_controller=true
+		;;
+	c)
+		build_crash_watch=true
+		;;
+	h)
+		usage
+		exit
+		;;
+	esac
+done
+
+if ! $build_daemon_controller && ! $build_crash_watch; then
+	echo "Please specify at least one of: -a, -d, -c. See -h for usage details."
+	exit 1
+fi
+
+
+source lib/bashlib
+load_general_config
+use_dummy_gpg
+require_running_as_psg_apt_automation_user
+
+header "Obtaining lock file"
+export build_daemon_controller
+export build_crash_watch
+exec chpst -l /var/cache/passenger_apt_automation/lock bash internal/create-dependency-packages.sh
