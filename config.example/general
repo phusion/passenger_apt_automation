@@ -3,9 +3,11 @@
 # if you wish.
 
 # Distributions that we should generate packages for.
-# If you update this list, don't forget to update these files too:
+# If you update these lists, don't forget to update these files too:
 # - passenger.apt/conf/distributions
 # - passenger-enterprise.apt/conf/distributions
+#
+# Upon updating these lists, you must also run `./setup-pbuilder-dist`.
 export DEBIAN_DISTROS="trusty precise lucid squeeze wheezy"
 export DEBIAN_ARCHS="i386 amd64"
 

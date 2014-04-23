@@ -1,21 +1,45 @@
 # Phusion Passenger APT repository automation tools
 
-This repository contains tools for automatically creating a multi-distribution APT repository for Phusion Passenger. The goal is to automatically build Debian packages for multiple distributions, immediately after a source release. These tools are meant to be run on Ubuntu 12.04.
+This repository contains tools for automatically creating a multi-distribution APT repository for Phusion Passenger. The goal is to automatically build Debian packages for multiple distributions, immediately after a source release. These tools are meant to be run on Ubuntu 12.04 or Ubuntu 14.04, 64-bit.
 
-## Setting up a development environment
+These tools use pbuilder-dist to generate packages for multiple distributions and multiple architectures. Pbuilder-dist is a tool which sets up chroot environments for multiple distributions.
+
+## Overview of tools
+
+This repository provides three major categories of tools:
+
+ * **Setup tools** prepare and set up the system.
+
+    * `setup-system`: Installs dependencies, users, configuration files, etc. It runs `setup-pbuilder-dist` when it is run for the first time.
+    * `setup-builder-dist`: Creates or updates the pbuilder-dist environments.
+
+ * **Release tools** create packages.
+
+    * `create-dependency-packages`: Creates packages for gems that Phusion Passenger depends on.
+    * `create_nginx_package`: Creates Nginx packages that contain the Phusion Passenger module.
+    * `new_release`: Creates Phusion Passenger packages.
+
+ * **Internal tools** are not meant to be used directly by the user, but are used internally. They can be found in the `internal` directory.
+
+ * **Developer tools** are only meant to be used by people who develop passenger_apt_automation. They can be found in the `devtools` directory.
+
+## Getting started
+
+### Development environment
 
 A Vagrantfile is provided so that you can develop this project in a VM. To get started, run:
 
     host$ vagrant up
 
-Then SSH into the VM and run:
+Then SSH into the VM and run these:
 
     vm$ cd /vagrant
     vm$ sudo ./setup-system -g
+    vm$ sudo sudo -u psg_apt_automation -H ./create-dependency-packages -a
 
-Every time you pulled from git, you should re-run `./setup-system` to update the VM with the latest development settings.
+Every time you pulled from git, you should re-run `sudo ./setup-system -g` to update the VM with the latest development settings.
 
-## Setting up in production
+### Production environment
 
 Login as any user that can run sudo, clone this repository as `psg_apt_automation` and run the setup script:
 
@@ -32,7 +56,9 @@ Create packages for gems that Phusion Passenger depends on:
 
     sudo -u psg_apt_automation -H ./create-dependency-packages -a
 
-Then, every time a new Phusion Passenger version is released, run the following command to update the APT repository in `apt/`, as `psg_apt_automation`:
+## Creating Phusion Passenger packages
+
+Upon installing passenger_apt_automation for the first time, and upon the release of a new Phusion Passenger version, run the following command to create packages, as `psg_apt_automation`:
 
     ./new_release <GIT_URL> <REPO_DIR> <APT_DIR> [REF]
 
