@@ -60,10 +60,17 @@ for PROJECT_NAME in passenger passenger-enterprise; do
 	pushd "$RELEASE_DIR" >/dev/null
 
 	for DIST in $DEBIAN_DISTROS; do
-		reprepro --keepunusednewfiles -Vb . includedeb $DIST $HOME/pbuilder/$DIST-i386_result/*.deb
-		for F in $HOME/pbuilder/$DIST-i386_result/*.dsc; do
-			reprepro --keepunusednewfiles -Vb . includedsc $DIST $F
-		done
+		if ls $HOME/pbuilder/$DIST-i386_result/*.deb &>/dev/null; then
+			reprepro --keepunusednewfiles -Vb . includedeb $DIST $HOME/pbuilder/$DIST-i386_result/*.deb
+			for F in $HOME/pbuilder/$DIST-i386_result/*.dsc; do
+				reprepro --keepunusednewfiles -Vb . includedsc $DIST $F
+			done
+		else
+			reprepro --keepunusednewfiles -Vb . includedeb $DIST $HOME/pbuilder/$DIST_result/*.deb
+			for F in $HOME/pbuilder/$DIST_result/*.dsc; do
+				reprepro --keepunusednewfiles -Vb . includedsc $DIST $F
+			done
+		fi
 	done
 
 	bash "$BASE_DIR/internal/commit_apt_repo_release.sh" "$RELEASE_DIR"
