@@ -16,8 +16,8 @@ mkdir -p "$APT_REPO_DIR/releases"
 mkdir "$release_dir"
 
 # Copy over contents from current release
-if [[ -e "$PROJECT_APT_REPO_DIR/current" ]]; then
-	cp -dpR "$PROJECT_APT_REPO_DIR"/current/* "$release_dir"/
+if [[ -e "$APT_REPO_DIR/current" ]]; then
+	cp -dpR "$APT_REPO_DIR"/current/* "$release_dir"/
 fi
 
 # Setup APT repo configuration

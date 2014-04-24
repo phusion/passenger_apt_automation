@@ -28,7 +28,7 @@ mkdir -p /var/cache/passenger_apt_automation/misc_packages
 
 if $build_daemon_controller; then
 	header "Building daemon_controller"
-	git clone git://github.com/FooBarWidget/daemon_controller.git /var/cache/passenger_apt_automation/misc_packages/daemon_controller
+	run git clone git://github.com/FooBarWidget/daemon_controller.git /var/cache/passenger_apt_automation/misc_packages/daemon_controller
 	pushd /var/cache/passenger_apt_automation/misc_packages/daemon_controller >/dev/null
 	echo "In /var/cache/passenger_apt_automation/misc_packages/daemon_controller:"
 	run rake debian:source_packages
@@ -40,7 +40,7 @@ fi
 
 if $build_crash_watch; then
 	header "Building crash-watch"
-	git clone git://github.com/FooBarWidget/crash-watch.git /var/cache/passenger_apt_automation/misc_packages/crash-watch
+	run git clone git://github.com/FooBarWidget/crash-watch.git /var/cache/passenger_apt_automation/misc_packages/crash-watch
 	pushd /var/cache/passenger_apt_automation/misc_packages/crash-watch >/dev/null
 	echo "In /var/cache/passenger_apt_automation/misc_packages/crash-watch:"
 	run rake debian:source_packages
@@ -51,28 +51,30 @@ if $build_crash_watch; then
 fi
 
 header "Signing packages"
-debsign -k$SIGNING_KEY $PKG_DIR/*.changes
+run debsign -k$SIGNING_KEY $PKG_DIR/*.changes
 
 header "Importing built packages into APT repositories"
 
 for PROJECT_NAME in passenger passenger-enterprise; do
+	PROJECT_APT_REPO_DIR="$APT_REPO_DIR/$PROJECT_NAME.apt"
 	RELEASE_DIR=`bash "$BASE_DIR/internal/new_apt_repo_release.sh" "$PROJECT_NAME" "$PROJECT_APT_REPO_DIR"`
+	echo "In $RELEASE_DIR:"
 	pushd "$RELEASE_DIR" >/dev/null
 
 	for DIST in $DEBIAN_DISTROS; do
 		if ls $HOME/pbuilder/$DIST-i386_result/*.deb &>/dev/null; then
-			reprepro --keepunusednewfiles -Vb . includedeb $DIST $HOME/pbuilder/$DIST-i386_result/*.deb
+			run reprepro --keepunusednewfiles -Vb . includedeb $DIST $HOME/pbuilder/$DIST-i386_result/*.deb
 			for F in $HOME/pbuilder/$DIST-i386_result/*.dsc; do
-				reprepro --keepunusednewfiles -Vb . includedsc $DIST $F
+				run reprepro --keepunusednewfiles -Vb . includedsc $DIST $F
 			done
 		else
-			reprepro --keepunusednewfiles -Vb . includedeb $DIST $HOME/pbuilder/$DIST_result/*.deb
+			run reprepro --keepunusednewfiles -Vb . includedeb $DIST $HOME/pbuilder/$DIST_result/*.deb
 			for F in $HOME/pbuilder/$DIST_result/*.dsc; do
-				reprepro --keepunusednewfiles -Vb . includedsc $DIST $F
+				run reprepro --keepunusednewfiles -Vb . includedsc $DIST $F
 			done
 		fi
 	done
 
-	bash "$BASE_DIR/internal/commit_apt_repo_release.sh" "$RELEASE_DIR"
+	run bash "$BASE_DIR/internal/commit_apt_repo_release.sh" "$RELEASE_DIR"
 	popd >/dev/null
 done
