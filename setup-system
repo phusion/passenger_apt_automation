@@ -80,13 +80,13 @@ header "Installing dependencies"
 run sudo apt-get install -y ubuntu-dev-tools reprepro debhelper source-highlight \
 	ruby1.9.3 libsqlite3-dev runit git gawk rake
 if [[ ! -e /usr/local/bin/bluecloth ]]; then
-	run sudo gem install bluecloth --no-rdoc --no-ri
+	run sudo gem1.9.1 install bluecloth --no-rdoc --no-ri
 fi
 if [[ ! -e /usr/local/bin/mizuho ]]; then
-	run sudo gem install mizuho --no-rdoc --no-ri
+	run sudo gem1.9.1 install mizuho --no-rdoc --no-ri
 fi
 if [[ ! -e /usr/local/bin/drake ]]; then
-	run sudo gem install drake --no-rdoc --no-ri
+	run sudo gem1.9.1 install drake --no-rdoc --no-ri
 fi
 
 header "Preparing configuration files"
