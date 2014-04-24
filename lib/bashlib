@@ -1,6 +1,6 @@
 if [[ "$BASE_DIR" = "" ]]; then
 	BASE_DIR=`dirname "$0"`
-	BASE_DIR=`cd "$BASE_DIR"; pwd`
+	BASE_DIR=`cd "$BASE_DIR" && pwd`
 fi
 cd "$BASE_DIR"
 

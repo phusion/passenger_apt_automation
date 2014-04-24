@@ -60,28 +60,27 @@ Create packages for gems that Phusion Passenger depends on:
 
 Upon installing passenger_apt_automation for the first time, and upon the release of a new Phusion Passenger version, run the following command to create packages, as `psg_apt_automation`:
 
-    ./new_release <GIT_URL> <REPO_DIR> <APT_DIR> [REF]
+    ./new_release <GIT_URL> <PROJECT_NAME> [REF]
 
 where:
 
  * `GIT_URL` is the Phusion Passenger git repository URL.
- * `REPO_DIR` is the directory that the git repository should be cloned to.
- * `APT_DIR` is the APT repository directory.
+ * `PROJECT_NAME` is either 'passenger' or 'passenger-enterprise'.
  * `REF` is the commit in git for which you want to build packages. If `REF` is not specified, then it is assumed to be `origin/master`.
 
 For example:
 
-    ./new_release https://github.com/phusion/passenger.git passenger.repo passenger.apt
+    ./new_release https://github.com/phusion/passenger.git passenger
 
-The `new_release` script is near-atomic: it is very unlikely that users will see an intermediate state in which only some packages have been built.
+The `new_release` script is atomic: users will not see an intermediate state in which only some packages have been built.
 
 ## Troubleshooting
 
 The `./new_release` script stores build output, temporary files and logs in `/var/cache/passenger_apt_automation`. If anything goes wrong, please take a look at the various .log files in that directory. Of interest are:
 
-    /var/cache/passenger_apt_automation/<NAME>/stage
-    /var/cache/passenger_apt_automation/<NAME>/pkg/*.log
-    /var/cache/passenger_apt_automation/<NAME>/pkg/official/*.log
+    /var/cache/passenger_apt_automation/<PROJECT_NAME>.workdir/stage
+    /var/cache/passenger_apt_automation/<PROJECT_NAME>.workdir/pkg/*.log
+    /var/cache/passenger_apt_automation/<PROJECT_NAME>.workdir/pkg/official/*.log
 
 ## Related projects
 

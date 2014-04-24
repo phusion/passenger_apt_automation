@@ -3,9 +3,10 @@
 # if you wish.
 
 # Distributions that we should generate packages for.
-# If you update these lists, don't forget to update these files too:
-# - passenger.apt/conf/distributions
-# - passenger-enterprise.apt/conf/distributions
+# If you update these lists, make sure that the following files
+# contain entries for all distributions in the list:
+# - lib/apt_repo_conf/passenger/distributions
+# - lib/apt_repo_conf/passenger-enterprise/distributions
 #
 # Upon updating these lists, you must also run `./setup-pbuilder-dist`.
 export DEBIAN_DISTROS="trusty precise lucid squeeze wheezy"
@@ -22,3 +23,7 @@ SIGNING_KEY=561F9B9CAC40B2F7
 # Number of packages to build simultaneously. If your server has
 # less than 2 GB of RAM, you should lower this limit.
 CONCURRENCY_LEVEL=4
+
+# Directory in which to store APT repositories (passenger.apt and
+# passenger-enterprise.apt).
+APT_REPO_DIR=/srv/passenger_apt_automation

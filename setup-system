@@ -67,6 +67,10 @@ run sudo chown root: /etc/sudoers.d/passenger_apt_automation
 run sudo chmod 400 /etc/sudoers.d/passenger_apt_automation
 run sudo cp lib/pbuilderrc ~psg_apt_automation/.pbuilderrc
 run sudo chown psg_apt_automation: ~psg_apt_automation/.pbuilderrc
+if $vagrant; then
+	run sudo mkdir -p /srv/passenger_apt_automation
+	run sudo chown psg_apt_automation: /srv/passenger_apt_automation
+fi
 
 header "Importing public keys"
 run sudo -u psg_apt_automation -H gpg --keyserver keyserver.ubuntu.com --recv-keys C324F5BB38EEB5A0
@@ -74,10 +78,7 @@ run sudo -u psg_apt_automation -H gpg --armor --export C324F5BB38EEB5A0 | sudo a
 
 header "Installing dependencies"
 run sudo apt-get install -y ubuntu-dev-tools reprepro debhelper source-highlight \
-	ruby1.9.3 libsqlite3-dev runit git
-if [[ ! -e /usr/local/bin/rake ]]; then
-	run sudo gem install rake --no-rdoc --no-ri
-fi
+	ruby1.9.3 libsqlite3-dev runit git gawk rake
 if [[ ! -e /usr/local/bin/bluecloth ]]; then
 	run sudo gem install bluecloth --no-rdoc --no-ri
 fi

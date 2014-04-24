@@ -2,7 +2,7 @@
 set -e
 
 BASE_DIR=`dirname "$0"`
-BASE_DIR=`cd "$BASE_DIR/.."; pwd`
+BASE_DIR=`cd "$BASE_DIR/.." && pwd`
 source lib/bashlib
 load_general_config
 
@@ -54,10 +54,10 @@ header "Signing packages"
 debsign -k$SIGNING_KEY $PKG_DIR/*.changes
 
 header "Importing built packages into APT repositories"
-for REPO in passenger.apt passenger-enterprise.apt; do
-	rm -rf $REPO.tmp $REPO.old
-	cp -dpR $REPO $REPO.tmp
-	pushd $REPO.tmp
+
+for PROJECT_NAME in passenger passenger-enterprise; do
+	RELEASE_DIR=`bash "$BASE_DIR/internal/new_apt_repo_release.sh" "$PROJECT_NAME" "$PROJECT_APT_REPO_DIR"`
+	pushd "$RELEASE_DIR" >/dev/null
 
 	for DIST in $DEBIAN_DISTROS; do
 		reprepro --keepunusednewfiles -Vb . includedeb $DIST $HOME/pbuilder/$DIST-i386_result/*.deb
@@ -66,11 +66,6 @@ for REPO in passenger.apt passenger-enterprise.apt; do
 		done
 	done
 
-	popd
-	mv $REPO $REPO.old
-	mv $REPO.tmp $REPO
-	rm -rf $REPO.old
+	bash "$BASE_DIR/internal/commit_apt_repo_release.sh" "$RELEASE_DIR"
+	popd >/dev/null
 done
-
-./sign_repo passenger.apt
-./sign_repo passenger-enterprise.apt

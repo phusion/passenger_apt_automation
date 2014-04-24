@@ -1,9 +1,4 @@
-#!/bin/bash
 set -e
-BASE_DIR=`dirname "$0"`
-BASE_DIR=`cd "$BASE_DIR"; pwd`
-export PATH="$BASE_DIR/lib/dummygpg:$PATH"
-source "$BASE_DIR/config/general"
 
 DIR="$1"
 if [[ "$DIR" = "" ]]; then
@@ -12,7 +7,13 @@ if [[ "$DIR" = "" ]]; then
 	exit 1
 fi
 
-set -x
+BASE_DIR=`dirname "$0"`
+BASE_DIR=`cd "$BASE_DIR/.."; pwd`
+source "$BASE_DIR/lib/bashlib"
+
+load_general_config
+use_dummy_gpg
+
 cd "$DIR"
 find . -name Release.gpg -print0 | xargs -0 rm -f
 find . -name Release -exec gpg --batch --sign --detach-sign --armor --local-user $SIGNING_KEY --output \{\}.gpg \{\} \;
