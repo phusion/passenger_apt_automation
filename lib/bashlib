@@ -49,6 +49,17 @@ function require_running_as_psg_apt_automation_user()
 	unset SUDO_GID
 }
 
+function validate_project_name()
+{
+	local PROJECT_NAME="$1"
+	if [[ "$PROJECT_NAME" != passenger && "$PROJECT_NAME" != passenger-enterprise && \
+	      "$PROJECT_NAME" != passenger-testing && "$PROJECT_NAME" != passenger-enterprise-testing ]]; then
+		echo "Error: the PROJECT_NAME parameter must be one of: 'passenger'," \
+			"'passenger-enterprise', 'passenger-testing', 'passenger-enterprise-testing'"
+		exit 1
+	fi
+}
+
 function header()
 {
 	echo

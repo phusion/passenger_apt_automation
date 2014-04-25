@@ -5,7 +5,7 @@ set -e
 
 function usage()
 {
-	echo "./create-dependency-packages [OPTIONS]"
+	echo "./create-dependency-packages [OPTIONS] PROJECT_NAMES..."
 	echo "Create packages for various gems that Phusion Passenger depends on."
 	echo
 	echo "Required options:"
@@ -45,13 +45,23 @@ if ! $build_daemon_controller && ! $build_crash_watch; then
 	exit 1
 fi
 
+shift $((OPTIND-1))
+if [[ $# -eq 0 ]]; then
+	echo "Please specify at least one project name. See -h for usage details."
+	exit 1
+fi
+
 
 source lib/bashlib
 load_general_config
 use_dummy_gpg
 require_running_as_psg_apt_automation_user
 
+for PROJECT_NAME in "$@"; do
+	validate_project_name "$PROJECT_NAME"
+done
+
 header "Obtaining lock file"
 export build_daemon_controller
 export build_crash_watch
-exec chpst -l /var/cache/passenger_apt_automation/lock bash internal/create-dependency-packages.sh
+exec chpst -l /var/cache/passenger_apt_automation/lock bash internal/create-dependency-packages.sh "$@"

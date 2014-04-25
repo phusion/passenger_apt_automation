@@ -55,7 +55,7 @@ run debsign -k$SIGNING_KEY $PKG_DIR/*.changes
 
 header "Importing built packages into APT repositories"
 
-for PROJECT_NAME in passenger passenger-enterprise; do
+for PROJECT_NAME in "$@"; do
 	PROJECT_APT_REPO_DIR="$APT_REPO_DIR/$PROJECT_NAME.apt"
 	RELEASE_DIR=`bash "$BASE_DIR/internal/new_apt_repo_release.sh" "$PROJECT_NAME" "$PROJECT_APT_REPO_DIR"`
 	echo "In $RELEASE_DIR:"

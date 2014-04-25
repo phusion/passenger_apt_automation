@@ -14,12 +14,6 @@ if [[ "$GIT_URL" = "" || "$PROJECT_NAME" = "" ]]; then
 	echo "Usage: ./new_release GIT_URL PROJECT_NAME [REF]"
 	exit 1
 fi
-if [[ "$PROJECT_NAME" != passenger && "$PROJECT_NAME" != passenger-enterprise && \
-      "$PROJECT_NAME" != passenger-testing && "$PROJECT_NAME" != passenger-enterprise-testing ]]; then
-	echo "Error: the PROJECT_NAME parameter must be one of: 'passenger'," \
-		"'passenger-enterprise', 'passenger-testing', 'passenger-enterprise-testing'"
-	exit 1
-fi
 
 
 ##### Initialization #####
@@ -31,6 +25,7 @@ source "$BASE_DIR/lib/bashlib"
 load_general_config
 use_dummy_gpg
 require_running_as_psg_apt_automation_user
+validate_project_name "$PROJECT_NAME"
 
 export WORK_DIR="/var/cache/passenger_apt_automation/$PROJECT_NAME.workdir"
 export PKG_DIR="$WORK_DIR/pkg"

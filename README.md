@@ -60,17 +60,19 @@ Then move the directory to `/srv/passenger_apt_automation`:
 
 There are a number of gems (daemon_controller and crash-watch) that Phusion Passenger depend on, and for which packages should be built. Run the following command to build them and to import them into the APT repositories:
 
-    sudo -u psg_apt_automation -H ./create-dependency-packages -a
+    sudo -u psg_apt_automation -H ./create-dependency-packages -a <PROJECT_NAME>
+
+where `PROJECT_NAME` is one of: 'passenger', 'passenger-enterprise', 'passenger-testing', 'passenger-enterprise-testing'.
 
 #### When a new gem version has been released
 
 When a new version of one of those gems has been released, you should build a package for the latest version of that gem only, by passing either `-d` (for daemon_controller) or `-c` (for crash-watch) instead of `-a`. For example:
 
     # Build package for latest version of daemon_controller.
-    sudo -u psg_apt_automation -H ./create-dependency-packages -d
+    sudo -u psg_apt_automation -H ./create-dependency-packages -d <PROJECT_NAME>
 
     # Build package for latest version of crash-watch.
-    sudo -u psg_apt_automation -H ./create-dependency-packages -c
+    sudo -u psg_apt_automation -H ./create-dependency-packages -c <PROJECT_NAME>
 
 #### When a new distribution has been released
 
@@ -82,7 +84,7 @@ When a new distribution has been released, you should build packages for all gem
 
 Then build packages for all gems:
 
-    sudo -u psg_apt_automation -H ./create-dependency-packages -a
+    sudo -u psg_apt_automation -H ./create-dependency-packages -a <PROJECT_NAME>
 
 Afterwards, edit `config/general` again and revert `DEBIAN_DISTROS` back to what it was:
 
