@@ -9,7 +9,7 @@ BASE_DIR=`dirname "$0"`
 BASE_DIR=`cd "$BASE_DIR/.." && pwd`
 
 # Create new release directory
-release_name=`date +%Y%d%m-%H%M%S`
+release_name=`date +%Y%m%d-%H%M%S`
 release_dir="$APT_REPO_DIR/releases/$release_name"
 mkdir -p "$APT_REPO_DIR/releases"
 # No -p. We want this to fail if someone else is concurrently creating.
