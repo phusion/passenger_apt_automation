@@ -75,11 +75,11 @@ else
 end
 
 if ALL_DISTRIBUTIONS.empty? || DEBIAN_ARCHS.empty?
-	abort "Please run ./create_nginx_package instead of running this .rb file directly"
+	abort "Please run ./create-nginx-packages instead of running this .rake file directly"
 end
 
 task :default do
-	abort "Please run ./create_nginx_package -T for possible tasks"
+	abort "Please run ./create-nginx-packages -T for possible tasks"
 end
 
 
@@ -204,7 +204,7 @@ end
 
 task 'binary_packages:prepare' do
 	if !File.exist?(PKG_DIR)
-		abort "Please run './create_nginx_package source_packages' first."
+		abort "Please run './create-nginx-packages source_packages' first."
 	end
 
 	pbuilder_dir = File.expand_path("~/pbuilder")

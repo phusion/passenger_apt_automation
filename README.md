@@ -16,8 +16,8 @@ This repository provides three major categories of tools:
  * **Release tools** create packages.
 
     * `create-dependency-packages`: Creates packages for gems that Phusion Passenger depends on.
-    * `create_nginx_package`: Creates Nginx packages that contain the Phusion Passenger module.
-    * `new_release`: Creates Nginx and Phusion Passenger packages. Uses `create_nginx_package` internally.
+    * `create-nginx-package`: Creates Nginx packages that contain the Phusion Passenger module.
+    * `new_release`: Creates Nginx and Phusion Passenger packages. Uses `create-nginx-package` internally.
 
  * **Internal tools** are not meant to be used directly by the user, but are used internally. They can be found in the `internal` directory.
 
@@ -143,11 +143,11 @@ During development you will sometimes want to build Nginx packages only. To do t
 
 Then run the following to generate Nginx source packages in `$PKG_DIR`:
 
-    sudo -E sudo -u psg_apt_automation -H -E ./create_nginx_package source_packages
+    sudo -E sudo -u psg_apt_automation -H -E ./create-nginx-packages source_packages
 
 Run the following to generate Nginx binary packages in `$PKG_DIR`:
 
-    sudo -E sudo -u psg_apt_automation -H -E ./create_nginx_package binary_packages
+    sudo -E sudo -u psg_apt_automation -H -E ./create-nginx-packages binary_packages
 
 ## Troubleshooting
 

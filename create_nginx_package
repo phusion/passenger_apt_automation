@@ -1,3 +1,0 @@
-#!/bin/bash
-source config/general
-exec drake -f ./internal/create_nginx_package.rake "$@"

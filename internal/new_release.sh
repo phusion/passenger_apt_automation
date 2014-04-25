@@ -16,6 +16,8 @@ rm -rf "$PBUILDFOLDER"/*.tgz
 rm -rf "$PBUILDFOLDER"/*_result
 ln -s ~/pbuilder/*.tgz "$PBUILDFOLDER"/
 
+export PASSENGER_DIR="$PROJECT_GIT_REPO_DIR"
+
 
 ##### Update repository #####
 
@@ -49,10 +51,9 @@ drake debian:binary_packages -j$CONCURRENCY_LEVEL
 
 stage "Building Nginx source packages..." building_nginx_source_packages
 cd "$BASE_DIR"
-export PASSENGER_DIR="$PROJECT_GIT_REPO_DIR"
-./create_nginx_package source_packages
+./create-nginx-packages source_packages
 stage "Building Nginx binary packages..." building_nginx_binary_packages
-./create_nginx_package binary_packages -j$CONCURRENCY_LEVEL
+./create-nginx-packages binary_packages -j$CONCURRENCY_LEVEL
 
 
 ##### Sign packages #####
