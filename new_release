@@ -14,8 +14,10 @@ if [[ "$GIT_URL" = "" || "$PROJECT_NAME" = "" ]]; then
 	echo "Usage: ./new_release GIT_URL PROJECT_NAME [REF]"
 	exit 1
 fi
-if [[ "$PROJECT_NAME" != passenger && "$PROJECT_NAME" != passenger-enterprise ]]; then
-	echo "Error: the PROJECT_NAME parameter must be either 'passenger' or 'passenger-enterprise'"
+if [[ "$PROJECT_NAME" != passenger && "$PROJECT_NAME" != passenger-enterprise && \
+      "$PROJECT_NAME" != passenger-testing && "$PROJECT_NAME" != passenger-enterprise-testing ]]; then
+	echo "Error: the PROJECT_NAME parameter must be one of: 'passenger'," \
+		"'passenger-enterprise', 'passenger-testing', 'passenger-enterprise-testing'"
 	exit 1
 fi
 

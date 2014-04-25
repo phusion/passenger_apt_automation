@@ -99,7 +99,7 @@ Upon installing passenger_apt_automation for the first time, and upon the releas
 where:
 
  * `GIT_URL` is the Phusion Passenger git repository URL.
- * `PROJECT_NAME` is either 'passenger' or 'passenger-enterprise'.
+ * `PROJECT_NAME` is one of: 'passenger', 'passenger-enterprise', 'passenger-testing', 'passenger-enterprise-testing'.
  * `REF` is the commit in git for which you want to build packages. If `REF` is not specified, then it is assumed to be `origin/master`.
 
 For example:
