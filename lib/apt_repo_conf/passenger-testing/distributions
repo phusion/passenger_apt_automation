@@ -1,0 +1,55 @@
+Origin: Phusion
+Label: Phusion Passenger
+Suite: stable
+Codename: trusty
+Architectures: i386 amd64 source
+Components: main
+Description: Phusion Passenger
+
+Origin: Phusion
+Label: Phusion Passenger
+Suite: stable
+Codename: saucy
+Architectures: i386 amd64 source
+Components: main
+Description: Phusion Passenger
+
+Origin: Phusion
+Label: Phusion Passenger
+Suite: stable
+Codename: raring
+Architectures: i386 amd64 source
+Components: main
+Description: Phusion Passenger
+
+Origin: Phusion
+Label: Phusion Passenger
+Suite: stable
+Codename: precise
+Architectures: i386 amd64 source
+Components: main
+Description: Phusion Passenger
+
+Origin: Phusion
+Label: Phusion Passenger
+Suite: stable
+Codename: lucid
+Architectures: i386 amd64 source
+Components: main
+Description: Phusion Passenger
+
+Origin: Phusion
+Label: Phusion Passenger
+Suite: stable
+Codename: wheezy
+Architectures: i386 amd64 source
+Components: main
+Description: Phusion Passenger
+
+Origin: Phusion
+Label: Phusion Passenger
+Suite: stable
+Codename: squeeze
+Architectures: i386 amd64 source
+Components: main
+Description: Phusion Passenger
