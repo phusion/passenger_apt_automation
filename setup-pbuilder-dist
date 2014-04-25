@@ -37,6 +37,7 @@ fi
 
 source lib/bashlib
 load_general_config
+require_running_as_psg_apt_automation_user
 
 # Prevent pbuilder-dist from complaining about sudo.
 unset SUDO_COMMAND
