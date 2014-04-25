@@ -1,10 +1,2 @@
 /.vagrant
 /config
-/passenger.repo
-/passenger.apt/db
-/passenger.apt/dists
-/passenger.apt/pool
-/passenger-enterprise.repo
-/passenger-enterprise.apt/db
-/passenger-enterprise.apt/dists
-/passenger-enterprise.apt/pool
