@@ -92,7 +92,7 @@ Afterwards, edit `config/general` again and revert `DEBIAN_DISTROS` back to what
     ...
     DEBIAN_DISTROS="old value"
 
-## Phusion Passenger packages
+### Phusion Passenger packages
 
 Upon installing passenger_apt_automation for the first time, and upon the release of a new Phusion Passenger version, run the following command to build Phusion Passenger packages as well as Nginx packages:
 
@@ -115,7 +115,7 @@ In the Vagrant VM, if `/passenger` is mounted you can also run the following to 
 
     sudo -u psg_apt_automation -H ./new_release file:///passenger/.git passenger
 
-### When a new distribution has been released
+#### When a new distribution has been released
 
 When a new distribution has been released, you should build packages against the latest release of Phusion Passenger, and for that distribution only. Edit `config/general` and set `DEBIAN_DISTROS` to that distribution only:
 
@@ -134,7 +134,7 @@ Afterwards, edit `config/general` again and revert `DEBIAN_DISTROS` back to what
     ...
     DEBIAN_DISTROS="old value"
 
-### Building Nginx packages only
+#### Building Nginx packages only
 
 During development you will sometimes want to build Nginx packages only. To do that, ensure that the `/passenger` directory is mounted, and set the following environment variables:
 
