@@ -87,6 +87,11 @@ typedef struct {
 
 
 typedef struct {
+    ngx_int_t       requires_filter;
+} ngx_http_echo_main_conf_t;
+
+
+typedef struct {
     ngx_array_t     *choices; /* items after splitting */
     ngx_uint_t      next_choice;  /* current item index */
     ngx_uint_t      cmd_index; /* cmd index for the echo_foreach direcitve */
@@ -116,7 +121,6 @@ typedef struct {
 
     ngx_uint_t       counter;
 
-    unsigned         headers_sent:1;
     unsigned         before_body_sent:1;
     unsigned         skip_filter:1;
 

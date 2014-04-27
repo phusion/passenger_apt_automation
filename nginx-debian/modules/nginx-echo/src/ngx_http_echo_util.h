@@ -1,3 +1,9 @@
+
+/*
+ * Copyright (C) Yichun Zhang (agentzh)
+ */
+
+
 #ifndef NGX_HTTP_ECHO_UTIL_H
 #define NGX_HTTP_ECHO_UTIL_H
 
@@ -7,6 +13,29 @@
 
 #define ngx_http_echo_strcmp_const(a, b) \
     ngx_strncmp(a, b, sizeof(b) - 1)
+
+
+#define ngx_http_echo_hash_literal(s)                                        \
+    ngx_http_echo_hash_str((u_char *) s, sizeof(s) - 1)
+
+
+static ngx_inline ngx_uint_t
+ngx_http_echo_hash_str(u_char *src, size_t n)
+{
+    ngx_uint_t  key;
+
+    key = 0;
+
+    while (n--) {
+        key = ngx_hash(key, *src);
+        src++;
+    }
+
+    return key;
+}
+
+
+extern ngx_uint_t  ngx_http_echo_content_length_hash;
 
 
 ngx_http_echo_ctx_t * ngx_http_echo_create_ctx(ngx_http_request_t *r);

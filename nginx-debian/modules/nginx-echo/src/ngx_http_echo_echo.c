@@ -52,10 +52,10 @@ ngx_http_echo_echo_init(ngx_conf_t *cf)
 
 ngx_int_t
 ngx_http_echo_exec_echo_sync(ngx_http_request_t *r,
-        ngx_http_echo_ctx_t *ctx)
+    ngx_http_echo_ctx_t *ctx)
 {
     ngx_buf_t                   *buf;
-    ngx_chain_t                 *cl  = NULL; /* the head of the chain link */
+    ngx_chain_t                 *cl = NULL; /* the head of the chain link */
 
     buf = ngx_calloc_buf(r->pool);
     if (buf == NULL) {
@@ -78,8 +78,8 @@ ngx_http_echo_exec_echo_sync(ngx_http_request_t *r,
 
 ngx_int_t
 ngx_http_echo_exec_echo(ngx_http_request_t *r,
-        ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args,
-        ngx_flag_t in_filter, ngx_array_t *opts)
+    ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args,
+    ngx_flag_t in_filter, ngx_array_t *opts)
 {
     ngx_uint_t                  i;
 
@@ -167,6 +167,10 @@ ngx_http_echo_exec_echo(ngx_http_request_t *r,
         }
     } /* end for */
 
+    if (cl && cl->buf == NULL) {
+        cl = cl->next;
+    }
+
     if (opts && opts->nelts > 0) {
         opt = opts->elts;
         if (opt[0].len == 1 && opt[0].data[0] == 'n') {
@@ -175,10 +179,6 @@ ngx_http_echo_exec_echo(ngx_http_request_t *r,
     }
 
     /* append the newline character */
-
-    if (cl && cl->buf == NULL) {
-        cl = cl->next;
-    }
 
     newline_buf = ngx_calloc_buf(r->pool);
 
@@ -234,19 +234,56 @@ ngx_http_echo_exec_echo_flush(ngx_http_request_t *r, ngx_http_echo_ctx_t *ctx)
 
 ngx_int_t
 ngx_http_echo_exec_echo_request_body(ngx_http_request_t *r,
-        ngx_http_echo_ctx_t *ctx)
+    ngx_http_echo_ctx_t *ctx)
 {
-    if (r->request_body && r->request_body->bufs) {
-        return ngx_http_echo_send_chain_link(r, ctx, r->request_body->bufs);
+    ngx_buf_t       *b;
+    ngx_chain_t     *out, *cl, **ll;
+
+    if (r->request_body == NULL || r->request_body->bufs == NULL) {
+        return NGX_OK;
     }
 
-    return NGX_OK;
+    out = NULL;
+    ll = &out;
+
+    for (cl = r->request_body->bufs; cl; cl = cl->next) {
+        if (ngx_buf_special(cl->buf)) {
+            /* we do not want to create zero-size bufs */
+            continue;
+        }
+
+        *ll = ngx_alloc_chain_link(r->pool);
+        if (*ll == NULL) {
+            return NGX_ERROR;
+        }
+
+        b = ngx_alloc_buf(r->pool);
+        if (b == NULL) {
+            return NGX_ERROR;
+        }
+
+        (*ll)->buf = b;
+        (*ll)->next = NULL;
+
+        ngx_memcpy(b, cl->buf, sizeof(ngx_buf_t));
+        b->tag = (ngx_buf_tag_t) &ngx_http_echo_exec_echo_request_body;
+        b->last_buf = 0;
+        b->last_in_chain = 0;
+
+        ll = &(*ll)->next;
+    }
+
+    if (out == NULL) {
+        return NGX_OK;
+    }
+
+    return ngx_http_echo_send_chain_link(r, ctx, out);
 }
 
 
 ngx_int_t
 ngx_http_echo_exec_echo_duplicate(ngx_http_request_t *r,
-        ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args)
+    ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args)
 {
     ngx_str_t                   *computed_arg;
     ngx_str_t                   *computed_arg_elts;
@@ -269,7 +306,7 @@ ngx_http_echo_exec_echo_duplicate(ngx_http_request_t *r,
 
     if (count == NGX_ERROR) {
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
-                   "invalid size specified: \"%V\"", computed_arg);
+                      "invalid size specified: \"%V\"", computed_arg);
 
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
@@ -305,4 +342,3 @@ ngx_http_echo_exec_echo_duplicate(ngx_http_request_t *r,
 
     return ngx_http_echo_send_chain_link(r, ctx, cl);
 }
-

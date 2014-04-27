@@ -1,9 +1,14 @@
-/* Copyright (C) agentzh */
+
+/*
+ * Copyright (C) Yichun Zhang (agentzh)
+ */
+
 
 #ifndef DDEBUG
 #define DDEBUG 0
 #endif
 #include "ddebug.h"
+
 
 #include "ngx_http_echo_sleep.h"
 #include "ngx_http_echo_handler.h"
@@ -11,17 +16,16 @@
 #include <nginx.h>
 #include <ngx_log.h>
 
+
 /* event handler for echo_sleep */
 
 static void ngx_http_echo_post_sleep(ngx_http_request_t *r);
-
 static void ngx_http_echo_sleep_cleanup(void *data);
 
 
 ngx_int_t
-ngx_http_echo_exec_echo_sleep(
-        ngx_http_request_t *r, ngx_http_echo_ctx_t *ctx,
-        ngx_array_t *computed_args)
+ngx_http_echo_exec_echo_sleep(ngx_http_request_t *r,
+    ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args)
 {
     ngx_str_t                   *computed_arg;
     ngx_str_t                   *computed_arg_elts;
@@ -86,7 +90,7 @@ ngx_http_echo_post_sleep(ngx_http_request_t *r)
     dd("timed out? %d", ctx->sleep.timedout);
     dd("timer set? %d", ctx->sleep.timer_set);
 
-    if ( ! ctx->sleep.timedout ) {
+    if (!ctx->sleep.timedout) {
         dd("HERE reached!");
         return;
     }
@@ -155,7 +159,7 @@ ngx_http_echo_sleep_event_handler(ngx_event_t *ev)
 
 ngx_int_t
 ngx_http_echo_exec_echo_blocking_sleep(ngx_http_request_t *r,
-        ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args)
+    ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args)
 {
     ngx_str_t                   *computed_arg;
     ngx_str_t                   *computed_arg_elts;
@@ -202,4 +206,3 @@ ngx_http_echo_sleep_cleanup(void *data)
 
     dd("cleanup: timer not set");
 }
-

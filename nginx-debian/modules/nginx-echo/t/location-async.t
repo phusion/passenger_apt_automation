@@ -3,7 +3,9 @@
 use lib 'lib';
 use Test::Nginx::Socket;
 
-plan tests => 2 * blocks();
+repeat_each(2);
+
+plan tests => repeat_each() * (2 * blocks() + 1);
 
 run_tests();
 
@@ -204,16 +206,16 @@ a%20b Bar
     location /main {
         echo_location_async /sub%31 'foo=Foo&bar=Bar';
     }
-    location /sub1 {
-        echo 'sub1';
-    }
     location /sub%31 {
         echo 'sub%31';
+    }
+    location /sub1 {
+        echo 'sub1';
     }
 --- request
     GET /main
 --- response_body
-sub%31
+sub1
 
 
 
@@ -300,7 +302,17 @@ post main
     }
 --- request
     GET /unsafe
---- response_body_like: 500 Internal Server Error
+--- stap2
+F(ngx_http_send_header) {
+    printf("send header on req %p (header sent: %d)\n", $r, $r->header_sent)
+    print_ubacktrace()
+}
+--- ignore_response
+--- error_log
+echo_location_async sees unsafe uri: "/../foo"
+--- no_error_log
+[error]
+[alert]
 
 
 

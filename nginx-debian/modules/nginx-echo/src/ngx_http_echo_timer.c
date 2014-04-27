@@ -5,6 +5,7 @@
 #include "ddebug.h"
 
 #include "ngx_http_echo_timer.h"
+#include "ngx_http_echo_util.h"
 
 #include <stdlib.h>
 #include <ngx_log.h>
@@ -13,7 +14,7 @@
 
 ngx_int_t
 ngx_http_echo_timer_elapsed_variable(ngx_http_request_t *r,
-        ngx_http_variable_value_t *v, uintptr_t data)
+    ngx_http_variable_value_t *v, uintptr_t data)
 {
     ngx_http_echo_ctx_t     *ctx;
     ngx_msec_int_t          ms;
@@ -22,6 +23,15 @@ ngx_http_echo_timer_elapsed_variable(ngx_http_request_t *r,
     size_t                  size;
 
     ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
+    if (ctx == NULL) {
+        ctx = ngx_http_echo_create_ctx(r);
+        if (ctx == NULL) {
+            return NGX_ERROR;
+        }
+
+        ngx_http_set_ctx(r, ctx, ngx_http_echo_module);
+    }
+
     if (ctx->timer_begin.sec == 0) {
         ctx->timer_begin.sec  = r->start_sec;
         ctx->timer_begin.msec = (ngx_msec_t) r->start_msec;
@@ -68,7 +78,7 @@ ngx_http_echo_timer_elapsed_variable(ngx_http_request_t *r,
 
 ngx_int_t
 ngx_http_echo_exec_echo_reset_timer(ngx_http_request_t *r,
-        ngx_http_echo_ctx_t *ctx)
+    ngx_http_echo_ctx_t *ctx)
 {
     dd("Exec timer...");
 

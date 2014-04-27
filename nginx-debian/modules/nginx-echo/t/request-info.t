@@ -427,10 +427,9 @@ Content-Length: 5\r
 
 
 
-=== TEST 20: small header (POST body) - in subrequests
+=== TEST 20: small header (POST body) - in subrequests (location)
 --- config
     location /t {
-        echo_read_request_body;
         echo -n $echo_client_request_headers;
     }
     location /main {
@@ -508,4 +507,102 @@ Connection: Close\r
 --- no_error_log
 [error]
 --- timeout: 5
+
+
+
+=== TEST 23: raw headers - the default header buffer can hold the request line, but not the header entries
+--- config
+    location /t {
+        echo_read_request_body;
+        echo -n $echo_client_request_headers;
+    }
+--- request
+GET /t
+--- more_headers eval
+my $s = "User-Agent: curl\nBah: bah\n";
+$s .= "Accept: */*\n";
+$s .= "Cookie: " . "C" x 1200 . "\n";
+$s
+--- response_body eval
+"GET /t HTTP/1.1\r
+Host: localhost\r
+Connection: Close\r
+User-Agent: curl\r
+Bah: bah\r
+Accept: */*\r
+Cookie: " . ("C" x 1200) . "\r\n\r\n"
+--- no_error_log
+[error]
+
+
+
+=== TEST 24: small header (POST body) - in subrequests (location_async)
+--- config
+    location /t {
+        echo -n $echo_client_request_headers;
+    }
+    location /main {
+        echo_location_async /t;
+    }
+
+--- request
+POST /main
+hello
+--- response_body eval
+qq{POST /main HTTP/1.1\r
+Host: localhost\r
+Connection: Close\r
+Content-Length: 5\r
+\r
+}
+--- no_error_log
+[error]
+
+
+
+=== TEST 25: small header (POST body) - in subrequests (subrequest)
+--- config
+    location /t {
+        echo -n $echo_client_request_headers;
+    }
+    location /main {
+        echo_subrequest GET /t;
+    }
+
+--- request
+POST /main
+hello
+--- response_body eval
+qq{POST /main HTTP/1.1\r
+Host: localhost\r
+Connection: Close\r
+Content-Length: 5\r
+\r
+}
+--- no_error_log
+[error]
+
+
+
+=== TEST 26: small header (POST body) - in subrequests (subrequest_async)
+--- config
+    location /t {
+        echo -n $echo_client_request_headers;
+    }
+    location /main {
+        echo_subrequest_async GET /t;
+    }
+
+--- request
+POST /main
+hello
+--- response_body eval
+qq{POST /main HTTP/1.1\r
+Host: localhost\r
+Connection: Close\r
+Content-Length: 5\r
+\r
+}
+--- no_error_log
+[error]
 
