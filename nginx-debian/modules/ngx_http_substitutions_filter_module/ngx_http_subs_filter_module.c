@@ -1,4 +1,3 @@
-
 /*
  * Author: Weibin Yao(yaoweibin@gmail.com)
  *
@@ -55,6 +54,7 @@ typedef struct {
     ngx_hash_t     types;
     ngx_array_t   *sub_pairs;   /* array of sub_pair_t     */
     ngx_array_t   *types_keys;  /* array of ngx_hash_key_t */
+    ngx_array_t   *bypass;      /* array of ngx_http_complex_value_t */
     size_t         line_buffer_size;
     ngx_bufs_t     bufs;
 } ngx_http_subs_loc_conf_t;
@@ -99,8 +99,10 @@ static ngx_int_t ngx_http_subs_body_filter_process_buffer(ngx_http_request_t *r,
     ngx_buf_t *b);
 static ngx_int_t  ngx_http_subs_match(ngx_http_request_t *r,
     ngx_http_subs_ctx_t *ctx);
+#if (NGX_PCRE)
 static ngx_int_t ngx_http_subs_match_regex_substituion(ngx_http_request_t *r,
     sub_pair_t *pair, ngx_buf_t *b, ngx_buf_t *dst);
+#endif
 static ngx_int_t ngx_http_subs_match_fix_substituion(ngx_http_request_t *r,
     sub_pair_t *pair, ngx_buf_t *b, ngx_buf_t *dst);
 static ngx_buf_t * buffer_append_string(ngx_buf_t *b, u_char *s, size_t len,
@@ -124,7 +126,9 @@ static char *ngx_http_subs_merge_conf(ngx_conf_t *cf, void *parent,
 
 static ngx_int_t ngx_http_subs_filter_init(ngx_conf_t *cf);
 
+#if (NGX_PCRE)
 static ngx_int_t ngx_http_subs_regex_capture_count(ngx_regex_t *re);
+#endif
 
 
 static ngx_command_t  ngx_http_subs_filter_commands[] = {
@@ -134,6 +138,13 @@ static ngx_command_t  ngx_http_subs_filter_commands[] = {
       ngx_http_subs_filter,
       NGX_HTTP_LOC_CONF_OFFSET,
       0,
+      NULL },
+
+    { ngx_string("subs_filter_bypass"),
+      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_1MORE,
+      ngx_http_set_predicate_slot,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      offsetof(ngx_http_subs_loc_conf_t, bypass),
       NULL },
 
     { ngx_string("subs_filter_types"),
@@ -215,6 +226,19 @@ ngx_http_subs_header_filter(ngx_http_request_t *r)
 
     if (ngx_http_test_content_type(r, &slcf->types) == NULL) {
         return ngx_http_next_header_filter(r);
+    }
+
+    switch (ngx_http_test_predicates(r, slcf->bypass)) {
+
+    case NGX_ERROR:
+        /*pass through*/
+
+    case NGX_DECLINED:
+
+        return ngx_http_next_header_filter(r);
+
+    default: /* NGX_OK */
+        break;
     }
 
     /* Don't do substitution with the compressed content */
@@ -306,7 +330,7 @@ ngx_http_subs_init_context(ngx_http_request_t *r)
 static ngx_int_t
 ngx_http_subs_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
 {
-    ngx_int_t		           rc;
+    ngx_int_t    	           rc;
     ngx_log_t                 *log;
     ngx_chain_t               *cl, *temp;
     ngx_http_subs_ctx_t       *ctx;
@@ -621,11 +645,12 @@ ngx_http_subs_match(ngx_http_request_t *r, ngx_http_subs_ctx_t *ctx)
 
         /* regex substitution */
         if (pair->regex || pair->insensitive) {
+#if (NGX_PCRE)
             count = ngx_http_subs_match_regex_substituion(r, pair, src, dst);
             if (count == NGX_ERROR) {
                 goto failed;
             }
-
+#endif
         } else {
             /* fixed string substituion */
             count = ngx_http_subs_match_fix_substituion(r, pair, src, dst);
@@ -678,6 +703,7 @@ failed:
 }
 
 
+#if (NGX_PCRE)
 static ngx_int_t
 ngx_http_subs_match_regex_substituion(ngx_http_request_t *r, sub_pair_t *pair,
                                       ngx_buf_t *b, ngx_buf_t *dst)
@@ -755,6 +781,7 @@ ngx_http_subs_match_regex_substituion(ngx_http_request_t *r, sub_pair_t *pair,
 
     return count;
 }
+#endif
 
 
 /*
@@ -1103,16 +1130,14 @@ static ngx_int_t
 ngx_http_subs_filter_regex_compile(sub_pair_t *pair,
     ngx_http_script_compile_t *sc, ngx_conf_t *cf)
 {
-    ngx_int_t                   n, options;
-    ngx_uint_t                  mask;
-    ngx_str_t                  *value;
-
-    value = cf->args->elts;
-
     /* Caseless match can only be implemented in regex. */
 #if (NGX_PCRE)
-    ngx_str_t         err;
     u_char            errstr[NGX_MAX_CONF_ERRSTR];
+    ngx_int_t         n, options;
+    ngx_str_t         err, *value;
+    ngx_uint_t        mask;
+
+    value = cf->args->elts;
 
     err.len = NGX_MAX_CONF_ERRSTR;
     err.data = errstr;
@@ -1170,6 +1195,7 @@ ngx_http_subs_filter_regex_compile(sub_pair_t *pair,
 }
 
 
+#if (NGX_PCRE)
 static ngx_int_t
 ngx_http_subs_regex_capture_count(ngx_regex_t *re)
 {
@@ -1191,6 +1217,7 @@ ngx_http_subs_regex_capture_count(ngx_regex_t *re)
 
     return (ngx_int_t) n;
 }
+#endif
 
 
 static void *
@@ -1213,6 +1240,7 @@ ngx_http_subs_create_conf(ngx_conf_t *cf)
      */
 
     conf->line_buffer_size = NGX_CONF_UNSET_SIZE;
+    conf->bypass = NGX_CONF_UNSET_PTR;
 
     return conf;
 }
@@ -1234,6 +1262,9 @@ ngx_http_subs_merge_conf(ngx_conf_t *cf, void *parent, void *child)
             conf->sub_pairs = prev->sub_pairs;
         }
     }
+
+    ngx_conf_merge_ptr_value(conf->bypass,
+                             prev->bypass, NULL);
 
     if (ngx_http_merge_types(cf, &conf->types_keys, &conf->types,
                              &prev->types_keys, &prev->types,
