@@ -16,7 +16,7 @@ This repository provides three major categories of tools:
  * **Release tools** create packages.
 
     * `create-dependency-packages`: Creates packages for gems that Phusion Passenger depends on.
-    * `create-nginx-package`: Creates Nginx packages that contain the Phusion Passenger module.
+    * `create-nginx-packages`: Creates Nginx packages that contain the Phusion Passenger module.
     * `new_release`: Creates Nginx and Phusion Passenger packages. Uses `create-nginx-package` internally.
 
  * **Internal tools** are not meant to be used directly by the user, but are used internally. They can be found in the `internal` directory.
