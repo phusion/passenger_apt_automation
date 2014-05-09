@@ -14,6 +14,9 @@ function cleanup()
 }
 
 
+FIRST_ARCH=`echo "$DEBIAN_ARCHS" | awk '{ print $1 }'`
+
+
 header "Preparing build directory"
 export PKG_DIR=`mktemp -d /tmp/passenger_apt_build.XXXXXXX`
 rm -rf $PKG_DIR
@@ -33,7 +36,7 @@ if $build_daemon_controller; then
 	echo "In /var/cache/passenger_apt_automation/misc_packages/daemon_controller:"
 	run rake debian:source_packages
 	for DIST in $DEBIAN_DISTROS; do
-		run pbuilder-dist $DIST i386 build $PKG_DIR/ruby-daemon-controller_*$DIST*.dsc
+		run pbuilder-dist $DIST $FIRST_ARCH build $PKG_DIR/ruby-daemon-controller_*$DIST*.dsc
 	done
 	popd >/dev/null
 fi
@@ -45,7 +48,7 @@ if $build_crash_watch; then
 	echo "In /var/cache/passenger_apt_automation/misc_packages/crash-watch:"
 	run rake debian:source_packages
 	for DIST in $DEBIAN_DISTROS; do
-		run pbuilder-dist $DIST i386 build $PKG_DIR/crash-watch_*$DIST*.dsc
+		run pbuilder-dist $DIST $FIRST_ARCH build $PKG_DIR/crash-watch_*$DIST*.dsc
 	done
 	popd >/dev/null
 fi
@@ -68,8 +71,8 @@ for PROJECT_NAME in "$@"; do
 				run reprepro --keepunusednewfiles -Vb . includedsc $DIST $F
 			done
 		else
-			run reprepro --keepunusednewfiles -Vb . includedeb $DIST $HOME/pbuilder/$DIST_result/*.deb
-			for F in $HOME/pbuilder/$DIST_result/*.dsc; do
+			run reprepro --keepunusednewfiles -Vb . includedeb $DIST $HOME/pbuilder/${DIST}_result/*.deb
+			for F in $HOME/pbuilder/${DIST}_result/*.dsc; do
 				run reprepro --keepunusednewfiles -Vb . includedsc $DIST $F
 			done
 		fi
