@@ -65,6 +65,7 @@ PASSENGER_PACKAGE = PhusionPassenger::PACKAGE_NAME
 PASSENGER_VERSION = PhusionPassenger::VERSION_STRING
 NGINX_VERSION     = PhusionPassenger::PREFERRED_NGINX_VERSION
 PACKAGE_VERSION   = NGINX_VERSION
+NGINX_HOTFIX_VERSION = ENV['NGINX_HOTFIX_VERSION'] || '1'
 if defined?(PhusionPassenger::PASSENGER_IS_ENTERPRISE)
 	# Let users see nginx updates after switching to the Enterprise repo.
 	VENDOR_VERSION = 3
@@ -139,7 +140,7 @@ def create_debian_package_dir(distribution, output_dir = PKG_DIR)
 	end
 	changelog = File.read("#{root}/debian/changelog")
 	changelog =
-		"#{DEBIAN_NAME} (#{DEBIAN_EPOCH}:#{PACKAGE_VERSION}-#{VENDOR_VERSION}.#{PASSENGER_VERSION}~#{distribution}1) #{distribution}; urgency=low\n" +
+		"#{DEBIAN_NAME} (#{DEBIAN_EPOCH}:#{PACKAGE_VERSION}-#{VENDOR_VERSION}.#{PASSENGER_VERSION}~#{distribution}#{NGINX_HOTFIX_VERSION}) #{distribution}; urgency=low\n" +
 		"\n" +
 		"  * Package built.\n" +
 		"\n" +
@@ -183,7 +184,7 @@ def create_binary_package_task(distribution, arch)
 	desc "Build Debian binary package for #{distribution} #{arch}"
 	task "binary_packages:#{distribution}_#{arch}" => 'binary_packages:prepare' do
 		require 'shellwords'
-		base_name = "#{DEBIAN_NAME}_#{PACKAGE_VERSION}-#{VENDOR_VERSION}.#{PASSENGER_VERSION}~#{distribution}1"
+		base_name = "#{DEBIAN_NAME}_#{PACKAGE_VERSION}-#{VENDOR_VERSION}.#{PASSENGER_VERSION}~#{distribution}#{NGINX_HOTFIX_VERSION}"
 		logfile = "#{PKG_DIR}/nginx_#{distribution}_#{arch}.log"
 		command = "cd #{PKG_DIR} && " +
 			"pbuilder-dist #{distribution} #{arch} build #{base_name}.dsc " +
