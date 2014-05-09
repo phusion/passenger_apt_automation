@@ -35,7 +35,6 @@ Then SSH into the VM and run these:
 
     vm$ cd /vagrant
     vm$ sudo ./setup-system -g
-    vm$ sudo sudo -u psg_apt_automation -H ./create-dependency-packages -a
 
 Every time you pulled from git, you should re-run `sudo ./setup-system -g` to update the VM with the latest development settings.
 
@@ -60,19 +59,19 @@ Then move the directory to `/srv/passenger_apt_automation`:
 
 There are a number of gems (daemon_controller and crash-watch) that Phusion Passenger depend on, and for which packages should be built. Run the following command to build them and to import them into the APT repositories:
 
-    sudo -u psg_apt_automation -H ./create-dependency-packages -a <PROJECT_NAME>
+    sudo -u psg_apt_automation -H ./create-dependency-packages -a <PROJECT_NAMES...>
 
-where `PROJECT_NAME` is one of: 'passenger', 'passenger-enterprise', 'passenger-testing', 'passenger-enterprise-testing'.
+where `PROJECT_NAMES` is one of: 'passenger', 'passenger-enterprise', 'passenger-testing', 'passenger-enterprise-testing'.
 
 #### When a new gem version has been released
 
 When a new version of one of those gems has been released, you should build a package for the latest version of that gem only, by passing either `-d` (for daemon_controller) or `-c` (for crash-watch) instead of `-a`. For example:
 
     # Build package for latest version of daemon_controller.
-    sudo -u psg_apt_automation -H ./create-dependency-packages -d <PROJECT_NAME>
+    sudo -u psg_apt_automation -H ./create-dependency-packages -d <PROJECT_NAMES...>
 
     # Build package for latest version of crash-watch.
-    sudo -u psg_apt_automation -H ./create-dependency-packages -c <PROJECT_NAME>
+    sudo -u psg_apt_automation -H ./create-dependency-packages -c <PROJECT_NAMES...>
 
 #### When a new distribution has been released
 
@@ -84,7 +83,7 @@ When a new distribution has been released, you should build packages for all gem
 
 Then build packages for all gems:
 
-    sudo -u psg_apt_automation -H ./create-dependency-packages -a <PROJECT_NAME>
+    sudo -u psg_apt_automation -H ./create-dependency-packages -a <PROJECT_NAMES...>
 
 Afterwards, edit `config/general` again and revert `DEBIAN_DISTROS` back to what it was:
 
@@ -140,8 +139,6 @@ During development you will sometimes want to build Nginx packages only. To do t
 
     export PKG_DIR=/home/psg_apt_automation/pkg
     export PASSENGER_DIR=/passenger
-    export DEBIAN_DISTROS="trusty"   # or whatever want
-    export DEBIAN_ARCHS=i386         # or whatever you want
 
 Then run the following to generate Nginx source packages in `$PKG_DIR`:
 
