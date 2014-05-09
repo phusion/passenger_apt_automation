@@ -24,14 +24,15 @@ if [ -x /etc/init.d/nginx ]; then
       while [ ! -s $NGX_PID_FILE.oldbin ] || [ ! -s $NGX_PID_FILE ]; do
         cnt=`expr $cnt + 1`
         if [ $cnt -gt 10 ]; then
-          kill -s KILL $NGX_PID
+          kill -s KILL $NGX_PID || true
+          sleep 1
           invoke-rc.d nginx start
           exit 0
         fi
         sleep 1
       done
-      NGX_OLD_PID=`cat $NGX_PID_FILE.old`
-      kill -s QUIT $NGX_OLD_PID
+      NGX_OLD_PID=`cat $NGX_PID_FILE.oldbin`
+      kill -s QUIT $NGX_OLD_PID || true
     fi
   else
     invoke-rc.d nginx start || exit $?
