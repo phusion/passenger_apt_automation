@@ -60,6 +60,19 @@ function validate_project_name()
 	fi
 }
 
+function reset_fake_pbuild_folder()
+{
+	local pbuildfolder="$1"
+	(
+		shopt -s dotglob
+		mkdir -p ~/pbuilder/aptcache
+		mkdir -p "$pbuildfolder"
+		rm -rf "$pbuildfolder"/*.tgz
+		rm -rf "$pbuildfolder"/*_result
+		ln -s ~/pbuilder/aptcache ~/pbuilder/*.tgz "$pbuildfolder"/
+	)
+}
+
 function header()
 {
 	echo

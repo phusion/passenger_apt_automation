@@ -8,50 +8,67 @@ load_general_config
 
 function cleanup()
 {
-	if [[ "$PKG_DIR" != "" ]]; then
-		rm -rf "$PKG_DIR"
+	if [[ "$WORK_DIR" != "" ]]; then
+		rm -rf "$WORK_DIR"
 	fi
 }
 
 
+##### Initialization #####
+
 FIRST_ARCH=`echo "$DEBIAN_ARCHS" | awk '{ print $1 }'`
 
-
-header "Preparing build directory"
-export PKG_DIR=`mktemp -d /tmp/passenger_apt_build.XXXXXXX`
-rm -rf $PKG_DIR
-mkdir -p $PKG_DIR
-
-header "Clearing previous build results"
-run rm -rf ~/pbuilder/*_result/*
+header "Preparing work directory"
+export WORK_DIR=`mktemp -d /tmp/passenger_apt_automation.XXXXXXX`
+export PKG_DIR="$WORK_DIR/pkg"
+export PBUILDFOLDER="$WORK_DIR/pbuilder"
+mkdir -p "$PKG_DIR"
+mkdir -p "$PBUILDFOLDER"
+reset_fake_pbuild_folder "$PBUILD_FOLDER"
 
 header "Cloning repositories"
 rm -rf /var/cache/passenger_apt_automation/misc_packages
 mkdir -p /var/cache/passenger_apt_automation/misc_packages
 
+
+##### Build source packages #####
+
 if $build_daemon_controller; then
-	header "Building daemon_controller"
+	header "Building daemon_controller source packages"
 	run git clone git://github.com/FooBarWidget/daemon_controller.git /var/cache/passenger_apt_automation/misc_packages/daemon_controller
 	pushd /var/cache/passenger_apt_automation/misc_packages/daemon_controller >/dev/null
 	echo "In /var/cache/passenger_apt_automation/misc_packages/daemon_controller:"
 	run rake debian:source_packages
-	for DIST in $DEBIAN_DISTROS; do
-		run pbuilder-dist $DIST $FIRST_ARCH build $PKG_DIR/ruby-daemon-controller_*$DIST*.dsc
-	done
 	popd >/dev/null
 fi
 
 if $build_crash_watch; then
-	header "Building crash-watch"
+	header "Building crash-watch source packages"
 	run git clone git://github.com/FooBarWidget/crash-watch.git /var/cache/passenger_apt_automation/misc_packages/crash-watch
 	pushd /var/cache/passenger_apt_automation/misc_packages/crash-watch >/dev/null
 	echo "In /var/cache/passenger_apt_automation/misc_packages/crash-watch:"
 	run rake debian:source_packages
+	popd >/dev/null
+fi
+
+
+##### Build binary packages #####
+
+if $build_daemon_controller; then
+	header "Building daemon_controller binary packages"
+	for DIST in $DEBIAN_DISTROS; do
+		run pbuilder-dist $DIST $FIRST_ARCH build $PKG_DIR/ruby-daemon-controller_*$DIST*.dsc
+	done
+fi
+if $build_crash_watch; then
+	header "Building crash-watch binary packages"
 	for DIST in $DEBIAN_DISTROS; do
 		run pbuilder-dist $DIST $FIRST_ARCH build $PKG_DIR/crash-watch_*$DIST*.dsc
 	done
-	popd >/dev/null
 fi
+
+
+##### Finalization and import #####
 
 header "Signing packages"
 run debsign -k$SIGNING_KEY $PKG_DIR/*.changes

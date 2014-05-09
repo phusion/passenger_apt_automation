@@ -10,11 +10,7 @@ shopt -s dotglob
 set -x
 
 mkdir -p "$PKG_DIR"
-mkdir -p "$PBUILDFOLDER"
-rm -rf "$PKG_DIR"/*
-rm -rf "$PBUILDFOLDER"/*.tgz
-rm -rf "$PBUILDFOLDER"/*_result
-ln -s ~/pbuilder/*.tgz "$PBUILDFOLDER"/
+reset_fake_pbuild_folder "$PBUILDFOLDER"
 
 export PASSENGER_DIR="$PROJECT_GIT_REPO_DIR"
 
