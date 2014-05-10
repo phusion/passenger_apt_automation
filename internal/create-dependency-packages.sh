@@ -24,7 +24,7 @@ export PKG_DIR="$WORK_DIR/pkg"
 export PBUILDFOLDER="$WORK_DIR/pbuilder"
 mkdir -p "$PKG_DIR"
 mkdir -p "$PBUILDFOLDER"
-reset_fake_pbuild_folder "$PBUILD_FOLDER"
+reset_fake_pbuild_folder "$PBUILDFOLDER"
 
 header "Cloning repositories"
 rm -rf /var/cache/passenger_apt_automation/misc_packages
@@ -70,31 +70,19 @@ fi
 
 ##### Finalization and import #####
 
-header "Signing packages"
-run debsign -k$SIGNING_KEY $PKG_DIR/*.changes
-
-header "Importing built packages into APT repositories"
+RELEASE_DIRS=()
 
 for PROJECT_NAME in "$@"; do
+	header "Importing packages into APT repository $PROJECT_NAME"
 	PROJECT_APT_REPO_DIR="$APT_REPO_DIR/$PROJECT_NAME.apt"
 	RELEASE_DIR=`bash "$BASE_DIR/internal/new_apt_repo_release.sh" "$PROJECT_NAME" "$PROJECT_APT_REPO_DIR"`
-	echo "In $RELEASE_DIR:"
-	pushd "$RELEASE_DIR" >/dev/null
+	RELEASE_DIRS+=("$RELEASE_DIR")
+	echo "# Created new release dir: $RELEASE_DIR"
+	bash "$BASE_DIR/internal/import_packages.sh" "$RELEASE_DIR" "$PBUILDFOLDER" "$DEBIAN_DISTROS" "$DEBIAN_ARCHS"
+done
 
-	for DIST in $DEBIAN_DISTROS; do
-		if ls $HOME/pbuilder/$DIST-i386_result/*.deb &>/dev/null; then
-			run reprepro --keepunusednewfiles -Vb . includedeb $DIST $HOME/pbuilder/$DIST-i386_result/*.deb
-			for F in $HOME/pbuilder/$DIST-i386_result/*.dsc; do
-				run reprepro --keepunusednewfiles -Vb . includedsc $DIST $F
-			done
-		else
-			run reprepro --keepunusednewfiles -Vb . includedeb $DIST $HOME/pbuilder/${DIST}_result/*.deb
-			for F in $HOME/pbuilder/${DIST}_result/*.dsc; do
-				run reprepro --keepunusednewfiles -Vb . includedsc $DIST $F
-			done
-		fi
-	done
-
-	run bash "$BASE_DIR/internal/commit_apt_repo_release.sh" "$RELEASE_DIR"
-	popd >/dev/null
+header "Committing transaction:"
+for RELEASE_DIR in "${RELEASE_DIRS[@]}"; do
+	echo " --> $RELEASE_DIR"
+	bash "$BASE_DIR/internal/commit_apt_repo_release.sh" "$RELEASE_DIR"
 done

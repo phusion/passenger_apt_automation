@@ -1,86 +1,34 @@
 #!/usr/bin/env ruby
-require './lib/preprocessor'
+require './lib/rubylib'
+require 'shellwords'
+require 'time'
 
-def string_option(name, default_value = nil)
-	value = ENV[name]
-	if value.nil? || value.empty?
-		return default_value
-	else
-		return value
-	end
-end
-
-def boolean_option(name, default_value = false)
-	value = ENV[name]
-	if value.nil? || value.empty?
-		return default_value
-	else
-		return value == "yes" || value == "on" || value == "true" || value == "1"
-	end
-end
-
-def recursive_copy_files(files, destination_dir, preprocess = false, variables = {})
-	require 'fileutils' if !defined?(FileUtils)
-	if !STDOUT.tty?
-		puts "Copying files..."
-	end
-	files.each_with_index do |filename, i|
-		dir = File.dirname(filename)
-		if !File.exist?("#{destination_dir}/#{dir}")
-			FileUtils.mkdir_p("#{destination_dir}/#{dir}")
-		end
-		if !File.directory?(filename)
-			if preprocess && filename =~ /\.template$/
-				real_filename = filename.sub(/\.template$/, '')
-				FileUtils.install(filename, "#{destination_dir}/#{real_filename}", :preserve => true)
-				Preprocessor.new.start(filename, "#{destination_dir}/#{real_filename}",
-					variables)
-			else
-				FileUtils.install(filename, "#{destination_dir}/#{filename}", :preserve => true)
-			end
-		end
-		if STDOUT.tty?
-			printf "\r[%5d/%5d] [%3.0f%%] Copying files...", i + 1, files.size, i * 100.0 / files.size
-			STDOUT.flush
-		end
-	end
-	if STDOUT.tty?
-		printf "\r[%5d/%5d] [%3.0f%%] Copying files...\n", files.size, files.size, 100
-	end
-end
-
-PKG_DIR = string_option('PKG_DIR', 'pkg')
+PKG_DIR            = string_option('PKG_DIR', 'pkg')
 ALL_DISTRIBUTIONS  = string_option("DEBIAN_DISTROS", "").split(/[ ,]/)
 DEBIAN_NAME        = "nginx"
 DEBIAN_EPOCH       = 1
 DEBIAN_ARCHS       = string_option("DEBIAN_ARCHS", "").split(/[ ,]/)
 MAINTAINER_NAME    = "Phusion"
 MAINTAINER_EMAIL   = "info@phusion.nl"
-PASSENGER_DIR      = string_option("PASSENGER_DIR") || abort("Please set the environment variable PASSENGER_DIR")
-
-$LOAD_PATH.unshift(File.expand_path("#{PASSENGER_DIR}/lib"))
-require "phusion_passenger"
-require "phusion_passenger/constants"
-PASSENGER_PACKAGE = PhusionPassenger::PACKAGE_NAME
-PASSENGER_VERSION = PhusionPassenger::VERSION_STRING
-NGINX_VERSION     = PhusionPassenger::PREFERRED_NGINX_VERSION
-PACKAGE_VERSION   = NGINX_VERSION
+PASSENGER_DIR      = string_option("PASSENGER_DIR")
 NGINX_HOTFIX_VERSION = ENV['NGINX_HOTFIX_VERSION'] || '1'
-if defined?(PhusionPassenger::PASSENGER_IS_ENTERPRISE)
-	# Let users see nginx updates after switching to the Enterprise repo.
-	VENDOR_VERSION = 3
-	PASSENGER_DEBIAN_NAME = "passenger-enterprise"
-else
-	VENDOR_VERSION = 2
-	PASSENGER_DEBIAN_NAME = "passenger"
-end
 
-if ALL_DISTRIBUTIONS.empty? || DEBIAN_ARCHS.empty?
-	abort "Please run ./create-nginx-packages instead of running this .rake file directly"
-end
-
-task :default do
-	abort "Please run ./create-nginx-packages -T for possible tasks"
+if PASSENGER_DIR
+	require "#{PASSENGER_DIR}/lib/phusion_passenger"
+	PhusionPassenger.locate_directories
+	PhusionPassenger.require_passenger_lib "constants"
+	PASSENGER_PACKAGE = PhusionPassenger::PACKAGE_NAME
+	PASSENGER_VERSION = PhusionPassenger::VERSION_STRING
+	NGINX_VERSION     = PhusionPassenger::PREFERRED_NGINX_VERSION
+	PACKAGE_VERSION   = NGINX_VERSION
+	if defined?(PhusionPassenger::PASSENGER_IS_ENTERPRISE)
+		# Let users see nginx updates after switching to the Enterprise repo.
+		VENDOR_VERSION = 3
+		PASSENGER_DEBIAN_NAME = "passenger-enterprise"
+	else
+		VENDOR_VERSION = 2
+		PASSENGER_DEBIAN_NAME = "passenger"
+	end
 end
 
 
@@ -95,25 +43,15 @@ def create_passenger_tarball
 	if !File.exist?("#{PKG_DIR}/#{PASSENGER_PACKAGE}-#{PASSENGER_VERSION}.tar.gz")
 		sh "mkdir -p #{PKG_DIR}"
 		pkg_dir = File.expand_path(PKG_DIR)
-		sh "cd #{PASSENGER_DIR} && rake package:tarball PKG_DIR='#{pkg_dir}'"
+		sh "cd #{PASSENGER_DIR} && rake package:tarball PKG_DIR=#{Shellwords.escape pkg_dir}"
 	end
-end
-
-def infer_next_passenger_version
-	components = PASSENGER_VERSION.split(".")
-	components.last.sub!(/[0-9]+$/) do |number|
-		(number.to_i + 1).to_s
-	end
-	return components.join(".")
 end
 
 def create_debian_package_dir(distribution, output_dir = PKG_DIR)
-	require 'time'
-
 	variables = {
 		:distribution => distribution,
 		:passenger_version => PASSENGER_VERSION,
-		:next_passenger_version => infer_next_passenger_version
+		:next_passenger_version => infer_next_passenger_version(PASSENGER_VERSION)
 	}
 
 	root = "#{output_dir}/#{distribution}"
@@ -183,7 +121,6 @@ end
 def create_binary_package_task(distribution, arch)
 	desc "Build Debian binary package for #{distribution} #{arch}"
 	task "binary_packages:#{distribution}_#{arch}" => 'binary_packages:prepare' do
-		require 'shellwords'
 		base_name = "#{DEBIAN_NAME}_#{PACKAGE_VERSION}-#{VENDOR_VERSION}.#{PASSENGER_VERSION}~#{distribution}#{NGINX_HOTFIX_VERSION}"
 		logfile = "#{PKG_DIR}/nginx_#{distribution}_#{arch}.log"
 		command = "cd #{PKG_DIR} && " +

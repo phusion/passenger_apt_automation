@@ -1,3 +1,86 @@
 #!/bin/bash
-source config/general
-exec drake -f ./internal/create-nginx-packages.rake "$@"
+set -e
+
+
+##### Parse arguments #####
+
+function usage()
+{
+	echo "./create-nginx-packages [OPTIONS] TASKS... [RAKE OPTIONS]"
+	echo "Create Nginx packages."
+	echo
+	echo "Required options:"
+	echo "  -p PASSENGER_DIR   The Passenger source directory"
+	echo
+	echo "Optional options:"
+	echo "  -t TEMP_DIR        Directory for storing temporary build products."
+	echo "                     Default: ~/pkg"
+	echo "  -b BINARY_PKG_DIR  Directory to store packages (WARNING:"
+	echo "                     all directory contents will be overwritten unless -n is"
+	echo "                     given). The default is ~/pbuilder"
+	echo "  -n                 Do not reset binary packages directory contents."
+	echo "  -h                 Show usage"
+	echo
+	echo "Available tasks:"
+	exec drake -f ./internal/create-nginx-packages.rake -T
+}
+
+PASSENGER_DIR=
+PKG_DIR=$HOME/pkg
+PBUILDFOLDER=$HOME/pbuilder
+RESET_PBUILDFOLDER=true
+
+while getopts "p:t:b:Tnh" opt; do
+	case "$opt" in
+	p)
+		PASSENGER_DIR="$OPTARG"
+		;;
+	t)
+		PKG_DIR="$OPTARG"
+		;;
+	b)
+		PBUILDFOLDER="$OPTARG"
+		;;
+	T)
+		exec drake -f ./internal/create-nginx-packages.rake -T
+		;;
+	n)
+		RESET_PBUILDFOLDER=false
+		;;
+	h)
+		usage
+		exit
+		;;
+	esac
+done
+
+shift $((OPTIND-1))
+
+if [[ "$PASSENGER_DIR" = "" ]]; then
+	echo "Please pass the -p argument. See -h for help."
+	exit 1
+fi
+if [[ $# = 0 ]]; then
+	usage
+	exit 1
+fi
+
+
+##### Initialization #####
+
+source lib/bashlib
+load_general_config
+require_running_as_psg_apt_automation_user
+
+
+export PASSENGER_DIR
+export PKG_DIR
+export PBUILDFOLDER
+if $RESET_PBUILDFOLDER; then
+	reset_fake_pbuild_folder "$PBUILDFOLDER"
+fi
+
+
+##### Run main program #####
+
+drake -f ./internal/create-nginx-packages.rake "$@"

@@ -15,9 +15,10 @@ This repository provides three major categories of tools:
 
  * **Release tools** create packages.
 
-    * `create-dependency-packages`: Creates packages for gems that Phusion Passenger depends on.
-    * `create-nginx-packages`: Creates Nginx packages that contain the Phusion Passenger module.
+    * `create-dependency-packages`: Creates packages for gems that Phusion Passenger depends on, and imports them into APT repositories.
+    * `create-nginx-packages`: Creates Nginx packages that contain the Phusion Passenger module, but does not import them into APT repositories.
     * `new_release`: Creates Nginx and Phusion Passenger packages. Uses `create-nginx-package` internally.
+    * `import-packages`: Generic tool to import built packages into APT repositories. Used in combination with `create-nginx-packages`.
 
  * **Internal tools** are not meant to be used directly by the user, but are used internally. They can be found in the `internal` directory.
 
@@ -135,18 +136,17 @@ Afterwards, edit `config/general` again and revert `DEBIAN_DISTROS` back to what
 
 #### Building Nginx packages only
 
-During development you will sometimes want to build Nginx packages only. To do that, ensure that the `/passenger` directory is mounted, and set the following environment variables:
+Sometimes you want to build Nginx packages only, without building the Phusion Passenger packages.
 
-    export PKG_DIR=/home/psg_apt_automation/pkg
-    export PASSENGER_DIR=/passenger
+You must first have the Phusion Passenger source code directory somewhere. On the Vagrant VM, it might be mounted on `/passenger`. If you've run `./new_release` before, then it's in `/var/cache/passenger_apt_automation/passenger.git`. Once you've determined the directory, run this to generate Nginx packages:
 
-Then run the following to generate Nginx source packages in `$PKG_DIR`:
+    sudo -u psg_apt_automation -H ./create-nginx-packages -p PATH_TO_PASSENGER source_packages binary_packages
 
-    sudo -E sudo -u psg_apt_automation -H -E ./create-nginx-packages source_packages
+Next, import the built packages into the APT repositories:
 
-Run the following to generate Nginx binary packages in `$PKG_DIR`:
+    sudo -u psg_apt_automation -H ./import-packages ~psg_apt_automation/pbuilder <PROJECT_NAMES...>
 
-    sudo -E sudo -u psg_apt_automation -H -E ./create-nginx-packages binary_packages
+Repeat these steps for Passenger Enterprise.
 
 ## Troubleshooting
 

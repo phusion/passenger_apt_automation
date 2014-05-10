@@ -1,0 +1,55 @@
+#!/bin/bash
+# mport built Debian packages into APT repositories.
+set -e
+
+
+##### Parse parameters #####
+
+function usage()
+{
+	echo "./import-packages BINARY_PACKAGES_DIR PROJECT_NAMES..."
+	echo "Import built Debian packages into APT repositories."
+}
+
+BINARY_PACKAGES_DIR="$1"
+shift || true
+
+if [[ "$BINARY_PACKAGES_DIR" = "" || $# == 0 ]]; then
+	usage
+	exit 1
+fi
+
+
+##### Initialization #####
+
+export BASE_DIR=`dirname "$0"`
+export BASE_DIR=`cd "$BASE_DIR" && pwd`
+source "$BASE_DIR/lib/bashlib"
+
+load_general_config
+use_dummy_gpg
+require_running_as_psg_apt_automation_user
+
+for PROJECT_NAME in "$@"; do
+	validate_project_name "$PROJECT_NAME"
+done
+
+
+##### Run main program #####
+
+RELEASE_DIRS=()
+
+for PROJECT_NAME in "$@"; do
+	header "Importing packages into APT repository $PROJECT_NAME"
+	PROJECT_APT_REPO_DIR="$APT_REPO_DIR/$PROJECT_NAME.apt"
+	RELEASE_DIR=`bash "$BASE_DIR/internal/new_apt_repo_release.sh" "$PROJECT_NAME" "$PROJECT_APT_REPO_DIR"`
+	RELEASE_DIRS+=("$RELEASE_DIR")
+	echo "# Created new release dir: $RELEASE_DIR"
+	bash "$BASE_DIR/internal/import_packages.sh" "$RELEASE_DIR" "$BINARY_PACKAGES_DIR" "$DEBIAN_DISTROS" "$DEBIAN_ARCHS"
+done
+
+header "Committing transaction:"
+for RELEASE_DIR in "${RELEASE_DIRS[@]}"; do
+	echo " --> $RELEASE_DIR"
+	bash "$BASE_DIR/internal/commit_apt_repo_release.sh" "$RELEASE_DIR"
+done

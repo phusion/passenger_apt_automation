@@ -67,9 +67,13 @@ function reset_fake_pbuild_folder()
 		shopt -s dotglob
 		mkdir -p ~/pbuilder/aptcache
 		mkdir -p "$pbuildfolder"
-		rm -rf "$pbuildfolder"/*.tgz
 		rm -rf "$pbuildfolder"/*_result
-		ln -s ~/pbuilder/aptcache ~/pbuilder/*.tgz "$pbuildfolder"/
+		if [[ `realpath "$pbuildfolder"` != ~psg_apt_automation/pbuilder ]]; then
+			rm -rf "$pbuildfolder"/aptcache
+			rm -rf "$pbuildfolder"/*.tgz
+			ln -s ~/pbuilder/aptcache "$pbuildfolder"/
+			ln -s ~/pbuilder/*.tgz "$pbuildfolder"/
+		fi
 	)
 }
 

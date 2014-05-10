@@ -83,10 +83,12 @@ fi
 header "Importing public keys"
 run sudo -u psg_apt_automation -H gpg --keyserver keyserver.ubuntu.com --recv-keys C324F5BB38EEB5A0
 run sudo -u psg_apt_automation -H gpg --armor --export C324F5BB38EEB5A0 | apt-key add -
+# Fixes pbuilder-dist not being able to debootstrap Debian dists.
+run gpg --no-default-keyring --keyring /usr/share/keyrings/debian-archive-keyring.gpg --keyserver keyserver.ubuntu.com --recv-keys 6FB2A1C265FFB764
 
 header "Installing dependencies"
 run apt-get install -y ubuntu-dev-tools reprepro debhelper source-highlight \
-	ruby1.9.3 libsqlite3-dev runit git gawk rake
+	ruby1.9.3 libsqlite3-dev runit git gawk rake realpath
 if [[ ! -e /usr/local/bin/bluecloth ]]; then
 	run gem1.9.1 install bluecloth --no-rdoc --no-ri
 fi
