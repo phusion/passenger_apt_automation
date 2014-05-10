@@ -35,7 +35,7 @@ end
 def download_nginx_tarball
 	if !File.exist?("#{PKG_DIR}/#{DEBIAN_NAME}_#{NGINX_VERSION}.orig.tar.gz")
 		sh "mkdir -p #{PKG_DIR}"
-		sh "curl -L -o #{PKG_DIR}/#{DEBIAN_NAME}_#{NGINX_VERSION}.orig.tar.gz http://nginx.org/download/nginx-#{NGINX_VERSION}.tar.gz"
+		sh "curl --fail -L -o #{PKG_DIR}/#{DEBIAN_NAME}_#{NGINX_VERSION}.orig.tar.gz http://nginx.org/download/nginx-#{NGINX_VERSION}.tar.gz"
 	end
 end
 
