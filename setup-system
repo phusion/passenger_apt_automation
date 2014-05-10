@@ -75,6 +75,9 @@ run chown psg_apt_automation: ~psg_apt_automation/.pbuilderrc
 if $vagrant; then
 	run mkdir -p /srv/passenger_apt_automation
 	run chown psg_apt_automation: /srv/passenger_apt_automation
+	run cp lib/sudoers_vagrant.conf /etc/sudoers.d/passenger_apt_automation_vagrant
+	run chown root: /etc/sudoers.d/passenger_apt_automation_vagrant
+	run chmod 440 /etc/sudoers.d/passenger_apt_automation_vagrant
 fi
 
 header "Importing public keys"
