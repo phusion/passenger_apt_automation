@@ -60,6 +60,9 @@ if [[ `id -u` != 0 ]]; then
 	exit 1
 fi
 
+# Reset HOME just in case setup-system is run through sudo.
+export HOME=/root
+
 
 source lib/bashlib
 
