@@ -17,10 +17,10 @@ if ! [[ -h "$PROJECT_APT_REPO_DIR/current" ]]; then
 fi
 mv -Tf "$PROJECT_APT_REPO_DIR/current.new" "$PROJECT_APT_REPO_DIR/current"
 
-# Remove old releases: only keep most recent 2
+# Remove old releases: only keep most recent 3
 releases=`ls -1d "$PROJECT_APT_REPO_DIR/releases"/* | sort`
 releasecount=`wc -l <<<"$releases"`
-to_keep=2
+to_keep=3
 if [[ $releasecount -gt $to_keep ]]; then
 	(( to_remove = $releasecount - $to_keep ))
 	keep_releases=`head -n $to_remove <<<"$releases"`
