@@ -64,4 +64,4 @@ done
 header "Obtaining lock file"
 export build_daemon_controller
 export build_crash_watch
-exec chpst -l /var/cache/passenger_apt_automation/lock bash internal/create-dependency-packages.sh "$@"
+exec bash internal/create-dependency-packages.sh "$@"

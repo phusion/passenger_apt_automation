@@ -51,8 +51,7 @@ set -o pipefail
 trap "stage Error error; exit 1" ERR
 stage "Obtaining lock..." obtaining_lock
 
-chpst -l /var/cache/passenger_apt_automation/lock \
-	bash internal/new_release.sh 2>&1 | \
+bash internal/new_release.sh 2>&1 | \
 	gawk '{ print strftime("%Y-%m-%d %H:%M:%S  "), $0; fflush(); }' | \
 	tee "$WORK_DIR/full.log"
 

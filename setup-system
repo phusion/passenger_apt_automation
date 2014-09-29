@@ -90,8 +90,13 @@ run sudo -u psg_apt_automation -H gpg --armor --export C324F5BB38EEB5A0 | apt-ke
 run gpg --keyring /usr/share/keyrings/debian-archive-keyring.gpg --keyserver keyserver.ubuntu.com --recv-keys 6FB2A1C265FFB764
 
 header "Installing dependencies"
+echo "Installing Jenkins public key"
+wget -q -O - http://pkg.jenkins-ci.org/debian/jenkins-ci.org.key | apt-key add -
+echo "Adding Jenkins APT repository"
+echo deb http://pkg.jenkins-ci.org/debian binary/ | sudo tee /etc/apt/sources.list.d/jenkins.list
+run apt-get update
 run apt-get install -y ubuntu-dev-tools reprepro debhelper source-highlight \
-	ruby1.9.3 libsqlite3-dev runit git gawk rake realpath
+	ruby1.9.3 libsqlite3-dev runit git gawk rake realpath jenkins
 if [[ ! -e /usr/local/bin/bluecloth ]]; then
 	run gem1.9.1 install bluecloth --no-rdoc --no-ri
 fi
