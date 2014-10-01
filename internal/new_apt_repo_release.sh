@@ -14,6 +14,7 @@ release_dir="$APT_REPO_DIR/releases/$release_name"
 mkdir -p "$APT_REPO_DIR/releases"
 # No -p. We want this to fail if someone else is concurrently creating.
 mkdir "$release_dir"
+chmod u=rwx,g=rwx,o=rx "$release_dir"
 
 # Copy over contents from current release
 if [[ -e "$APT_REPO_DIR/current" ]]; then
