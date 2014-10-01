@@ -12,6 +12,8 @@ fi
 
 set -x
 
+umask u=rwx,g=rwx,o=rx
+
 release_name=`date +%Y%m%d-%H%M%S`
 rm -rf "$NAME.apt"/releases/*
 cp -dpR "$NAME.apt/first_release" "$NAME.apt/releases/$release_name"

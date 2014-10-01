@@ -22,6 +22,8 @@ export BASE_DIR=`dirname "$0"`
 export BASE_DIR=`cd "$BASE_DIR" && pwd`
 source "$BASE_DIR/lib/bashlib"
 
+umask u=rwx,g=rwx,o=rx
+
 load_general_config
 use_dummy_gpg
 require_running_as_psg_apt_automation_user
