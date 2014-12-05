@@ -26,9 +26,9 @@
     . /lib/init/vars.sh
     . /lib/lsb/init-functions
     
-    # We made the awk expression more precise:
-    # https://code.google.com/p/phusion-passenger/issues/detail?id=1060
-    PID=$(awk -F'[ \t;]+' '/[^#]\<pid/ {print $2}' /etc/nginx/nginx.conf)
+    # The awk was broken with commented pid statements, this is a more robust approach
+    # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=747329
+    PID=$(sed -n 's/^\s*pid\s\s*\([^;]*\).*/\1/p' /etc/nginx/nginx.conf)
     if [ -z "$PID" ]
     then
         PID=/run/nginx.pid
@@ -236,9 +236,9 @@
     
     . /lib/lsb/init-functions
     
-    # We made the awk expression more precise:
-    # https://code.google.com/p/phusion-passenger/issues/detail?id=1060
-    PID=$(awk -F'[ \t;]+' '/[^#]\<pid/ {print $2}' /etc/nginx/nginx.conf)
+    # The awk was broken with commented pid statements, this is a more robust approach
+    # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=747329
+    PID=$(sed -n 's/^\s*pid\s\s*\([^;]*\).*/\1/p' /etc/nginx/nginx.conf)
     if [ -z "$PID" ]
     then
     #if is_distribution?("<= quantal") || is_distribution?("<= wheezy")
