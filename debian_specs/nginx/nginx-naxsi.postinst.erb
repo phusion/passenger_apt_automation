@@ -1,0 +1,44 @@
+#!/bin/sh
+set -e
+
+<% if is_distribution?("<= quantal") || is_distribution?("<= wheezy") -%>
+NGX_PID_FILE=/var/run/nginx.pid
+<% else -%>
+NGX_PID_FILE=/run/nginx.pid
+<% end -%>
+
+case "$1" in
+  abort-upgrade|abort-remove|abort-deconfigure|configure)
+    ;;
+
+  *)
+    echo "postinst called with unknown argument \`$1'" >&2
+    exit 1
+    ;;
+esac
+
+if [ -x /etc/init.d/nginx ]; then
+  if [ -f $NGX_PID_FILE ] && pidof /usr/sbin/nginx >/dev/null; then
+    NGX_PID=`cat $NGX_PID_FILE`
+    if kill -s USR2 $NGX_PID 2>/dev/null; then
+      while [ ! -s $NGX_PID_FILE.oldbin ] || [ ! -s $NGX_PID_FILE ]; do
+        cnt=`expr $cnt + 1`
+        if [ $cnt -gt 10 ]; then
+          kill -s KILL $NGX_PID || true
+          sleep 1
+          invoke-rc.d nginx start
+          exit 0
+        fi
+        sleep 1
+      done
+      NGX_OLD_PID=`cat $NGX_PID_FILE.oldbin`
+      kill -s QUIT $NGX_OLD_PID || true
+    fi
+  else
+    invoke-rc.d nginx start || exit $?
+  fi
+fi
+
+#DEBHELPER#
+
+exit 0

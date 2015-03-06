@@ -1,0 +1,7 @@
+#!/bin/bash
+set -e
+ROOTDIR=`dirname "$0"`
+ROOTDIR=`cd "$ROOTDIR" && pwd`
+set -x
+cd "$ROOTDIR/docker_image"
+exec docker build --force-rm -t phusion/passenger_apt_automation .

@@ -1,0 +1,321 @@
+#!/usr/bin/make -f
+
+<% if is_distribution?("< precise") -%>
+debian_cflags = -g -O2
+debian_ldflags =
+CFLAGS = -g -O2
+LDFLAGS =
+export CFLAGS LDFLAGS
+<% elsif is_distribution?("<= saucy") || is_distribution?("<= wheezy") -%>
+CFLAGS = `dpkg-buildflags --get CFLAGS`
+CFLAGS += -Wall -DFORTIFY_SOURCE=2 -fstack-protector
+CFLAGS += `dpkg-buildflags --get CPPFLAGS`
+LDFLAGS = $(dpkg-buildflags --get LDFLAGS)
+export CFLAGS LDFLAGS
+
+debian_cflags = $(CFLAGS)
+debian_ldflags = $(LDFLAGS)
+<% else -%>
+debian_cflags:=$(shell dpkg-buildflags --get CFLAGS | sed 's/-O3/-O2/') $(shell dpkg-buildflags --get CPPFLAGS)
+debian_ldflags:=$(shell dpkg-buildflags --get LDFLAGS)
+<% end -%>
+
+# export necessary for (hardening) flags for perl
+# (src/http/modules/perl/Makefile.PL).
+DEBIAN_NGINX_PERL_LDFLAGS:= $(debian_ldflags)
+export DEBIAN_NGINX_PERL_LDFLAGS
+
+# Speed up ccache (reduce I/O) by lightly compressing things.
+# Always set these variables because pbuilder uses ccache transparently.
+CCACHE_COMPRESS=1
+export CCACHE_COMPRESS
+CCACHE_COMPRESS_LEVEL=3
+export CCACHE_COMPRESS_LEVEL
+
+<% if is_distribution?(">= trusty") -%>
+FLAVOURS:=core full light extras naxsi
+<% else -%>
+FLAVOURS:=full light extras naxsi
+<% end -%>
+
+BUILDDIR_core = $(CURDIR)/debian/build-core
+BUILDDIR_full = $(CURDIR)/debian/build-full
+BUILDDIR_light = $(CURDIR)/debian/build-light
+BUILDDIR_extras = $(CURDIR)/debian/build-extras
+BUILDDIR_naxsi = $(CURDIR)/debian/build-naxsi
+MODULESDIR = $(CURDIR)/debian/modules
+BASEDIR = $(CURDIR)
+
+DEB_BUILD_ARCH ?=$(shell dpkg-architecture -qDEB_BUILD_ARCH)
+ifeq ($(DEB_BUILD_ARCH),sparc)
+<% if is_distribution?(">= trusty") || is_distribution?(">= jessie") -%>
+	debian_cflags += -m32 -mcpu=ultrasparc
+<% else -%>
+	CONFIGURE_OPTS = --with-cc-opt="-m32 -mcpu=ultrasparc"
+<% end -%>
+endif
+
+
+ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+	NUMJOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+	ifeq (${NUMJOBS}, 0)
+		NUMJOBS = 1
+	endif
+else
+	NUMJOBS = 1
+endif
+
+# configure flags
+common_configure_flags := \
+			--with-cc-opt="$(debian_cflags)" \
+			--with-ld-opt="$(debian_ldflags)" \
+			--prefix=/usr/share/nginx \
+			--conf-path=/etc/nginx/nginx.conf \
+			--http-log-path=/var/log/nginx/access.log \
+			--error-log-path=/var/log/nginx/error.log \
+			--lock-path=/var/lock/nginx.lock \
+<% if is_distribution?("<= quantal") || is_distribution?("<= wheezy") -%>
+			--pid-path=/var/run/nginx.pid \
+<% else -%>
+			--pid-path=/run/nginx.pid \
+<% end -%>
+			--http-client-body-temp-path=/var/lib/nginx/body \
+			--http-fastcgi-temp-path=/var/lib/nginx/fastcgi \
+			--http-proxy-temp-path=/var/lib/nginx/proxy \
+			--http-scgi-temp-path=/var/lib/nginx/scgi \
+			--http-uwsgi-temp-path=/var/lib/nginx/uwsgi \
+			--with-debug \
+<% if is_distribution?(">= quantal") || is_distribution?(">= wheezy") -%>
+			--with-pcre-jit \
+<% end -%>
+			--with-ipv6 \
+			--with-http_ssl_module \
+			--with-http_stub_status_module \
+			--with-http_realip_module \
+
+passenger_nginx_libs:
+	cd $(MODULESDIR)/passenger/ext/nginx && rake nginx
+
+config.env.%:
+	dh_testdir
+	mkdir -p $(BUILDDIR_$*)
+	cp -Pa $(CURDIR)/auto $(BUILDDIR_$*)/
+	cp -Pa $(CURDIR)/conf $(BUILDDIR_$*)/
+	cp -Pa $(CURDIR)/configure $(BUILDDIR_$*)/
+	cp -Pa $(CURDIR)/contrib $(BUILDDIR_$*)/
+	cp -Pa $(CURDIR)/src $(BUILDDIR_$*)/
+	cp -Pa $(CURDIR)/man $(BUILDDIR_$*)/
+
+<% if is_distribution?(">= trusty") -%>
+config.status.core: config.env.core
+	cd $(BUILDDIR_core) && ./configure  \
+	    $(common_configure_flags) \
+	    --with-http_addition_module \
+	    --with-http_dav_module \
+	    --with-http_geoip_module \
+	    --with-http_gzip_static_module \
+	    --with-http_image_filter_module \
+	    --with-http_spdy_module \
+	    --with-http_sub_module \
+	    --with-http_xslt_module \
+	    --with-mail \
+	    --with-mail_ssl_module \
+	        >$@
+	touch $@
+<% end -%>
+
+config.status.full: config.env.full passenger_nginx_libs
+	cd $(BUILDDIR_full) && CFLAGS="$(CFLAGS)" CORE_LINK="$(LDFLAGS)" ./configure  \
+	    $(common_configure_flags) \
+	    --with-http_addition_module \
+	    --with-http_dav_module \
+	    --with-http_geoip_module \
+	    --with-http_gzip_static_module \
+	    --with-http_image_filter_module \
+	    --with-http_realip_module \
+	    --with-http_stub_status_module \
+	    --with-http_ssl_module \
+<% if is_distribution?(">= trusty") || is_distribution?(">= jessie") -%>
+	    --with-http_spdy_module \
+<% end -%>
+	    --with-http_sub_module \
+	    --with-http_xslt_module \
+	    --with-ipv6 \
+	    --with-mail \
+	    --with-mail_ssl_module \
+	    --add-module=$(MODULESDIR)/nginx-auth-pam \
+	    --add-module=$(MODULESDIR)/nginx-dav-ext-module \
+	    --add-module=$(MODULESDIR)/nginx-echo \
+	    --add-module=$(MODULESDIR)/nginx-upstream-fair \
+	    --add-module=$(MODULESDIR)/ngx_http_substitutions_filter_module \
+	    --add-module=$(MODULESDIR)/passenger/ext/nginx \
+            >$@
+	touch $@
+
+config.status.light: config.env.light
+	cd $(BUILDDIR_light) && ./configure  \
+	    $(common_configure_flags) \
+	    --with-http_gzip_static_module \
+	    --with-http_ssl_module \
+	    --with-ipv6 \
+	    --without-http_browser_module \
+	    --without-http_geo_module \
+	    --without-http_limit_req_module \
+	    --without-http_limit_zone_module \
+	    --without-http_memcached_module \
+	    --without-http_referer_module \
+	    --without-http_scgi_module \
+	    --without-http_split_clients_module \
+	    --with-http_stub_status_module \
+	    --without-http_ssi_module \
+	    --without-http_userid_module \
+	    --without-http_uwsgi_module \
+	    --add-module=$(MODULESDIR)/nginx-echo \
+            >$@
+	touch $@
+
+config.status.extras: config.env.extras passenger_nginx_libs
+	cd $(BUILDDIR_extras) && ./configure  \
+	    $(common_configure_flags) \
+	    --with-http_addition_module \
+	    --with-http_dav_module \
+	    --with-http_flv_module \
+	    --with-http_geoip_module \
+	    --with-http_gzip_static_module \
+	    --with-http_image_filter_module \
+	    --with-http_mp4_module \
+	    --with-http_perl_module \
+	    --with-http_random_index_module \
+	    --with-http_realip_module \
+	    --with-http_secure_link_module \
+<% if is_distribution?(">= precise") || is_distribution?(">= wheezy") -%>
+	    --with-http_spdy_module \
+<% end -%>
+	    --with-http_stub_status_module \
+	    --with-http_ssl_module \
+	    --with-http_sub_module \
+	    --with-http_xslt_module \
+	    --with-ipv6 \
+	    --with-mail \
+	    --with-mail_ssl_module \
+	    --add-module=$(MODULESDIR)/headers-more-nginx-module \
+	    --add-module=$(MODULESDIR)/nginx-auth-pam \
+	    --add-module=$(MODULESDIR)/nginx-cache-purge \
+	    --add-module=$(MODULESDIR)/nginx-dav-ext-module \
+	    --add-module=$(MODULESDIR)/nginx-development-kit \
+	    --add-module=$(MODULESDIR)/nginx-echo \
+	    --add-module=$(MODULESDIR)/ngx-fancyindex \
+	    --add-module=$(MODULESDIR)/nginx-http-push \
+	    --add-module=$(MODULESDIR)/nginx-lua \
+	    --add-module=$(MODULESDIR)/nginx-upload-progress \
+	    --add-module=$(MODULESDIR)/nginx-upstream-fair \
+	    --add-module=$(MODULESDIR)/ngx_http_substitutions_filter_module \
+	    --add-module=$(MODULESDIR)/passenger/ext/nginx \
+            >$@
+	touch $@
+
+config.status.naxsi: config.env.naxsi
+	cd $(BUILDDIR_naxsi) && ./configure  \
+	    $(common_configure_flags) \
+	    --with-http_ssl_module \
+	    --without-mail_pop3_module \
+	    --without-mail_smtp_module \
+	    --without-mail_imap_module \
+	    --without-http_uwsgi_module \
+	    --without-http_scgi_module \
+	    --with-ipv6 \
+	    --with-http_stub_status_module \
+	    --with-http_realip_module \
+	    --add-module=$(MODULESDIR)/naxsi/naxsi_src \
+	    --add-module=$(MODULESDIR)/nginx-cache-purge \
+	    --add-module=$(MODULESDIR)/nginx-upstream-fair \
+	    >$@
+	touch $@
+
+config.status.%:
+	echo "configuration for flavour $* not yet defined."
+
+build-arch.%: config.status.%
+	dh_testdir
+	dh_prep
+	$(MAKE) -j$(NUMJOBS) -C $(BUILDDIR_$*) build
+
+build-arch: $(foreach flavour,$(FLAVOURS),build-arch.$(flavour))
+	dh_testdir
+	touch $@
+
+build-dbg.%: install
+	dh_testdir
+	dh_strip --package=nginx-$(*) --dbg-package=nginx-$(*)-dbg
+
+build-dbg: $(foreach flavour,$(FLAVOURS),build-dbg.$(flavour))
+	dh_testdir
+	touch $@
+
+build-indep:
+
+build: build-indep build-arch
+	dh_testdir
+	touch $@
+
+clean:
+	dh_testdir
+	dh_testroot
+	dh_clean
+	rm -rf $(CURDIR)/debian/build-*
+
+install:
+	dh_testdir
+	dh_testroot
+	dh_prep
+	dh_installdirs
+	dh_install
+
+binary-indep: build install
+	dh_testdir
+	dh_testroot
+	dh_installman -i
+	dh_installchangelogs -i -k CHANGES
+	dh_installdocs -i
+	dh_installdebconf
+	dh_installexamples -i
+<% if is_distribution?(">= trusty") || is_distribution?(">= jessie") -%>
+	dh_systemd_enable --name=nginx
+	dh_installinit -i --no-restart-on-upgrade --no-start --name=nginx
+	dh_installinit -i --no-restart-on-upgrade --no-start --name=nginx-naxsi-ui
+	dh_systemd_start
+	dh_installlogrotate -i -pnginx-common --name=nginx
+<% else -%>
+	dh_installinit -r --no-start -i --name=nginx
+	dh_installinit -r --no-start -i --name=nginx-naxsi-ui
+	cp debian/nginx-common.nginx.logrotate debian/nginx-common/etc/logrotate.d/nginx
+	mkdir -p debian/nginx-common/lib/systemd/system
+	cp debian/nginx-common.nginx.service debian/nginx-common/lib/systemd/system/nginx.service
+<% end -%>
+	dh_link -i
+	dh_compress -i
+	dh_fixperms -i
+	dh_installdeb -i
+	dh_gencontrol -i
+	dh_md5sums -i
+	dh_builddeb -i
+
+binary-arch: install build-dbg
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs -a -k CHANGES
+	dh_installdocs -a
+	dh_lintian -a
+	dh_link -aA
+	dh_compress -a
+	dh_perl -a
+	dh_fixperms -a
+	dh_installdeb -a
+	dh_shlibdeps -a
+	dh_gencontrol -a
+	dh_md5sums -a
+	dh_builddeb -a
+
+binary: binary-indep binary-arch
+
+.PHONY: passenger_nginx_libs build clean binary-indep binary-arch binary install

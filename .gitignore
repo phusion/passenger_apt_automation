@@ -1,3 +1,4 @@
 /.vagrant
-/config
-/*.apt
+/work
+/cache
+/output

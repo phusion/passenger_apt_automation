@@ -1,0 +1,39 @@
+root = true
+
+[*]
+end_of_line = lf
+charset = utf-8
+
+[*.rb]
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
+
+[internal/build/Rakefile]
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
+
+[*.sh]
+indent_style = tab
+trim_trailing_whitespace = true
+
+[runner]
+indent_style = tab
+trim_trailing_whitespace = true
+
+[setup-docker-image]
+indent_style = tab
+trim_trailing_whitespace = true
+
+[setup-environment]
+indent_style = tab
+trim_trailing_whitespace = true
+
+[build-passenger]
+indent_style = tab
+trim_trailing_whitespace = true
+
+[build-nginx]
+indent_style = tab
+trim_trailing_whitespace = true

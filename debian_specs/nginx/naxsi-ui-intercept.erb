@@ -1,0 +1,10 @@
+#!/bin/bash
+cd /usr/share/nginx-naxsi/naxsi-ui/
+python nx_intercept.py -c /etc/nginx/naxsi-ui.conf &
+somepid=$!
+<% if is_distribution?("<= quantal") || is_distribution?("<= wheezy") -%>
+echo $somepid > /var/run/nginx-naxsi-ui_intercept.pid
+<% else -%>
+echo $somepid > /run/nginx-naxsi-ui_intercept.pid
+<% end -%>
+wait $somepid

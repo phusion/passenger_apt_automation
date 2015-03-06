@@ -1,0 +1,85 @@
+require_relative 'tracking_database'
+require 'thread'
+require 'stringio'
+
+def initialize_tracking_database!
+  db = TrackingDatabase.new("/work")
+  Kernel.const_set(:TRACKING_DB, db)
+
+  if !SHOW_TASKS
+    db.thread = Thread.new do
+      Thread.current.abort_on_exception = true
+      begin
+        while true
+          sleep 5
+          db.monitor.synchronize do
+            dump_tracking_database(false)
+          end
+        end
+      rescue Exception => e
+        STDERR.puts("#{e} (#{e.class})\n  " << e.backtrace.join("\n  "))
+        exit!
+      end
+    end
+  end
+end
+
+def initialize_tracking_database_logs!
+  Kernel.const_set(:MAIN_LOG, File.open("/work/state.log", "w+"))
+  TRACKING_DB.reopen_logs
+end
+
+def register_tracking_category(name, description)
+  TRACKING_DB.register_category(name, description)
+end
+
+def register_tracking_task(category_name, task_name)
+  TRACKING_DB[category_name].register_task(task_name)
+end
+
+def track_task(category_name, task_name, print_progress_when_done = true)
+  succeeded = false
+  task = nil
+  TRACKING_DB.monitor.synchronize do
+    category = TRACKING_DB[category_name]
+    task = category[task_name]
+    task.set_running!
+    STDOUT.write("----- Task started: #{category.description} -> #{task_name} -----\n")
+    dump_tracking_database
+  end
+  begin
+    yield(task)
+    succeeded = true
+    STDOUT.write("\n")
+  ensure
+    if succeeded
+      task.set_done!
+      STDOUT.write("----- Task done: #{task.category.description} -> #{task_name} -----\n")
+    else
+      task.set_error!
+      STDOUT.write("----- Task errored: #{task.category.description} -> #{task_name} -----\n")
+    end
+    if print_progress_when_done
+      dump_tracking_database
+    end
+  end
+end
+
+def dump_tracking_database(print_to_stdout = true)
+  TRACKING_DB.monitor.synchronize do
+    str = TRACKING_DB.dump
+
+    if print_to_stdout
+      STDOUT.write("\n")
+      STDOUT.write("---------------------------------------------\n")
+      STDOUT.write(str.chomp + "\n")
+      STDOUT.write("---------------------------------------------\n")
+      STDOUT.write("\n")
+    end
+
+    MAIN_LOG.truncate(0)
+    MAIN_LOG.rewind
+    MAIN_LOG.write(str)
+    MAIN_LOG.flush
+  end
+end

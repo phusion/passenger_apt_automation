@@ -1,0 +1,14 @@
+etc/nginx
+etc/nginx/sites-available
+etc/nginx/sites-enabled
+etc/nginx/conf.d
+etc/ufw/applications.d
+<% if is_distribution?("<= saucy") || is_distribution?("<= wheezy") -%>
+etc/logrotate.d
+<% end -%>
+usr/share/nginx
+var/log/nginx
+var/lib/nginx
+<% if (is_distribution?(">= raring") && is_distribution?("<= saucy")) || is_distribution?(">= wheezy") -%>
+run
+<% end -%>
