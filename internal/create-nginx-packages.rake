@@ -23,10 +23,10 @@ if PASSENGER_DIR
 	PACKAGE_VERSION   = NGINX_VERSION
 	if defined?(PhusionPassenger::PASSENGER_IS_ENTERPRISE)
 		# Let users see nginx updates after switching to the Enterprise repo.
-		VENDOR_VERSION = 3
+		VENDOR_VERSION = 8
 		PASSENGER_DEBIAN_NAME = "passenger-enterprise"
 	else
-		VENDOR_VERSION = 2
+		VENDOR_VERSION = 9
 		PASSENGER_DEBIAN_NAME = "passenger"
 	end
 end
