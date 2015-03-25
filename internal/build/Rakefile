@@ -215,9 +215,10 @@ task :finish do
   if files.any?
     puts "Placing #{files.size} files from /work/spkg into output directory"
     files.each do |path|
+      basename = File.basename(path)
       distro = File.basename(File.dirname(path))
       mkdir_p "/output/#{distro}"
-      cp path, "/output/#{distro}/"
+      cp path, "/output/#{distro}/#{maybe_add_epoch_to_filename(basename)}"
     end
   end
 
@@ -225,9 +226,10 @@ task :finish do
   if files.any?
     puts "Placing #{files.size} files from /work/pkg into output directory"
     files.each do |path|
+      basename = File.basename(path)
       distro = File.basename(File.dirname(path)).sub(/-.*/, '')
       mkdir_p "/output/#{distro}"
-      cp path, "/output/#{distro}/"
+      cp path, "/output/#{distro}/#{maybe_add_epoch_to_filename(basename)}"
     end
   end
 end
