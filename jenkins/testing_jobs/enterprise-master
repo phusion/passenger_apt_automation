@@ -1,0 +1,5 @@
+#!/bin/bash
+set -e
+SELFDIR=`dirname "$0"`
+export REPOSITORY=passenger-5
+exec "$SELFDIR/_job.sh"

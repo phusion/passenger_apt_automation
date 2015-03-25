@@ -1,0 +1,79 @@
+#!/bin/bash
+# Prepares a Jenkins system for use with passenger_apt_automation.
+# Installs dependencies, config files etc.
+
+set -e
+SELFDIR=`dirname "$0"`
+cd "$SELFDIR/.."
+source "./internal/lib/library.sh"
+
+function create_user()
+{
+	local name="$1"
+	local full_name="$2"
+	local id="$3"
+	create_group $name $id
+	if ! grep -q "^$name:" /etc/passwd; then
+		adduser --uid $id --gid $id --disabled-password --gecos "$full_name" $name
+	fi
+	usermod -L $name
+}
+
+function create_group()
+{
+	local name="$1"
+	local id="$2"
+	if ! grep -q "^$name:" /etc/group >/dev/null; then
+		addgroup --gid $id $name
+	fi
+}
+
+function usage()
+{
+	echo "./setup-system [OPTIONS]"
+	echo "Prepares a system for use with passenger_apt_automation. Installs dependencies, config files etc."
+	echo
+	echo "Optional options:"
+	echo "  -g                 Assume that the system is a Vagrant VM"
+	echo "  -h                 Show usage"
+}
+
+
+if [[ `id -u` != 0 ]]; then
+	echo "You must run this script with sudo."
+	exit 1
+fi
+
+# Reset HOME just in case setup-system is run through sudo.
+export HOME=/root
+umask u=rwx,g=rx,o=rx
+
+header "Creating users and directories"
+run create_user psg_apt_automation "Passenger APT Automation" 2446
+run mkdir -p /var/cache/passenger_apt_automation
+run mkdir -p /srv/passenger_apt_automation/apt
+run mkdir -p /srv/passenger_apt_automation/apt/passenger
+run mkdir -p /srv/passenger_apt_automation/apt/passenger-testing
+run mkdir -p /srv/passenger_apt_automation/apt/passenger-enterprise
+run mkdir -p /srv/passenger_apt_automation/apt/passenger-enterprise-testing
+run mkdir -p /etc/passenger_apt_automation
+run touch /etc/passenger_apt_automation/signing_passphrase
+run chown psg_apt_automation: /var/cache/passenger_apt_automation
+run chown psg_apt_automation: /srv/passenger_apt_automation/apt
+run chown psg_apt_automation: /srv/passenger_apt_automation/apt/passenger
+run chown psg_apt_automation: /srv/passenger_apt_automation/apt/passenger-testing
+run chown psg_apt_automation: /etc/passenger_apt_automation/apt/passenger-enterprise
+run chown psg_apt_automation: /etc/passenger_apt_automation/apt/passenger-enterprise-testing
+run chown psg_apt_automation: /etc/passenger_apt_automation/signing_passphrase
+run chmod 600 /etc/passenger_apt_automation/signing_server_address
+
+header "Setting up SSH keys"
+if [[ -e ~psg_apt_automation/.ssh/id_rsa ]]; then
+	echo "Already setup!"
+else
+	run sudo -u psg_apt_automation -H ssh-keygen -t rsa -N ""
+fi
+
+echo
+echo "**** Setup almost completed ***"
+echo "Be sure to setup access to the signing server! This script does not do that for you!"

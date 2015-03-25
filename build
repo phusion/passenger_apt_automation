@@ -24,7 +24,8 @@ ARGV=
 
 function usage()
 {
-	echo "runner [OPTIONS] <TASK NAMES...>"
+	echo "./build [OPTIONS] <TASK NAMES...>"
+	echo "Build Debian packages."
 	echo
 	echo "Required options:"
 	echo "  -p DIR     Path to Passenger source directory"
@@ -170,7 +171,7 @@ if $SHOW_TASKS; then
 		-e "LC_CTYPE=C.UTF-8" \
 		phusion/passenger_apt_automation \
 		/sbin/my_init --quiet --skip-runit --skip-startup-files -- \
-		drake -f /system/internal/build/Rakefile -T
+		drake -f /system/internal/build/Rakefile -T --trace
 else
 	PASSENGER_DIR="`absolute_path \"$PASSENGER_DIR\"`"
 	WORK_DIR="`absolute_path \"$WORK_DIR\"`"
