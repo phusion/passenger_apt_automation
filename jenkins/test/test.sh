@@ -7,7 +7,7 @@ source "./internal/lib/library.sh"
 require_envvar WORKSPACE "$WORKSPACE"
 require_envvar DISTRIBUTION "$DISTRIBUTION"
 
-CONCURRENCY=${CONCURRENCY:-8}
+CONCURRENCY=${CONCURRENCY:-4}
 
 if [[ "$DISTRIBUTION" = ubuntu14.04 ]]; then
 	CODENAME=trusty
