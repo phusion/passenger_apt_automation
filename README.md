@@ -1,161 +1,130 @@
-# Phusion Passenger APT repository automation tools
+# Phusion Passenger Debian packaging project
 
-This repository contains tools for automatically creating a multi-distribution APT repository for Phusion Passenger. The goal is to automatically build Debian packages for multiple distributions, immediately after a source release. These tools are meant to be run on Ubuntu 12.04 or Ubuntu 14.04, 64-bit.
+This repository contains Debian package definitions for [Phusion Passenger](https://www.phusionpassenger.com/), as well as tools for automatically building Passenger packages for multiple distributions and architectures.
 
-These tools use pbuilder-dist to generate packages for multiple distributions and multiple architectures. Pbuilder-dist is a tool which sets up chroot environments for multiple distributions.
+The goal is project is to allow Phusion to release Debian packages for multiple distributions and architectures, immediately after a Passenger source release, in a completely automated manner.
 
-## Overview of tools
+This project utilizes Docker for isolation. Because of the usage of Docker, these tools can be run on any 64-bit Linux system, including non-Debian-based systems. Though in practice, we've only tested on Ubuntu.
 
-This repository provides three major categories of tools:
+## Overview
 
- * **Setup tools** prepare and set up the system.
+This project consists of three major tools:
 
-    * `setup-system`: Installs dependencies, users, configuration files, etc. It runs `setup-pbuilder-dist` when it is run for the first time.
-    * `setup-builder-dist`: Creates or updates the pbuilder-dist environments.
+ * **build** -- Given a Passenger source directory, this script builds Debian packages for it.
+ * **test** -- Given a directory with built Debian packages (as produced by the `build` script), this script runs tests against them.
+ * **publish** -- Given a directory with built Debian packages, this script publishes them to [PackageCloud](https://packagecloud.io/).
 
- * **Release tools** create packages.
+Debian package definitions are located in the `debian_specs` directory:
 
-    * `create-dependency-packages`: Creates packages for gems that Phusion Passenger depends on, and imports them into APT repositories.
-    * `create-nginx-packages`: Creates Nginx packages that contain the Phusion Passenger module, but does not import them into APT repositories.
-    * `new_release`: Creates Nginx and Phusion Passenger packages. Uses `create-nginx-package` internally.
-    * `import-packages`: Generic tool to import built packages into APT repositories. Used in combination with `create-nginx-packages`.
+ * `debian_specs/passenger` -- Package definitions for Passenger, open source edition.
+ * `debian_specs/passenger-enterprise` -- Package definitions for [Passenger Enterprise](https://www.phusionpassenger.com/enterprise).
+ * `debian_specs/nginx` -- Package definitions for Nginx, with Passenger compiled in.
 
- * **Internal tools** are not meant to be used directly by the user, but are used internally. They can be found in the `internal` directory.
+Other noteworthy tools:
 
- * **Developer tools** are only meant to be used by people who develop passenger_apt_automation. They can be found in the `devtools` directory.
+ * `jenkins` -- Scripts to be run by our Jenkins continuous integration jobs, either after every commit or during release time.
 
-## Getting started
-
-### Development environment
+## Development
 
 A Vagrantfile is provided so that you can develop this project in a VM. To get started, run:
 
     host$ vagrant up
 
-Then SSH into the VM and run these:
-
-    vm$ cd /vagrant
-    vm$ sudo ./setup-system -g
-
-Every time you pulled from git, you should re-run `sudo ./setup-system -g` to update the VM with the latest development settings.
-
 If the Phusion Passenger source code (Git repository clone) is located on the host in `../passenger`, then that directory will be mounted inside the VM under `/passenger`.
 
-### Production environment
+## Package building process
 
-Login as any user that can run sudo, clone this repository as `psg_apt_automation` and run the setup script:
+The package build process is as follows. First, the `build` script is used to build Debian packages from a Passenger source code directory. Next, either the `test` script is run to test the built packages, or the `publish` script is run to publish the built packages to PackageCloud.
 
-    git clone https://github.com/phusion/passenger_apt_automation.git ~/passenger_apt_automation
-    cd ~/passenger_apt_automation
-    sudo ./setup-system
+    build   ------------>   test
+                 \
+                  \----->   publish
 
-Then move the directory to `/srv/passenger_apt_automation`:
+### The build script
 
-    sudo mv ~/passenger_apt_automation /srv/
-    sudo chown -R psg_apt_automation: /srv/passenger_apt_automation
+Everything begins with the `build` script and a copy of the Passenger source code. Here's an example invocation:
 
-## Building packages
+    ./build -p /passenger -w work -c cache -o output pkg:all
 
-### Dependency packages
+ * `-p` tells it where the Passenger source code is.
+ * `-w` tells it where it's work directory is. This is a directory in which in stores temporary files while building packages. WARNING: everything inside this directory will be deleted before the build begins, so only specify a directory that doesn't contain anything important.
+ * `-c` tells it where the cache directory is. The build script caches files into this directory so that subsequent runs will be faster.
+ * `-o` tells it where to store the final built Debian packages (the output directory). WARNING: everything inside this directory will be deleted when the build finishes, so only specify a directory that doesn't contain anything important.
+ * The final argument, `pkg:all`, is the task that the build script must run. The build script provides a number of tasks, such as tasks for building packages for specific distributions or architecture only, or tasks for building source packages only. The `pkg:all` task builds all source and binary packages for all supported distributions and architectures.
 
-There are a number of gems (daemon_controller and crash-watch) that Phusion Passenger depend on, and for which packages should be built. Run the following command to build them and to import them into the APT repositories:
+More command line options are available. Run `./build -h` to learn more. You can also run `./build -T` to learn which tasks are available.
 
-    sudo -u psg_apt_automation -H ./create-dependency-packages -a <PROJECT_NAMES...>
+When the build script is finished, the output directory (`-o`) will contain one subdirectory per distribution that was built for, with each subdirectory containing packages for that distribution (in all architectures that were built for). For example:
 
-where `PROJECT_NAMES` is one of: 'passenger', 'passenger-enterprise', 'passenger-testing', 'passenger-enterprise-testing'.
+    output/
+      |
+      +-- trusty/
+      |      |
+      |      +-- *.deb
+      |      |
+      |      +-- *.dsc
+      |
+      +-- precise/
+      |      |
+      |      +-- *.deb
+      |      |
+      |      +-- *.dsc
+      |
+     ...
 
-#### When a new gem version has been released
+#### Troubleshooting
 
-When a new version of one of those gems has been released, you should build a package for the latest version of that gem only, by passing either `-d` (for daemon_controller) or `-c` (for crash-watch) instead of `-a`. For example:
+If anything goes wrong during a build, please take a look at the various log files in the work directory. Of interest are:
 
-    # Build package for latest version of daemon_controller.
-    sudo -u psg_apt_automation -H ./create-dependency-packages -d <PROJECT_NAMES...>
+ * state.log -- Overview.
+ * pkg.*.log -- Build logs for a specific package, distribution and architecture.
 
-    # Build package for latest version of crash-watch.
-    sudo -u psg_apt_automation -H ./create-dependency-packages -c <PROJECT_NAMES...>
+### The test script
 
-#### When a new distribution has been released
+Once packages have been built, you can test them with the test script. Here is an example invocation:
 
-When a new distribution has been released, you should build packages for all gems, but for that distribution only. Edit `config/general` and set `DEBIAN_DISTROS` to that distribution only:
+    ./test -p /passenger -x ubuntu14.04 -d output/trusty -c cache
 
-    $ nano config/general
-    ...
-    DEBIAN_DISTROS="trusty"
+ * `-p` tells it where the Passenger source code is.
+ * `-x` tells it which environment it should use for running the tests. Two environments are supported: `ubuntu10.04` and `ubuntu14.04`.
+ * `-d` tells it where to find the packages that are to be tested. This must point to a subdirectory in the output directory produced by the build script, and the packages must match the test environment as specified by `-x`. For example, if you specified `-x ubuntu14.04`, and if the build script stored packages in the directory `output`, then you should pass `-d output/trusty`.
+ * `-c` tells it where the cache directory is. The test script caches files into this directory so that subsequent runs will be faster.
 
-Then build packages for all gems:
+### The publish script
 
-    sudo -u psg_apt_automation -H ./create-dependency-packages -a <PROJECT_NAMES...>
+Once packages have been built, you can publish them to PackageCloud. The `publish` script publishes all packages inside a build script output directory. Example invocation:
 
-Afterwards, edit `config/general` again and revert `DEBIAN_DISTROS` back to what it was:
+    ./publish -d output -c ~/.packagecloud_token -r passenger-testing publish:all
 
-    $ nano config/general
-    ...
-    DEBIAN_DISTROS="old value"
+ * `-d` tells it where the build script output directory is.
+ * `-c` refers to a file that contains the PackageCloud security token.
+ * `-r` tells it the name of the PackageCloud repository. For example `passenger-5`, `passenger-testing`.
+ * The last argument is the task to run. The `publish:all` publishes all packages inside the build script output directory.
 
-### Phusion Passenger packages
-
-Upon installing passenger_apt_automation for the first time, and upon the release of a new Phusion Passenger version, run the following command to build Phusion Passenger packages as well as Nginx packages:
-
-    sudo -u psg_apt_automation -H ./new_release <GIT_URL> <PROJECT_NAME> [REF]
-
-where:
-
- * `GIT_URL` is the Phusion Passenger git repository URL.
- * `PROJECT_NAME` is one of: 'passenger', 'passenger-enterprise', 'passenger-testing', 'passenger-enterprise-testing'.
- * `REF` is the commit in git for which you want to build packages. If `REF` is not specified, then it is assumed to be `origin/master`.
-
-For example:
-
-    sudo -u psg_apt_automation -H ./new_release https://github.com/phusion/passenger.git passenger
-    sudo -u psg_apt_automation -H ./new_release URL-TO-PASSENGER-ENTERPRISE passenger-enterprise
-
-The `new_release` script is atomic: users will not see an intermediate state in which only some packages have been built.
-
-In the Vagrant VM, if `/passenger` is mounted you can also run the following to test things against the Phusion Passenger Git repository that is located on the host:
-
-    sudo -u psg_apt_automation -H ./new_release file:///passenger/.git passenger
+## Maintenance
 
 #### When a new distribution has been released
 
-When a new distribution has been released, you should build packages against the latest release of Phusion Passenger, and for that distribution only. Edit `config/general` and set `DEBIAN_DISTROS` to that distribution only:
+There are three things you need to do when a new distribution has been released.
 
-    $ nano config/general
-    ...
-    DEBIAN_DISTROS="trusty"
+ 1. Add a definition for this new distribution to internal/lib/distro_info.rb.
+ 2. Update the package definitions in `debian_specs/`.
+ 3. Build and publish packages for this distribution only. You can do that by running the build script with the `-d` option.
 
-Then build packages against a specific Git tag:
+    For example, if the new distribution is Ubuntu 14.04 "trusty", then run:
 
-    sudo -u psg_apt_automation -H ./new_release https://github.com/phusion/passenger.git passenger release-x.x.x
-    sudo -u psg_apt_automation -H ./new_release URL-TO-PASSENGER-ENTERPRISE passenger-enterprise enterprise-x.x.x
-
-Afterwards, edit `config/general` again and revert `DEBIAN_DISTROS` back to what it was:
-
-    $ nano config/general
-    ...
-    DEBIAN_DISTROS="old value"
+        ./build -p /passenger -w work -c cache -o output -d trusty pkg:all
+        ./publish -d output -c ~/.packagecloud_token -r passenger-testing publish:all
 
 #### Building Nginx packages only
 
-Sometimes you want to build Nginx packages only, without building the Phusion Passenger packages.
+Sometimes you want to build Nginx packages only, without building the Phusion Passenger packages. You can do this by invoking the build script with the `pkg:nginx:all` task. For example:
 
-You must first have the Phusion Passenger source code directory somewhere. On the Vagrant VM, it might be mounted on `/passenger`. If you've run `./new_release` before, then it's in `/var/cache/passenger_apt_automation/passenger.git`. Once you've determined the directory, run this to generate Nginx packages:
+    ./build -p /passenger -w work -c cache -o output -d trusty pkg:nginx:all
 
-    sudo -u psg_apt_automation -H ./create-nginx-packages -p PATH_TO_PASSENGER source_packages binary_packages
+After the build script finishes, you can publish these Nginx packages:
 
-Next, import the built packages into the APT repositories:
-
-    sudo -u psg_apt_automation -H ./import-packages ~psg_apt_automation/pbuilder <PROJECT_NAMES...>
-
-Repeat these steps for Passenger Enterprise.
-
-## Troubleshooting
-
-The `./new_release` script stores build output, temporary files and logs in `/var/cache/passenger_apt_automation`. If anything goes wrong, please take a look at the various .log files in that directory. Of interest are:
-
-    /var/cache/passenger_apt_automation/<PROJECT_NAME>.workdir/stage
-    /var/cache/passenger_apt_automation/<PROJECT_NAME>.workdir/full.log
-    /var/cache/passenger_apt_automation/<PROJECT_NAME>.workdir/pkg/*.log
-    /var/cache/passenger_apt_automation/<PROJECT_NAME>.workdir/pkg/official/*.log
+    ./publish -d output -c ~/.packagecloud_token -r passenger-testing publish:all
 
 ## Related projects
 
