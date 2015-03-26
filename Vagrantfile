@@ -16,4 +16,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provider :vmware_fusion do |f, override|
     override.vm.box_url = "https://oss-binaries.phusionpassenger.com/vagrant/boxes/latest/ubuntu-12.04-amd64-vmwarefusion.box"
   end
+
+  config.vm.provision :shell, :path => "internal/scripts/setup-vagrant.sh"
 end
