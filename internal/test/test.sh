@@ -65,7 +65,7 @@ cat >> /etc/hosts <<EOF
 EOF
 run setuser app mkdir -p /cache/test/bundle
 run setuser app rake test:install_deps DOCTOOLS=no DEPS_TARGET=/cache/test/bundle BUNDLE_ARGS="-j 4"
-run cp /system/internal/test/config.json test/config.json
+run setuser app cp /system/internal/test/config.json test/config.json
 run chmod -R o+rw /var/log/nginx
 run chmod -R o+rw /var/lib/nginx
 run chmod o+x /var/log/nginx
