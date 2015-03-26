@@ -9,6 +9,14 @@ require_envvar DISTRIBUTION "$DISTRIBUTION"
 
 CONCURRENCY=${CONCURRENCY:-8}
 
+if [[ "$DISTRIBUTION" = ubuntu14.04 ]]; then
+	CODENAME=trusty
+elif [[ "$DISTRIBUTION" = ubuntu10.04 ]]; then
+	CODENAME=lucid
+else
+	echo "ERROR: unknown distribution name."
+	exit 1
+fi
 if [[ "$DEBUG_CONSOLE" = true ]]; then
 	EXTRA_TEST_PARAMS=-D
 else
@@ -20,6 +28,8 @@ run ./build \
 	-c "$WORKSPACE/cache" \
 	-o "$WORKSPACE/output" \
 	-p "$WORKSPACE" \
+	-d "$CODENAME" \
+	-a amd64 \
 	-j "$CONCURRENCY" \
 	pkg:all
 run ./test \
