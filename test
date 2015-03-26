@@ -83,7 +83,7 @@ function parse_options()
 		exit 1
 	fi
 	if [[ "$CACHE_DIR" = "" ]]; then
-		echo "ERROR: please specify a build products directory with -c."
+		echo "ERROR: please specify a cache directory with -c."
 		exit 1
 	fi
 }

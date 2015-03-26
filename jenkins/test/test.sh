@@ -35,5 +35,6 @@ run ./build \
 run ./test \
 	-p "$WORKSPACE" \
 	-d "$WORKSPACE/output" \
+	-c "$WORKSPACE/cache" \
 	-x "$DISTRIBUTION" \
 	$EXTRA_TEST_PARAMS
