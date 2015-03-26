@@ -44,9 +44,9 @@ run chown app: ~app/.pbuilderrc
 
 header "Installing dependencies"
 run apt-get update -q
-run apt-get install -y -q ubuntu-dev-tools reprepro debhelper source-highlight \
+run apt-get install -y -q ubuntu-dev-tools debhelper source-highlight \
 	ruby ruby-dev libsqlite3-dev runit git gawk rake realpath debian-keyring \
-	zlib1g-dev libxml2-dev libxslt1-dev reprepro gnupg
+	zlib1g-dev libxml2-dev libxslt1-dev gdebi-core gnupg
 run gem1.9.1 install bundler --no-rdoc --no-ri
 run env BUNDLE_GEMFILE=/build/Gemfile bundle install
 

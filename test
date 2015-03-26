@@ -1,0 +1,118 @@
+#!/bin/bash
+set -e
+
+SELFDIR=`dirname "$0"`
+SELFDIR=`cd "$SELFDIR" && pwd`
+source "$SELFDIR/internal/lib/library.sh"
+
+PASSENGER_DIR=
+DISTRIBUTION=
+OUTPUT_DIR=
+CACHE_DIR=
+SELFDIR_ON_DOCKER_HOST=
+DEBUG_CONSOLE=false
+
+function usage()
+{
+	echo "./test [OPTIONS]"
+	echo "Test built packages."
+	echo
+	echo "Required options:"
+	echo "  -p DIR     Path to Passenger source code"
+	echo "  -x DISTRO  Distribution to run tests in: ubuntu14.04,ubuntu10.04"
+	echo "  -d DIR     Path to built packages"
+	echo "  -c DIR     Path to cache directory"
+	echo
+	echo "Other optional options:"
+	echo "  -D         Open debugging console on test failure"
+	echo
+	echo "  -h         Show usage"
+}
+
+function parse_options()
+{
+	local OPTIND=1
+	local opt
+	while getopts "p:x:d:c:Dh" opt; do
+		case "$opt" in
+		p)
+			PASSENGER_DIR="$OPTARG"
+			;;
+		x)
+			DISTRIBUTION="$OPTARG"
+			;;
+		d)
+			OUTPUT_DIR="$OPTARG"
+			;;
+		c)
+			CACHE_DIR="$OPTARG"
+			;;
+		D)
+			DEBUG_CONSOLE=true
+			;;
+		h)
+			usage
+			exit
+			;;
+		*)
+			return 1
+			;;
+		esac
+	done
+
+	(( OPTIND -= 1 )) || true
+	shift $OPTIND || true
+
+	if [[ "$PASSENGER_DIR" = "" ]]; then
+		echo "ERROR: please specify a Passenger source directory with -p."
+		exit 1
+	fi
+	if [[ "$DISTRIBUTION" = "" ]]; then
+		echo "ERROR: please specify a distribution with -x."
+		exit 1
+	elif [[ "$DISTRIBUTION" = ubuntu14.04 ]]; then
+		IMAGE=phusion/passenger_apt_automation_testbox_ubuntu_14_04
+	elif [[ "$DISTRIBUTION" = ubuntu10.04 ]]; then
+		IMAGE=phusion/passenger_apt_automation_testbox_ubuntu_10_04
+	else
+		echo "ERROR: invalid distribution name."
+		exit 1
+	fi
+	if [[ "$OUTPUT_DIR" = "" ]]; then
+		echo "ERROR: please specify a build products directory with -d."
+		exit 1
+	fi
+	if [[ "$CACHE_DIR" = "" ]]; then
+		echo "ERROR: please specify a build products directory with -c."
+		exit 1
+	fi
+}
+
+parse_options "$@"
+PASSENGER_DIR="`absolute_path \"$PASSENGER_DIR\"`"
+OUTPUT_DIR="`absolute_path \"$OUTPUT_DIR\"`"
+CACHE_DIR="`absolute_path \"$CACHE_DIR\"`"
+
+SELFDIR_ON_DOCKER_HOST="${SELFDIR_ON_DOCKER_HOST:-$SELFDIR}"
+
+run mkdir -p "$CACHE_DIR/test-$DISTRIBUTION/aptcache/archives/partial"
+run mkdir -p "$CACHE_DIR/test-$DISTRIBUTION/aptlist/partial"
+
+echo "-------- Entering Docker container --------"
+exec docker run \
+	--rm -t -i \
+	-v "$SELFDIR_ON_DOCKER_HOST/internal:/system/internal:ro" \
+	-v "$PASSENGER_DIR:/passenger:ro" \
+	-v "$OUTPUT_DIR:/output:ro" \
+	-v "$CACHE_DIR:/cache" \
+	-v "$CACHE_DIR/test-$DISTRIBUTION/aptcache:/var/cache/apt" \
+	-v "$CACHE_DIR/test-$DISTRIBUTION/aptlist:/var/lib/apt/lists" \
+	-e "DISTRIBUTION=$DISTRIBUTION" \
+	-e "DEBUG_CONSOLE=$DEBUG_CONSOLE" \
+	-e "APP_UID=`/usr/bin/id -u`" \
+	-e "APP_GID=`/usr/bin/id -g`" \
+	$IMAGE \
+	/sbin/my_init --quiet --skip-runit --skip-startup-files -- \
+	/system/internal/scripts/inituidgid.sh \
+	/system/internal/test/debugwrapper.sh \
+	/system/internal/test/test.sh
