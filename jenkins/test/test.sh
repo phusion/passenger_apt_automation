@@ -34,7 +34,7 @@ run ./build \
 	pkg:all
 run ./test \
 	-p "$WORKSPACE" \
-	-d "$WORKSPACE/output" \
+	-d "$WORKSPACE/output/$CODENAME" \
 	-c "$WORKSPACE/cache" \
 	-x "$DISTRIBUTION" \
 	$EXTRA_TEST_PARAMS
