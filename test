@@ -9,7 +9,6 @@ PASSENGER_DIR=
 DISTRIBUTION=
 OUTPUT_DIR=
 CACHE_DIR=
-SELFDIR_ON_DOCKER_HOST=
 DEBUG_CONSOLE=false
 
 function usage()
@@ -93,8 +92,6 @@ PASSENGER_DIR="`absolute_path \"$PASSENGER_DIR\"`"
 OUTPUT_DIR="`absolute_path \"$OUTPUT_DIR\"`"
 CACHE_DIR="`absolute_path \"$CACHE_DIR\"`"
 
-SELFDIR_ON_DOCKER_HOST="${SELFDIR_ON_DOCKER_HOST:-$SELFDIR}"
-
 if tty -s; then
 	TTY_ARGS="-t -i"
 else
@@ -107,7 +104,7 @@ run mkdir -p "$CACHE_DIR/test-$DISTRIBUTION/aptlist/partial"
 echo "-------- Entering Docker container --------"
 exec docker run \
 	--rm $TTY_ARGS \
-	-v "$SELFDIR_ON_DOCKER_HOST/internal:/system/internal:ro" \
+	-v "$SELFDIR/internal:/system/internal:ro" \
 	-v "$PASSENGER_DIR:/passenger:ro" \
 	-v "$OUTPUT_DIR:/output:ro" \
 	-v "$CACHE_DIR:/cache" \

@@ -9,7 +9,6 @@ OUTPUT_DIR=
 PACKAGE_CLOUD_TOKEN_FILE=
 REPOSITORY=
 LOG_DIR=
-SELFDIR_ON_DOCKER_HOST=
 YANK=false
 CONCURRENCY=8
 SHOW_BACKTRACES=false
@@ -22,12 +21,9 @@ function usage()
 	echo "Publish built Debian packages to PackageCloud."
 	echo
 	echo "Required options:"
-	echo "  -d DIR     Path (on Docker host) in which build products are stored"
-	echo "  -c PATH    Path (on Docker host) to PackageCloud token file"
+	echo "  -d DIR     Path in which build products are stored"
+	echo "  -c PATH    Path to PackageCloud token file"
 	echo "  -r NAME    Repository name, e.g. passenger-testing"
-	echo
-	echo "Docker host path fixup options (optional):"
-	echo "  -S DIR     Path on Docker host to passenger_apt_automation on Docker host"
 	echo
 	echo "Other optional options:"
 	echo "  -l DIR     Write logs to the given directory (on Docker host)"
@@ -44,7 +40,7 @@ function parse_options()
 	local OPTIND=1
 	local ORIG_ARGV
 	local opt
-	while getopts "d:c:r:S:D:C:l:j:ytTh" opt; do
+	while getopts "d:c:r:D:C:l:j:ytTh" opt; do
 		case "$opt" in
 		d)
 			OUTPUT_DIR="$OPTARG"
@@ -54,9 +50,6 @@ function parse_options()
 			;;
 		r)
 			REPOSITORY="$OPTARG"
-			;;
-		S)
-			SELFDIR_ON_DOCKER_HOST="$OPTARG"
 			;;
 		l)
 			LOG_DIR="$OPTARG"
@@ -119,8 +112,6 @@ if [[ "$LOG_DIR" != "" ]]; then
 	run mkdir -p "$LOG_DIR"
 fi
 
-SELFDIR_ON_DOCKER_HOST="${SELFDIR_ON_DOCKER_HOST:-$SELFDIR}"
-
 if tty -s; then
 	TTY_ARGS="-t -i"
 else
@@ -130,7 +121,7 @@ fi
 if $SHOW_TASKS; then
 	exec docker run \
 		--rm $TTY_ARGS \
-		-v "$SELFDIR_ON_DOCKER_HOST/internal:/system/internal:ro" \
+		-v "$SELFDIR/internal:/system/internal:ro" \
 		-v "$OUTPUT_DIR:/output:ro" \
 		-e "APP_UID=`/usr/bin/id -u`" \
 		-e "APP_GID=`/usr/bin/id -g`" \
@@ -146,7 +137,7 @@ else
 	echo "-------- Entering Docker container --------"
 	exec docker run \
 		--rm $TTY_ARGS \
-		-v "$SELFDIR_ON_DOCKER_HOST/internal:/system/internal:ro" \
+		-v "$SELFDIR/internal:/system/internal:ro" \
 		-v "$OUTPUT_DIR:/output:ro" \
 		-v "$PACKAGE_CLOUD_TOKEN_FILE:/package_cloud_token.txt:ro" \
 		"${EXTRA_MOUNTS[@]}" \
