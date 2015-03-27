@@ -1,4 +1,21 @@
 #!/bin/bash
+# Usage: test.sh
+# This script is from the "Passenger Debian packaging test" Jenkins job. It builds
+# packages for a specific distribution and runs tests on these packages.
+#
+# Required environment variables:
+#
+#   WORKSPACE
+#   DISTRIBUTION
+#
+# Optional environment variables:
+#
+#   PASSENGER_ROOT (defaults to $WORKSPACE)
+#
+# Sample invocation in Vagrant dev environment:
+#
+#   env WORKSPACE=$HOME DISTRIBUTION=ubuntu10.04 PASSENGER_ROOT=/passenger ./jenkins/test/test.sh
+
 set -e
 SELFDIR=`dirname "$0"`
 cd "$SELFDIR/../.."
@@ -7,6 +24,7 @@ source "./internal/lib/library.sh"
 require_envvar WORKSPACE "$WORKSPACE"
 require_envvar DISTRIBUTION "$DISTRIBUTION"
 
+PASSENGER_ROOT="${PASSENGER_ROOT:-\"$WORKSPACE\"}"
 CONCURRENCY=${CONCURRENCY:-4}
 
 if [[ "$DISTRIBUTION" = ubuntu14.04 ]]; then
@@ -27,14 +45,15 @@ run ./build \
 	-w "$WORKSPACE/work" \
 	-c "$WORKSPACE/cache" \
 	-o "$WORKSPACE/output" \
-	-p "$WORKSPACE" \
+	-p "$PASSENGER_ROOT" \
 	-d "$CODENAME" \
 	-a amd64 \
 	-j "$CONCURRENCY" \
 	pkg:all
 run ./test \
-	-p "$WORKSPACE" \
+	-p "$PASSENGER_ROOT" \
 	-d "$WORKSPACE/output/$CODENAME" \
 	-c "$WORKSPACE/cache" \
 	-x "$DISTRIBUTION" \
+	-j \
 	$EXTRA_TEST_PARAMS

@@ -10,6 +10,7 @@ DISTRIBUTION=
 OUTPUT_DIR=
 CACHE_DIR=
 DEBUG_CONSOLE=false
+JENKINS=false
 
 function usage()
 {
@@ -24,6 +25,7 @@ function usage()
 	echo
 	echo "Other optional options:"
 	echo "  -D         Open debugging console on test failure"
+	echo "  -j         Indicate that this script is run from a Jenkins job"
 	echo
 	echo "  -h         Show usage"
 }
@@ -32,7 +34,7 @@ function parse_options()
 {
 	local OPTIND=1
 	local opt
-	while getopts "p:x:d:c:Dh" opt; do
+	while getopts "p:x:d:c:Djh" opt; do
 		case "$opt" in
 		p)
 			PASSENGER_DIR="$OPTARG"
@@ -48,6 +50,9 @@ function parse_options()
 			;;
 		D)
 			DEBUG_CONSOLE=true
+			;;
+		j)
+			JENKINS=true
 			;;
 		h)
 			usage
@@ -112,6 +117,7 @@ exec docker run \
 	-v "$CACHE_DIR/test-$DISTRIBUTION/aptlist:/var/lib/apt/lists" \
 	-e "DISTRIBUTION=$DISTRIBUTION" \
 	-e "DEBUG_CONSOLE=$DEBUG_CONSOLE" \
+	-e "JENKINS=$JENKINS" \
 	-e "APP_UID=`/usr/bin/id -u`" \
 	-e "APP_GID=`/usr/bin/id -g`" \
 	$IMAGE \

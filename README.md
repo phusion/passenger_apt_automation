@@ -32,6 +32,8 @@ A Vagrantfile is provided so that you can develop this project in a VM. To get s
 
 If the Phusion Passenger source code (Git repository clone) is located on the host in `../passenger`, then that directory will be mounted inside the VM under `/passenger`.
 
+Or, if this `passenger_apt_automation` project is located inside the Passenger source directory as `packaging/debian`, then the Passenger source directory will be mounted inside the VM under `/passenger`.
+
 ## Package building process
 
 The package build process is as follows. First, the `build` script is used to build Debian packages from a Passenger source code directory. Next, either the `test` script is run to test the built packages, or the `publish` script is run to publish the built packages to PackageCloud.
@@ -133,6 +135,38 @@ Sometimes you want to build Nginx packages only, without building the Phusion Pa
 After the build script finishes, you can publish these Nginx packages:
 
     ./publish -d output -c ~/.packagecloud_token -r passenger-testing publish:all
+
+## Jenkins integration
+
+The `jenkins` directory contains scripts which are invoked from jobs in the Phusion Jenkins CI server.
+
+### Debugging a packaging test failure
+
+If a packaging test job fails, here's what you should do.
+
+ 1. Checkout the Passenger source code, go to the commit for which the test failed, then cd into the packaging/debian directory.
+
+        git clone https://github.com/phusion/passenger.git
+        git reset --hard <COMMIT FOR WHICH THE TEST FAILED>
+        cd packaging/debian
+
+ 2. If you're not on Linux, setup the Vagrant development environment and login to the VM:
+
+        vagrant up
+        vagrant ssh
+
+ 3. Build packages for the distribution for which the test failed.
+
+        ./build -w ~/work -c ~/cache -o ~/output -p /passenger -d ubuntu10.04 -a amd64 -j 2 pkg:all
+
+    Be sure to customize the value passed to `-d` based on the distribution for which the test failed.
+ 4. Run the tests with the debugging console enabled:
+
+        ./test -p /passenger -x ubuntu10.04 -d ~/output/lucid -c ~/cache -D
+
+    Be sure to customize the values passed to `-x` and `-d` based on the distribution for which the test failed.
+
+If the test fails now, a shell will be opened inside the test container, in which you can do anything you want. Please note that this is a root shell, but the tests are run as the `app` user, so be sure to prefix test commands with `setuser app`. You can see in internal/test/test.sh which commands are invoked inside the container in order to run the tests.
 
 ## Related projects
 
