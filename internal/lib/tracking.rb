@@ -2,7 +2,7 @@ require_relative 'tracking_database'
 require 'thread'
 require 'stringio'
 
-def initialize_tracking_database!
+def initialize_tracking_database!(show_overview_periodically)
   db = TrackingDatabase.new("/work")
   Kernel.const_set(:TRACKING_DB, db)
 
@@ -13,7 +13,7 @@ def initialize_tracking_database!
         while true
           sleep 5
           db.monitor.synchronize do
-            dump_tracking_database(false)
+            dump_tracking_database(show_overview_periodically)
           end
         end
       rescue Exception => e
@@ -75,6 +75,7 @@ def dump_tracking_database(print_to_stdout = true)
       STDOUT.write(str.chomp + "\n")
       STDOUT.write("---------------------------------------------\n")
       STDOUT.write("\n")
+      STDOUT.flush
     end
 
     MAIN_LOG.truncate(0)

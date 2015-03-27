@@ -13,6 +13,7 @@ CONCURRENCY=1
 DISTRIBUTIONS="lucid precise trusty squeeze wheezy"
 ARCHITECTURES="i386 amd64"
 CLEAR_WORK_DIR=true
+SHOW_OVERVIEW_PERIODICALLY=false
 SHOW_BACKTRACES=false
 SHOW_TASKS=false
 ARGV=
@@ -37,6 +38,7 @@ function usage()
 	echo "             of architecture names."
 	echo "             Default: $ARCHITECTURES"
 	echo "  -N         Do not clear work directory on startup"
+	echo "  -O         Periodically show progress overview"
 	echo "  -t         Show backtraces on error"
 	echo
 	echo "  -T         Show all tasks"
@@ -48,7 +50,7 @@ function parse_options()
 	local OPTIND=1
 	local ORIG_ARGV
 	local opt
-	while getopts "p:w:c:o:j:d:a:tNTh" opt; do
+	while getopts "p:w:c:o:j:d:a:tNOTh" opt; do
 		case "$opt" in
 		p)
 			PASSENGER_DIR="$OPTARG"
@@ -76,6 +78,9 @@ function parse_options()
 			;;
 		N)
 			CLEAR_WORK_DIR=false
+			;;
+		O)
+			SHOW_OVERVIEW_PERIODICALLY=true
 			;;
 		T)
 			SHOW_TASKS=true
@@ -186,6 +191,7 @@ else
 		-v "$CACHE_DIR/pbuilder:/var/cache/pbuilder" \
 		-e "DISTRIBUTIONS=$DISTRIBUTIONS" \
 		-e "ARCHITECTURES=$ARCHITECTURES" \
+		-e "SHOW_OVERVIEW_PERIODICALLY=$SHOW_OVERVIEW_PERIODICALLY" \
 		-e "APP_UID=`/usr/bin/id -u`" \
 		-e "APP_GID=`/usr/bin/id -g`" \
 		-e "LC_CTYPE=C.UTF-8" \

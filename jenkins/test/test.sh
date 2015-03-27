@@ -49,6 +49,7 @@ run ./build \
 	-d "$CODENAME" \
 	-a amd64 \
 	-j "$CONCURRENCY" \
+	-O \
 	pkg:all
 run ./test \
 	-p "$PASSENGER_ROOT" \

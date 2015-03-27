@@ -2,7 +2,7 @@ require_relative 'rakefile_support'
 require_relative '../lib/tracking'
 
 initialize_rakefile!
-initialize_tracking_database!
+initialize_tracking_database!(SHOW_OVERVIEW_PERIODICALLY)
 
 
 ##### Source tarballs and build environment initialization #####
