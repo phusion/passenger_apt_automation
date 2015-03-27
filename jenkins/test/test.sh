@@ -24,7 +24,7 @@ source "./internal/lib/library.sh"
 require_envvar WORKSPACE "$WORKSPACE"
 require_envvar DISTRIBUTION "$DISTRIBUTION"
 
-PASSENGER_ROOT="${PASSENGER_ROOT:-\"$WORKSPACE\"}"
+PASSENGER_ROOT="${PASSENGER_ROOT:-$WORKSPACE}"
 CONCURRENCY=${CONCURRENCY:-4}
 
 if [[ "$DISTRIBUTION" = ubuntu14.04 ]]; then

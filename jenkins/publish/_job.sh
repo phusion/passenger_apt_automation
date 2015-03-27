@@ -8,13 +8,14 @@ source "./internal/lib/library.sh"
 require_envvar WORKSPACE "$WORKSPACE"
 require_envvar REPOSITORY "$REPOSITORY"
 
+PASSENGER_ROOT="${PASSENGER_ROOT:-$WORKSPACE}"
 CONCURRENCY=${CONCURRENCY:-8}
 
 run ./build \
 	-w "$WORKSPACE/work" \
 	-c "$WORKSPACE/cache" \
 	-o "$WORKSPACE/output" \
-	-p "$WORKSPACE" \
+	-p "$PASSENGER_ROOT" \
 	-j "$CONCURRENCY" \
 	pkg:all
 run ./publish \
