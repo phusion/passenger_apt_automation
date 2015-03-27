@@ -121,9 +121,15 @@ fi
 
 SELFDIR_ON_DOCKER_HOST="${SELFDIR_ON_DOCKER_HOST:-$SELFDIR}"
 
+if tty -s; then
+	TTY_ARGS="-t -i"
+else
+	TTY_ARGS=
+fi
+
 if $SHOW_TASKS; then
 	exec docker run \
-		--rm \
+		--rm $TTY_ARGS \
 		-v "$SELFDIR_ON_DOCKER_HOST/internal:/system/internal:ro" \
 		-v "$OUTPUT_DIR:/output:ro" \
 		-e "APP_UID=`/usr/bin/id -u`" \
@@ -139,7 +145,7 @@ if $SHOW_TASKS; then
 else
 	echo "-------- Entering Docker container --------"
 	exec docker run \
-		--rm \
+		--rm $TTY_ARGS \
 		-v "$SELFDIR_ON_DOCKER_HOST/internal:/system/internal:ro" \
 		-v "$OUTPUT_DIR:/output:ro" \
 		-v "$PACKAGE_CLOUD_TOKEN_FILE:/package_cloud_token.txt:ro" \

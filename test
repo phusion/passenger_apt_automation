@@ -95,12 +95,18 @@ CACHE_DIR="`absolute_path \"$CACHE_DIR\"`"
 
 SELFDIR_ON_DOCKER_HOST="${SELFDIR_ON_DOCKER_HOST:-$SELFDIR}"
 
+if tty -s; then
+	TTY_ARGS="-t -i"
+else
+	TTY_ARGS=
+fi
+
 run mkdir -p "$CACHE_DIR/test-$DISTRIBUTION/aptcache/archives/partial"
 run mkdir -p "$CACHE_DIR/test-$DISTRIBUTION/aptlist/partial"
 
 echo "-------- Entering Docker container --------"
 exec docker run \
-	--rm -t -i \
+	--rm $TTY_ARGS \
 	-v "$SELFDIR_ON_DOCKER_HOST/internal:/system/internal:ro" \
 	-v "$PASSENGER_DIR:/passenger:ro" \
 	-v "$OUTPUT_DIR:/output:ro" \

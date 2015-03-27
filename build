@@ -161,9 +161,15 @@ function parse_options()
 parse_options "$@"
 SELFDIR_ON_DOCKER_HOST="${SELFDIR_ON_DOCKER_HOST:-$SELFDIR}"
 
+if tty -s; then
+	TTY_ARGS="-t -i"
+else
+	TTY_ARGS=
+fi
+
 if $SHOW_TASKS; then
 	exec docker run \
-		--rm \
+		--rm $TTY_ARGS \
 		-v "$SELFDIR_ON_DOCKER_HOST:/system:ro" \
 		-e "DISTRIBUTIONS=$DISTRIBUTIONS" \
 		-e "ARCHITECTURES=$ARCHITECTURES" \
@@ -190,7 +196,7 @@ else
 
 	echo "+ Initializing ccache directory"
 	docker run \
-		--rm \
+		--rm $TTY_ARGS \
 		-v "$SELFDIR_ON_DOCKER_HOST:/system:ro" \
 		-v "$CACHE_DIR_ON_DOCKER_HOST:/cache" \
 		-e "DISTRIBUTIONS=$DISTRIBUTIONS" \
@@ -203,7 +209,7 @@ else
 
 	echo "-------- Entering Docker container --------"
 	exec docker run \
-		--rm \
+		--rm $TTY_ARGS \
 		--privileged \
 		-v "$SELFDIR_ON_DOCKER_HOST:/system:ro" \
 		-v "$PASSENGER_DIR_ON_DOCKER_HOST:/passenger:ro" \
