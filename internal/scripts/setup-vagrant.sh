@@ -7,3 +7,6 @@ if [[ ! -e /usr/bin/docker ]]; then
 	wget -qO- https://get.docker.com/ | bash
 fi
 usermod -aG docker vagrant
+if ! grep -q 'cd /vagrant' ~vagrant/.profile; then
+	echo 'if tty -s; then cd /vagrant; fi' >> ~vagrant/.profile
+fi
