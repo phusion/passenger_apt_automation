@@ -29,8 +29,14 @@ CONCURRENCY=${CONCURRENCY:-4}
 
 if [[ "$DISTRIBUTION" = ubuntu14.04 ]]; then
 	CODENAME=trusty
+elif [[ "$DISTRIBUTION" = ubuntu12.04 ]]; then
+	CODENAME=precise
 elif [[ "$DISTRIBUTION" = ubuntu10.04 ]]; then
 	CODENAME=lucid
+elif [[ "$DISTRIBUTION" = debian7 ]]; then
+	CODENAME=wheezy
+elif [[ "$DISTRIBUTION" = debian6 ]]; then
+	CODENAME=squeeze
 else
 	echo "ERROR: unknown distribution name."
 	exit 1
