@@ -6,6 +6,21 @@ The goal is project is to allow Phusion to release Debian packages for multiple 
 
 This project utilizes Docker for isolation. Because of the usage of Docker, these tools can be run on any 64-bit Linux system, including non-Debian-based systems. Though in practice, we've only tested on Ubuntu.
 
+**Table of Contents**
+
+ * [Overview](#overview)
+ * [Development](#development)
+ * [Package building process](#package-building-process)
+   - [The build script](#the-build-script)
+   - [The test script](#the-test-script)
+   - [The publish script](#the-publish-script)
+ * [Maintenance](#maintenance)
+   - [When a new distribution has been released](#when-a-new-distribution-has-been-released)
+   - [Building Nginx packages only](#building-nginx-packages-only)
+ * [Jenkins integration](#jenkins-integration)
+   - [Debugging a packaging test failure](#debugging-a-packaging-test-failure)
+ * [Related projects](#related-projects)
+
 ## Overview
 
 This project consists of three major tools:
@@ -113,7 +128,7 @@ Once packages have been built, you can publish them to PackageCloud. The `publis
 
 ## Maintenance
 
-#### When a new distribution has been released
+### When a new distribution has been released
 
 There are three things you need to do when a new distribution has been released.
 
@@ -126,7 +141,7 @@ There are three things you need to do when a new distribution has been released.
         ./build -p /passenger -w work -c cache -o output -d trusty pkg:all
         ./publish -d output -c ~/.packagecloud_token -r passenger-testing publish:all
 
-#### Building Nginx packages only
+### Building Nginx packages only
 
 Sometimes you want to build Nginx packages only, without building the Phusion Passenger packages. You can do this by invoking the build script with the `pkg:nginx:all` task. For example:
 
