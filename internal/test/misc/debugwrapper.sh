@@ -1,15 +1,17 @@
 #!/bin/bash
 set -e
+
+echo "PS1='\\u@testbox:\\w\\\$ '" >> /root/.bashrc
+
 if ! /system/internal/test/test.sh "$@"; then
 	echo
 	echo "---------------------------------------------"
-	if $DEBUG_CONSOLE; then
+	if $DEBUG_CONSOLE_ON_FAIL; then
 		echo "*** Test failed. A debugging console will now be opened for you."
 		echo
 		if [[ -e /tmp/passenger ]]; then
 			cd /tmp/passenger
 		fi
-		echo "PS1='\\u@testbox:\\w\\\$ '" >> /root/.bashrc
 		bash -l
 	elif $JENKINS; then
 		echo "*** Test failed. To debug this problem, please read https://github.com/phusion/passenger_apt_automation#debugging-a-packaging-test-failure"

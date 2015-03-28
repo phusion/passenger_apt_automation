@@ -41,8 +41,9 @@ header "Installing dependencies"
 echo "+ Adding Node.js 0.12 repository"
 curl -sL https://deb.nodesource.com/setup_0.12 | sudo bash -
 run apt-get install -y -q build-essential gdebi-core ruby ruby-dev rake \
-	libcurl4-openssl-dev zlib1g-dev libssl-dev python git
+	libcurl4-openssl-dev zlib1g-dev libssl-dev python git reprepro
 run gem1.9.1 install bundler -v 1.9.1 --no-rdoc --no-ri
+run env BUNDLE_GEMFILE=/build/Gemfile bundle install
 run apt-get install -y nodejs
 
 header "Allow APT caching"

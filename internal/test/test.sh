@@ -57,22 +57,48 @@ cd /tmp/passenger
 echo
 header "Preparing system..."
 echo "+ Updating /etc/hosts"
-cat >> /etc/hosts <<EOF
-127.0.0.1 passenger.test
-127.0.0.1 1.passenger.test 2.passenger.test 3.passenger.test
-127.0.0.1 4.passenger.test 5.passenger.test 6.passenger.test
-127.0.0.1 7.passenger.test 8.passenger.test 9.passenger.test
-EOF
+cat /system/internal/test/misc/hosts.conf >> /etc/hosts
+APACHE_VERSION=`dpkg-query -p apache2 | grep Version | sed 's/.*: //'`
+if [[ -e /etc/apache2/conf-enabled ]]; then
+	APACHE_CONF_D_DIR=/etc/apache2/conf-enabled
+else
+	APACHE_CONF_D_DIR=/etc/apache2/conf.d
+fi
+if ruby -e 'exit(ARGV[0] >= ARGV[1])' "$APACHE_VERSION" 2.4; then
+	run cp /system/internal/test/apache/apache-24.conf $APACHE_CONF_D_DIR
+	run chmod 644 $APACHE_CONF_D_DIR/apache-24.conf
+else
+	run cp /system/internal/test/apache/apache-pre-24.conf $APACHE_CONF_D_DIR
+	run chmod 644 $APACHE_CONF_D_DIR/apache-pre-24.conf
+fi
+run a2enmod passenger
 run setuser app mkdir -p /cache/test/bundle
 run setuser app rake test:install_deps DOCTOOLS=no DEPS_TARGET=/cache/test/bundle BUNDLE_ARGS="-j 4"
-run setuser app cp /system/internal/test/config.json test/config.json
-run chmod -R o+rw /var/log/nginx
-run chmod -R o+rw /var/lib/nginx
-run chmod o+x /var/log/nginx
-run chmod o+x /var/lib/nginx
+run setuser app cp /system/internal/test/misc/config.json test/config.json
+find /var/{log,lib}/nginx -type d | xargs --no-run-if-empty chmod o+rwx
+find /var/{log,lib}/nginx -type f | xargs --no-run-if-empty chmod o+rw
+
+if $DEBUG_CONSOLE; then
+	echo
+	echo "---------------------------------------------"
+	echo "A debugging console will now be opened for you."
+	echo
+	bash -l
+	# Do not trigger the debugging console that will be called on failure.
+	exit 0
+fi
 
 echo
 header "Running tests..."
+
+run rspec -f d -c /system/internal/test/system_web_server_test.rb
+# The Nginx instance launched by system_web_server_test.rb may have created subdirectories
+# in /var/lib/nginx. We relax their permissions here because subsequent tests run Nginx
+# as the 'app' user.
+echo "+ Relaxing permissions in /var/lib/nginx"
+find /var/lib/nginx -type d | xargs --no-run-if-empty chmod o+rwx
+find /var/lib/nginx -type f | xargs --no-run-if-empty chmod o+rw
+
 run setuser app bundle exec drake -j$COMPILE_CONCURRENCY \
 	test:integration:native_packaging PRINT_FAILED_COMMAND_OUTPUT=1
 run setuser app env PASSENGER_LOCATION_CONFIGURATION_FILE=/usr/lib/ruby/vendor_ruby/phusion_passenger/locations.ini \
