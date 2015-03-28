@@ -25,7 +25,9 @@ def initialize_tracking_database!(show_overview_periodically)
 end
 
 def initialize_tracking_database_logs!
-  Kernel.const_set(:MAIN_LOG, File.open("/work/state.log", "w+"))
+  TRACKING_DB.monitor.synchronize do
+    Kernel.const_set(:MAIN_LOG, File.open("/work/state.log", "w+"))
+  end
   TRACKING_DB.reopen_logs
 end
 
@@ -78,9 +80,11 @@ def dump_tracking_database(print_to_stdout = true)
       STDOUT.flush
     end
 
-    MAIN_LOG.truncate(0)
-    MAIN_LOG.rewind
-    MAIN_LOG.write(str)
-    MAIN_LOG.flush
+    if defined?(MAIN_LOG)
+      MAIN_LOG.truncate(0)
+      MAIN_LOG.rewind
+      MAIN_LOG.write(str)
+      MAIN_LOG.flush
+    end
   end
 end
