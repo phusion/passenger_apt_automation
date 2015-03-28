@@ -129,7 +129,7 @@ exec docker run \
 	-e "APP_UID=`/usr/bin/id -u`" \
 	-e "APP_GID=`/usr/bin/id -g`" \
 	$IMAGE \
-	/sbin/my_init --quiet --skip-runit --skip-startup-files -- \
+	/system/internal/scripts/my_init --quiet --skip-runit --skip-startup-files -- \
 	/system/internal/scripts/inituidgid.sh \
-	/system/internal/test/misc/debugwrapper.sh \
+	/system/internal/test/misc/init.sh \
 	/system/internal/test/test.sh

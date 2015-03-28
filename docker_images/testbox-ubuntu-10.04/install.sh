@@ -47,6 +47,7 @@ run apt-get update -q
 run apt-get install -y -q build-essential gdebi-core ruby rubygems ruby-dev rake \
 	libopenssl-ruby libcurl4-openssl-dev zlib1g-dev libssl-dev wget curl \
 	python python2.6-dev python-pip git-core reprepro
+run ln -s /usr/bin/python2.6 /bin/my_init_python
 
 run wget http://production.cf.rubygems.org/rubygems/rubygems-update-2.4.6.gem -O /tmp/rubygems.gem
 run gem install /tmp/rubygems.gem --no-rdoc --no-ri
@@ -62,7 +63,6 @@ run tar -xzf /tmp/node.tar.gz -C /usr/local
 run ln -s /usr/local/node-*/bin/* /usr/bin/
 
 header "Miscellaneous"
-run cp /paa_build/my_init /paa_build/setuser /sbin/
 run mkdir /etc/container_environment
 run rm /etc/apt/apt.conf.d/no-cache
 

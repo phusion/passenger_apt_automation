@@ -1,5 +1,7 @@
-#!/usr/bin/python2.6
-import sys, os, pwd, initgroups
+#!/bin/my_init_python
+import sys, os, pwd
+if "initgroups" not in dir(os):
+	import initgroups
 
 if len(sys.argv) < 3:
 	sys.stderr.write("Usage: /sbin/setuser USERNAME COMMAND [args..]\n")
@@ -14,7 +16,10 @@ try:
 	user = pwd.getpwnam(username)
 except KeyError:
 	abort("user %s not found" % username)
-initgroups.initgroups(username, user.pw_gid)
+if "initgroups" in dir(os):
+	os.initgroups(username, user.pw_gid)
+else:
+	initgroups.initgroups(username, user.pw_gid)
 os.setgid(user.pw_gid)
 os.setuid(user.pw_uid)
 os.environ['USER'] = username

@@ -3,6 +3,9 @@ set -e
 
 echo "PS1='\\u@testbox:\\w\\\$ '" >> /root/.bashrc
 
+# Make setuser available in PATH
+cp /system/internal/scripts/setuser /sbin/
+
 if ! /system/internal/test/test.sh "$@"; then
 	echo
 	echo "---------------------------------------------"
