@@ -41,13 +41,13 @@ Other noteworthy tools:
 
 ## Development
 
+This repository is included as a git submodule in the Passenger git repository, under the directory `packaging/debian`. Instead of cloning the `passenger_apt_automation` repository directly, you should clone the Passenger git repository, and work in the `packaging/debian` directory instead. This scheme allows each Passenger version to lock down to a specific version of `passenger_apt_automation`.
+
 A Vagrantfile is provided so that you can develop this project in a VM. To get started, run:
 
     host$ vagrant up
 
-If the Phusion Passenger source code (Git repository clone) is located on the host in `../passenger`, then that directory will be mounted inside the VM under `/passenger`.
-
-Or, if this `passenger_apt_automation` project is located inside the Passenger source directory as `packaging/debian`, then the Passenger source directory will be mounted inside the VM under `/passenger`.
+The Passenger source directory (`../..`) will be automatically mounted inside the VM under `/passenger`.
 
 ## Package building process
 
@@ -182,6 +182,8 @@ If a packaging test job fails, here's what you should do.
     Be sure to customize the values passed to `-x` and `-d` based on the distribution for which the test failed.
 
 If the test fails now, a shell will be opened inside the test container, in which you can do anything you want. Please note that this is a root shell, but the tests are run as the `app` user, so be sure to prefix test commands with `setuser app`. You can see in internal/test/test.sh which commands are invoked inside the container in order to run the tests.
+
+Inside the test container, you will be dropped into the directory /tmp/passenger, which is a *copy* of the Passenger source directory. The original Passenger source directory is mounted under /passenger.
 
 ## Related projects
 
