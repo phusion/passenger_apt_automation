@@ -1,4 +1,3 @@
 FROM ubuntu:10.04
-ENV HOME /root
-ADD . /build
-RUN bash /build/install.sh
+ADD . /paa_build
+RUN bash /paa_build/install.sh

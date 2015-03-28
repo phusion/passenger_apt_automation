@@ -34,10 +34,10 @@ function create_group()
 	fi
 }
 
-header "Preparation"
-export LC_CTYPE=C.UTF-8
-export LC_ALL=C.UTF-8
+export LC_CTYPE=POSIX
+export LC_ALL=POSIX
 export DEBIAN_FRONTEND=noninteractive
+export HOME=/root
 
 header "Creating users and directories"
 run create_user app "Passenger APT Automation" 2446
@@ -52,9 +52,9 @@ run wget http://production.cf.rubygems.org/rubygems/rubygems-update-2.4.6.gem -O
 run gem install /tmp/rubygems.gem --no-rdoc --no-ri
 run /var/lib/gems/1.8/bin/update_rubygems --no-rdoc --no-ri
 run gem install bundler -v 1.9.1 --no-rdoc --no-ri
-run env BUNDLE_GEMFILE=/build/Gemfile bundle install
+run env BUNDLE_GEMFILE=/paa_build/Gemfile bundle install
 
-run cp /build/argparse.py /usr/lib/python2.6/
+run cp /paa_build/argparse.py /usr/lib/python2.6/
 run pip install initgroups
 
 run wget http://nodejs.org/dist/v0.12.1/node-v0.12.1-linux-x64.tar.gz -O /tmp/node.tar.gz
@@ -62,7 +62,7 @@ run tar -xzf /tmp/node.tar.gz -C /usr/local
 run ln -s /usr/local/node-*/bin/* /usr/bin/
 
 header "Miscellaneous"
-run cp /build/my_init /build/setuser /sbin/
+run cp /paa_build/my_init /paa_build/setuser /sbin/
 run mkdir /etc/container_environment
 run rm /etc/apt/apt.conf.d/no-cache
 
@@ -71,3 +71,4 @@ run apt-get autoremove -y
 run apt-get clean
 run rm -rf /tmp/* /var/tmp/*
 run rm -rf /var/lib/apt/lists/*
+run rm -rf /paa_build

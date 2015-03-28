@@ -34,6 +34,11 @@ function create_group()
 	fi
 }
 
+export LC_CTYPE=C.UTF-8
+export LC_ALL=C.UTF-8
+export DEBIAN_FRONTEND=noninteractive
+export HOME=/root
+
 header "Creating users and directories"
 run create_user app "Passenger APT Automation" 2446
 
@@ -43,7 +48,7 @@ curl -sL https://deb.nodesource.com/setup_0.12 | sudo bash -
 run apt-get install -y -q build-essential gdebi-core ruby ruby-dev rake \
 	libcurl4-openssl-dev zlib1g-dev libssl-dev python git reprepro
 run gem1.9.1 install bundler -v 1.9.1 --no-rdoc --no-ri
-run env BUNDLE_GEMFILE=/build/Gemfile bundle install
+run env BUNDLE_GEMFILE=/paa_build/Gemfile bundle install
 run apt-get install -y nodejs
 
 header "Allow APT caching"
@@ -54,3 +59,4 @@ run apt-get autoremove -y
 run apt-get clean
 run rm -rf /tmp/* /var/tmp/*
 run rm -rf /var/lib/apt/lists/*
+run rm -rf /paa_build

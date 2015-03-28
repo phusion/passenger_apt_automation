@@ -34,12 +34,17 @@ function create_group()
 	fi
 }
 
+export LC_CTYPE=C.UTF-8
+export LC_ALL=C.UTF-8
+export DEBIAN_FRONTEND=noninteractive
+export HOME=/root
+
 header "Creating users and directories"
 run create_user app "Passenger APT Automation" 2446
-run cp /build/sudoers.conf /etc/sudoers.d/app
+run cp /paa_build/sudoers.conf /etc/sudoers.d/app
 run chown root: /etc/sudoers.d/app
 run chmod 440 /etc/sudoers.d/app
-run cp /build/pbuilderrc ~app/.pbuilderrc
+run cp /paa_build/pbuilderrc ~app/.pbuilderrc
 run chown app: ~app/.pbuilderrc
 
 header "Installing dependencies"
@@ -48,7 +53,7 @@ run apt-get install -y -q ubuntu-dev-tools debhelper source-highlight \
 	ruby ruby-dev libsqlite3-dev runit git gawk rake realpath debian-keyring \
 	zlib1g-dev libxml2-dev libxslt1-dev gdebi-core gnupg
 run gem1.9.1 install bundler --no-rdoc --no-ri
-run env BUNDLE_GEMFILE=/build/Gemfile bundle install
+run env BUNDLE_GEMFILE=/paa_build/Gemfile bundle install
 
 header "Importing public keys"
 run sudo -u app -H gpg --keyserver keyserver.ubuntu.com --recv-keys C324F5BB38EEB5A0
@@ -67,7 +72,7 @@ run dpkg -i libpam-doc*.deb libpam-modules*.deb libpam-runtime*.deb libpam0g*.de
 run rm -rf *.deb *.gz *.dsc *.changes pam-*
 
 header "Finishing up"
-run cp /build/CONTAINER_VERSION.txt /
+run cp /paa_build/CONTAINER_VERSION.txt /
 # Undo 'apt-get build-dep pam'
 run apt-get remove -y autoconf automake autopoint autotools-dev dh-autoreconf docbook-xml \
 	docbook-xsl flex libaudit-dev libcrack2 libcrack2-dev libdb-dev libdb5.3-dev \
@@ -77,3 +82,4 @@ run apt-get autoremove -y
 run apt-get clean
 run rm -rf /tmp/* /var/tmp/*
 run rm -rf /var/lib/apt/lists/*
+run rm -rf /paa_build
