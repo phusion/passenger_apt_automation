@@ -6,7 +6,7 @@ source "$ROOTDIR/internal/lib/library.sh"
 
 COMPILE_CONCURRENCY=${COMPILE_CONCURRENCY:-2}
 export DEBIAN_FRONTEND=noninteractive
-if [[ "$DISTRIBUTION" = ubuntu10.04 ]]; then
+if [[ "$DISTRIBUTION" = ubuntu10.04 ]] || [[ "$DISTRIBUTION" = debian6 ]]; then
 	export LC_ALL=POSIX
 	export LC_CTYPE=POSIX
 else

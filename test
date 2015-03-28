@@ -20,7 +20,7 @@ function usage()
 	echo
 	echo "Required options:"
 	echo "  -p DIR     Path to Passenger source code"
-	echo "  -x DISTRO  Distribution to run tests in: ubuntu14.04,ubuntu10.04"
+	echo "  -x DISTRO  Distribution to run tests in: ubuntu14.04,ubuntu10.04,debian6"
 	echo "  -d DIR     Path to built packages"
 	echo "  -c DIR     Path to cache directory"
 	echo
@@ -83,6 +83,8 @@ function parse_options()
 		IMAGE=phusion/passenger_apt_automation_testbox_ubuntu_14_04
 	elif [[ "$DISTRIBUTION" = ubuntu10.04 ]]; then
 		IMAGE=phusion/passenger_apt_automation_testbox_ubuntu_10_04
+	elif [[ "$DISTRIBUTION" = debian6 ]]; then
+		IMAGE=phusion/passenger_apt_automation_testbox_debian_6
 	else
 		echo "ERROR: invalid distribution name."
 		exit 1

@@ -107,7 +107,7 @@ Once packages have been built, you can test them with the test script. Here is a
     ./test -p /passenger -x ubuntu14.04 -d output/trusty -c cache
 
  * `-p` tells it where the Passenger source code is.
- * `-x` tells it which environment it should use for running the tests. Two environments are supported: `ubuntu10.04` and `ubuntu14.04`.
+ * `-x` tells it which environment it should use for running the tests. To learn which environments are supported, run `./test -h`.
  * `-d` tells it where to find the packages that are to be tested. This must point to a subdirectory in the output directory produced by the build script, and the packages must match the test environment as specified by `-x`. For example, if you specified `-x ubuntu14.04`, and if the build script stored packages in the directory `output`, then you should pass `-d output/trusty`.
  * `-c` tells it where the cache directory is. The test script caches files into this directory so that subsequent runs will be faster.
 
