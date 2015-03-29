@@ -1,9 +1,11 @@
-.PHONY: all buildbox testbox-debian-6 testbox-ubuntu-14.04 testbox-ubuntu-10.04 upload
+.PHONY: all buildbox testboxes testbox-debian-6 testbox-ubuntu-14.04 testbox-ubuntu-10.04 upload
 
-all: buildbox testbox-debian-6 testbox-ubuntu-14.04 testbox-ubuntu-10.04
+all: buildbox testboxes
 
 buildbox:
 	./setup-buildbox-docker-image
+
+testboxes: testbox-debian-6 testbox-ubuntu-14.04 testbox-ubuntu-10.04
 
 testbox-debian-6:
 	./setup-testbox-docker-image-debian-6

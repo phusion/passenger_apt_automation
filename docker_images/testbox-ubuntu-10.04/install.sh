@@ -65,6 +65,8 @@ run ln -s /usr/local/node-*/bin/* /usr/bin/
 header "Miscellaneous"
 run mkdir /etc/container_environment
 run rm /etc/apt/apt.conf.d/no-cache
+run mkdir /paa
+run cp /paa_build/Gemfile* /paa/
 
 header "Finishing up"
 run apt-get autoremove -y
