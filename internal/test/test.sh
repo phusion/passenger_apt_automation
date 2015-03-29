@@ -91,7 +91,8 @@ fi
 echo
 header "Running tests..."
 
-run env BUNDLE_GEMFILE=/paa/Gemfile bundle exec rspec -f d -c /system/internal/test/system_web_server_test.rb
+run env BUNDLE_GEMFILE=/paa/Gemfile bundle exec \
+	rspec -f d -c --tty /system/internal/test/system_web_server_test.rb
 # The Nginx instance launched by system_web_server_test.rb may have created subdirectories
 # in /var/lib/nginx. We relax their permissions here because subsequent tests run Nginx
 # as the 'app' user.
