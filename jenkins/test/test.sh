@@ -47,6 +47,10 @@ else
 	EXTRA_TEST_PARAMS=
 fi
 
+# Sleep for a random amount of time in order to work around Docker/AUFS bugs
+# that may be triggered if multiple containers are shut down at the same time.
+run docker run --rm phusion/passenger_apt_automation_buildbox ruby -e 'sleep(rand(2000) / 1000.0)'
+
 run ./build \
 	-w "$WORKSPACE/work" \
 	-c "$WORKSPACE/cache" \
