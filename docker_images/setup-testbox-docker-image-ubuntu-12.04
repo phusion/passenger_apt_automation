@@ -1,0 +1,7 @@
+#!/bin/bash
+set -e
+SELFDIR=`dirname "$0"`
+SELFDIR=`cd "$SELFDIR" && pwd`
+set -x
+cd "$SELFDIR/testbox-ubuntu-12.04"
+exec docker build --force-rm -t phusion/passenger_apt_automation_testbox_ubuntu_12_04 .
