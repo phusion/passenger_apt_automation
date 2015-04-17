@@ -15,7 +15,7 @@ This project utilizes Docker for isolation. Because of the usage of Docker, thes
    - [The test script](#the-test-script)
    - [The publish script](#the-publish-script)
  * [Maintenance](#maintenance)
-   - [When a new distribution has been released](#when-a-new-distribution-has-been-released)
+   - [Adding support for a new distribution](#adding-support-for-a-new-distribution)
    - [Building Nginx packages only](#building-nginx-packages-only)
  * [Jenkins integration](#jenkins-integration)
    - [Debugging a packaging test failure](#debugging-a-packaging-test-failure)
@@ -128,9 +128,9 @@ Once packages have been built, you can publish them to PackageCloud. The `publis
 
 ## Maintenance
 
-### When a new distribution has been released
+### Adding support for a new distribution
 
-There are three things you need to do when a new distribution has been released.
+There are three things you want to add support for a new distribution.
 
  1. Add a definition for this new distribution to internal/lib/distro_info.rb.
  2. Update the package definitions in `debian_specs/`.
