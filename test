@@ -116,6 +116,7 @@ run mkdir -p "$CACHE_DIR/test-$DISTRIBUTION/aptlist/partial"
 echo "-------- Entering Docker container --------"
 exec docker run \
 	--rm $TTY_ARGS \
+	--security-opt=apparmor:unconfined \
 	-v "$SELFDIR/internal:/system/internal:ro" \
 	-v "$PASSENGER_DIR:/passenger:ro" \
 	-v "$OUTPUT_DIR:/output:ro" \
