@@ -43,6 +43,18 @@ Description: Rails and Rack support for Apache2 and Nginx
  deployment of Ruby web applications, such as those built on the
  revolutionary Ruby on Rails web framework, a breeze.
 
+Package: passenger-enterprise-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends: passenger-enterprise (= ${binary:Version}), ${misc:Depends},
+Description: Rails and Rack support for Apache2 and Nginx
+ Phusion Passenger — a.k.a. mod_rails or mod_rack — makes
+ deployment of Ruby web applications, such as those built on the
+ revolutionary Ruby on Rails web framework, a breeze.
+ .
+ This package contains the debugging symbols for passenger-enterprise.
+
 Package: passenger-enterprise-dev
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends},

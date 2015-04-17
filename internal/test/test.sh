@@ -26,11 +26,13 @@ header "Installing packages..."
 run apt-get update -q
 if ls /output/*enterprise* >/dev/null 2>/dev/null; then
 	run gdebi -n -q /output/passenger-enterprise_*_amd64.deb
+	run gdebi -n -q /output/passenger-enterprise-dbg_*_amd64.deb
 	run gdebi -n -q /output/passenger-enterprise-dev_*_amd64.deb
 	run gdebi -n -q /output/passenger-enterprise-doc_*_all.deb
 	run gdebi -n -q /output/libapache2-mod-passenger-enterprise_*_amd64.deb
 else
 	run gdebi -n -q /output/passenger_*_amd64.deb
+	run gdebi -n -q /output/passenger-dbg_*_amd64.deb
 	run gdebi -n -q /output/passenger-dev_*_amd64.deb
 	run gdebi -n -q /output/passenger-doc_*_all.deb
 	run gdebi -n -q /output/libapache2-mod-passenger_*_amd64.deb
