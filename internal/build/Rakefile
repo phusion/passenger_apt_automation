@@ -218,7 +218,7 @@ task :finish do
       basename = File.basename(path)
       distro = File.basename(File.dirname(path))
       mkdir_p "/output/#{distro}"
-      cp path, "/output/#{distro}/#{maybe_add_epoch_to_filename(basename)}"
+      cp path, "/output/#{distro}/#{basename}"
     end
   end
 
@@ -229,7 +229,7 @@ task :finish do
       basename = File.basename(path)
       distro = File.basename(File.dirname(path)).sub(/[-_].*/, '')
       mkdir_p "/output/#{distro}"
-      cp path, "/output/#{distro}/#{maybe_add_epoch_to_filename(basename)}"
+      cp path, "/output/#{distro}/#{basename}"
     end
   end
 end

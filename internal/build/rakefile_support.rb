@@ -97,31 +97,3 @@ def infer_next_passenger_version(passenger_version)
   end
   components.join(".")
 end
-
-# Adds the Debian epoch version to the package filename. For example,
-# turns
-#
-#     nginx_1.6.2-8.5.0.5~lucid1_i386.deb
-#
-# into
-#
-#     nginx_1:1.6.2-8.5.0.5~lucid1_i386.deb
-#
-# This is because debuild does not include the epoch version number
-# in the filename, but PackageCloud does. In order to make the publish
-# script's yanking work correctly, we fix up the filenames using this
-# function.
-def maybe_add_epoch_to_filename(name)
-  if name =~ /.(dsc|deb)$/
-    debian_name = name.sub(/_.*/, '')
-    if debian_name =~ /passenger/
-      name.sub(/_/, "_#{PASSENGER_DEBIAN_EPOCH}:")
-    elsif debian_name =~ /nginx/
-      name.sub(/_/, "_#{NGINX_DEBIAN_EPOCH}:")
-    else
-      name
-    end
-  else
-    name
-  end
-end
