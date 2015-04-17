@@ -9,9 +9,11 @@ export DEBIAN_FRONTEND=noninteractive
 if [[ "$DISTRIBUTION" = ubuntu10.04 ]] || [[ "$DISTRIBUTION" = debian6 ]]; then
 	export LC_ALL=POSIX
 	export LC_CTYPE=POSIX
+	APACHE2_DEV_PACKAGE=apache2-dev
 else
 	export LC_ALL=C.UTF-8
 	export LC_CTYPE=C.UTF-8
+	APACHE2_DEV_PACKAGE=apache2-threaded-dev
 fi
 
 if ls /output/*enterprise* >/dev/null 2>/dev/null; then
@@ -39,7 +41,7 @@ else
 fi
 run gdebi -n -q /output/nginx-common_*_all.deb
 run gdebi -n -q /output/nginx-extras_*_amd64.deb
-run apt-get install -y -q apache2-dev
+run apt-get install -y -q $APACHE2_DEV_PACKAGE
 
 echo
 header "Preparing Passenger source code..."

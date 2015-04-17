@@ -1,0 +1,7 @@
+#!/bin/bash
+set -e
+SELFDIR=`dirname "$0"`
+SELFDIR=`cd "$SELFDIR" && pwd`
+set -x
+cd "$SELFDIR/testbox-debian-7"
+exec docker build --force-rm -t phusion/passenger_apt_automation_testbox_debian_7 .
