@@ -55,7 +55,7 @@ def set_constants_and_envvars
   set_constant_and_envvar :MAINTAINER_EMAIL, "info@phusion.nl"
 
   if passenger_enterprise?
-    set_constant_and_envvar :PASSENGER_PACKAGE_NAME, "passenger-enterprise"
+    set_constant_and_envvar :PASSENGER_PACKAGE_NAME, "passenger-enterprise-server"
     set_constant_and_envvar :PASSENGER_DEBIAN_NAME, "passenger-enterprise"
     set_constant_and_envvar :PASSENGER_SPECDIR, "passenger_enterprise"
     enterprise_version_bonus = 1
@@ -69,7 +69,7 @@ def set_constants_and_envvars
   set_constant_and_envvar :PASSENGER_DEBIAN_VENDOR_VERSION, 1 + enterprise_version_bonus
   set_constant_and_envvar :PASSENGER_DEBIAN_HOTFIX_VERSION, 1
   set_constant_and_envvar :PASSENGER_VERSION, PhusionPassenger::VERSION_STRING
-  set_constant_and_envvar :PASSENGER_TARBALL, "#{PASSENGER_PACKAGE_NAME}_#{PASSENGER_VERSION}.orig.tar.gz"
+  set_constant_and_envvar :PASSENGER_TARBALL, "#{PASSENGER_DEBIAN_NAME}_#{PASSENGER_VERSION}.orig.tar.gz"
   set_constant_and_envvar :NEXT_PASSENGER_VERSION, infer_next_passenger_version(PASSENGER_VERSION)
 
   set_constant_and_envvar :NGINX_PACKAGE_NAME, "nginx"

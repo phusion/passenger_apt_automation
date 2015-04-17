@@ -14,6 +14,13 @@ else
 	export LC_CTYPE=C.UTF-8
 fi
 
+if ls /output/*enterprise* >/dev/null 2>/dev/null; then
+	if [[ ! -e /etc/passenger-enterprise-license ]]; then
+		echo "ERROR: please set a Passenger Enterprise license key with -e."
+		exit 1
+	fi
+fi
+
 echo
 header "Installing packages..."
 run apt-get update -q

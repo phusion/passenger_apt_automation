@@ -11,6 +11,7 @@ OUTPUT_DIR=
 CACHE_DIR=
 DEBUG_CONSOLE=false
 DEBUG_CONSOLE_ON_FAIL=false
+PASSENGER_ENTERPRISE_LICENSE_KEY=
 JENKINS=false
 
 function usage()
@@ -27,6 +28,7 @@ function usage()
 	echo "Other optional options:"
 	echo "  -O         Open debugging console instead of running test script"
 	echo "  -D         Open debugging console on test failure"
+	echo "  -e         Use the given Passenger Enterprise license key"
 	echo "  -j         Indicate that this script is run from a Jenkins job"
 	echo
 	echo "  -h         Show usage"
@@ -36,7 +38,7 @@ function parse_options()
 {
 	local OPTIND=1
 	local opt
-	while getopts "p:x:d:c:ODjh" opt; do
+	while getopts "p:x:d:c:ODe:jh" opt; do
 		case "$opt" in
 		p)
 			PASSENGER_DIR="$OPTARG"
@@ -55,6 +57,9 @@ function parse_options()
 			;;
 		D)
 			DEBUG_CONSOLE_ON_FAIL=true
+			;;
+		e)
+			PASSENGER_ENTERPRISE_LICENSE_KEY="$OPTARG"
 			;;
 		j)
 			JENKINS=true
@@ -104,10 +109,13 @@ PASSENGER_DIR="`absolute_path \"$PASSENGER_DIR\"`"
 OUTPUT_DIR="`absolute_path \"$OUTPUT_DIR\"`"
 CACHE_DIR="`absolute_path \"$CACHE_DIR\"`"
 
+EXTRA_ARGS=()
+if [[ "$PASSENGER_ENTERPRISE_LICENSE_KEY" != "" ]]; then
+	PASSENGER_ENTERPRISE_LICENSE_KEY="`absolute_path \"$PASSENGER_ENTERPRISE_LICENSE_KEY\"`"
+	EXTRA_ARGS+=(-v "$PASSENGER_ENTERPRISE_LICENSE_KEY:/etc/passenger-enterprise-license:ro")
+fi
 if tty -s; then
-	TTY_ARGS="-t -i"
-else
-	TTY_ARGS=
+	EXTRA_ARGS+=(-t -i)
 fi
 
 run mkdir -p "$CACHE_DIR/test-$DISTRIBUTION/aptcache/archives/partial"
@@ -115,7 +123,7 @@ run mkdir -p "$CACHE_DIR/test-$DISTRIBUTION/aptlist/partial"
 
 echo "-------- Entering Docker container --------"
 exec docker run \
-	--rm $TTY_ARGS \
+	--rm \
 	--security-opt=apparmor:unconfined \
 	-v "$SELFDIR/internal:/system/internal:ro" \
 	-v "$PASSENGER_DIR:/passenger:ro" \
@@ -123,6 +131,7 @@ exec docker run \
 	-v "$CACHE_DIR:/cache" \
 	-v "$CACHE_DIR/test-$DISTRIBUTION/aptcache:/var/cache/apt" \
 	-v "$CACHE_DIR/test-$DISTRIBUTION/aptlist:/var/lib/apt/lists" \
+	"${EXTRA_ARGS[@]}" \
 	-e "DISTRIBUTION=$DISTRIBUTION" \
 	-e "DEBUG_CONSOLE=$DEBUG_CONSOLE" \
 	-e "DEBUG_CONSOLE_ON_FAIL=$DEBUG_CONSOLE_ON_FAIL" \

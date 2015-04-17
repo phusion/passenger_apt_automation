@@ -60,7 +60,7 @@ run tar xzf /work/${NGINX_DEBIAN_NAME}_$NGINX_VERSION.orig.tar.gz
 header "Packaging up"
 cd ..
 echo "+ Normalizing timestamps"
-find passenger-$PASSENGER_VERSION -print0 | xargs -0 touch -d '2013-10-27 00:00:00 UTC'
+find $PASSENGER_PACKAGE_NAME-$PASSENGER_VERSION -print0 | xargs -0 touch -d '2013-10-27 00:00:00 UTC'
 echo "+ Creating final orig tarball"
-tar -c passenger-* | gzip --no-name --best > /work/${PASSENGER_DEBIAN_NAME}_$PASSENGER_VERSION.orig.tar.gz
+tar -c $PASSENGER_PACKAGE_NAME-$PASSENGER_VERSION | gzip --no-name --best > "$1"
 run rm -rf ~/pkg
