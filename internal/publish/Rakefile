@@ -2,7 +2,7 @@ require_relative 'rakefile_support'
 require_relative '../lib/tracking'
 
 initialize_rakefile!
-initialize_tracking_database!(false)
+initialize_tracking_database!(SHOW_OVERVIEW_PERIODICALLY)
 
 
 desc "Publish all packages"
@@ -34,9 +34,13 @@ DISTROS.each do |distro_class, distro|
     task "publish:#{distro}:#{basename}" => [:init_package_cloud] do
       track_task(:publish, "#{distro} #{basename}", false) do |task|
         if YANK
-          task.sh "package_cloud yank phusion/#{REPOSITORY}/#{distro_class}/#{distro} #{basename} || true"
+          retry_at_most(task, 3) do
+            task.sh "package_cloud yank phusion/#{REPOSITORY}/#{distro_class}/#{distro} #{basename} || true"
+          end
         end
-        task.sh "package_cloud push phusion/#{REPOSITORY}/#{distro_class}/#{distro} #{path}"
+        retry_at_most(task, 3) do
+          task.sh "package_cloud push phusion/#{REPOSITORY}/#{distro_class}/#{distro} #{path}"
+        end
       end
     end
   end

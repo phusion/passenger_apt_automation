@@ -69,22 +69,27 @@ end
 
 def dump_tracking_database(print_to_stdout = true)
   TRACKING_DB.monitor.synchronize do
-    str = TRACKING_DB.dump
-
+    if defined?(MAIN_LOG)
+      output = TRACKING_DB.dump
+    end
     if print_to_stdout
-      STDOUT.write("\n")
-      STDOUT.write("---------------------------------------------\n")
-      STDOUT.write(str.chomp + "\n")
-      STDOUT.write("---------------------------------------------\n")
-      STDOUT.write("\n")
-      STDOUT.flush
+      console_output = TRACKING_DB.dump(true)
     end
 
     if defined?(MAIN_LOG)
       MAIN_LOG.truncate(0)
       MAIN_LOG.rewind
-      MAIN_LOG.write(str)
+      MAIN_LOG.write(output)
       MAIN_LOG.flush
+    end
+
+    if print_to_stdout
+      STDOUT.write("\n")
+      STDOUT.write("---------------------------------------------\n")
+      STDOUT.write(console_output.chomp + "\n")
+      STDOUT.write("---------------------------------------------\n")
+      STDOUT.write("\n")
+      STDOUT.flush
     end
   end
 end

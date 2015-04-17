@@ -2,6 +2,8 @@ require_relative 'tracking_category'
 require_relative 'utils'
 require 'monitor'
 require 'stringio'
+require 'paint'
+require 'paint/rgb_colors'
 
 class TrackingDatabase
   attr_accessor :thread
@@ -76,26 +78,41 @@ class TrackingDatabase
     result
   end
 
-  def dump
+  def dump(color = false)
     io = StringIO.new
+    if color
+      success_color = [:green]
+      error_color = [:red]
+    else
+      success_color = error_color = []
+    end
+
     @monitor.synchronize do
       io.puts "Current time: #{Utils.format_time(Time.now)}"
       io.puts "Start time  : #{Utils.format_time(start_time)}"
       io.puts "Duration    : #{duration_description}"
       if finished?
-        io.puts "*** FINISHED ***"
+        io.puts Paint["*** FINISHED ***", *success_color]
       end
       if has_errors?
-        io.puts "*** THERE WERE ERRORS ***"
+        io.puts Paint["*** THERE WERE ERRORS ***", *error_color]
       end
 
       io.puts
       each_category do |category|
         io.puts "#{category.description}:"
         category.each_task do |task|
+          if task.state == :done
+            task_color = success_color
+          elsif task.state == :error
+            task_color = error_color
+          else
+            task_color = []
+          end
+
           io.printf "  * %-25s: %-12s\n",
             task.display_name,
-            task.state_name
+            Paint[task.state_name, *task_color]
           if task.start_time
             io.printf "    %25s  started %s\n", nil, Utils.format_time(task.start_time)
           end

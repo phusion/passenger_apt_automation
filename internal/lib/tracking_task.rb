@@ -5,6 +5,12 @@ require 'paint'
 require 'paint/rgb_colors'
 
 class TrackingTask
+  class CommandError < SystemExit
+    def initialize(status = 1)
+      super(status)
+    end
+  end
+
   attr_reader :name, :category
 
   def initialize(category, name)
@@ -105,8 +111,8 @@ class TrackingTask
     end
 
     if $?.nil? || $?.exitstatus != 0
-      log("*** Command failed: #{command}")
-      abort
+      log(Paint["*** Command failed: ", :red] + command)
+      raise CommandError
     end
   end
 
