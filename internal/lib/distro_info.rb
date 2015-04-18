@@ -14,5 +14,7 @@ UBUNTU_DISTRIBUTIONS = {
 DEBIAN_DISTRIBUTIONS = {
   "squeeze"  => "20110206",
   "wheezy"   => "20130504",
-  "jessie"   => "20140000"
+  "jessie"   => "20150425",
+  "stretch"  => "20170101",
+  "buster"   => "20190101"
 }

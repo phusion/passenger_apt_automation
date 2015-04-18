@@ -21,6 +21,7 @@ set -e
 SELFDIR=`dirname "$0"`
 cd "$SELFDIR/../.."
 source "./internal/lib/library.sh"
+source "./internal/lib/distro_info.sh"
 
 require_envvar WORKSPACE "$WORKSPACE"
 require_envvar DISTRIBUTION "$DISTRIBUTION"
@@ -28,20 +29,7 @@ require_envvar DISTRIBUTION "$DISTRIBUTION"
 PASSENGER_ROOT="${PASSENGER_ROOT:-$WORKSPACE}"
 CONCURRENCY=${CONCURRENCY:-4}
 
-if [[ "$DISTRIBUTION" = ubuntu14.04 ]]; then
-	CODENAME=trusty
-elif [[ "$DISTRIBUTION" = ubuntu12.04 ]]; then
-	CODENAME=precise
-elif [[ "$DISTRIBUTION" = ubuntu10.04 ]]; then
-	CODENAME=lucid
-elif [[ "$DISTRIBUTION" = debian7 ]]; then
-	CODENAME=wheezy
-elif [[ "$DISTRIBUTION" = debian6 ]]; then
-	CODENAME=squeeze
-else
-	echo "ERROR: unknown distribution name."
-	exit 1
-fi
+CODENAME=`distro_name_to_codename "$DISTRIBUTION"`
 if [[ "$DEBUG_CONSOLE" = true ]]; then
 	EXTRA_TEST_PARAMS=-D
 else

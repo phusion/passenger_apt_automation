@@ -4,6 +4,7 @@ set -e
 SELFDIR=`dirname "$0"`
 SELFDIR=`cd "$SELFDIR" && pwd`
 source "$SELFDIR/internal/lib/library.sh"
+source "$SELFDIR/internal/lib/distro_info.sh"
 
 PASSENGER_DIR=
 DISTRIBUTION=
@@ -85,19 +86,8 @@ function parse_options()
 	if [[ "$DISTRIBUTION" = "" ]]; then
 		echo "ERROR: please specify a distribution with -x."
 		exit 1
-	elif [[ "$DISTRIBUTION" = ubuntu14.04 ]]; then
-		IMAGE=phusion/passenger_apt_automation_testbox_ubuntu_14_04
-	elif [[ "$DISTRIBUTION" = ubuntu12.04 ]]; then
-		IMAGE=phusion/passenger_apt_automation_testbox_ubuntu_12_04
-	elif [[ "$DISTRIBUTION" = ubuntu10.04 ]]; then
-		IMAGE=phusion/passenger_apt_automation_testbox_ubuntu_10_04
-	elif [[ "$DISTRIBUTION" = debian7 ]]; then
-		IMAGE=phusion/passenger_apt_automation_testbox_debian_7
-	elif [[ "$DISTRIBUTION" = debian6 ]]; then
-		IMAGE=phusion/passenger_apt_automation_testbox_debian_6
 	else
-		echo "ERROR: invalid distribution name."
-		exit 1
+		IMAGE=`distro_name_to_testbox_image "$DISTRIBUTION"`
 	fi
 	if [[ "$OUTPUT_DIR" = "" ]]; then
 		echo "ERROR: please specify a build products directory with -d."
