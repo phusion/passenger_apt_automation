@@ -1,5 +1,0 @@
-#!/bin/bash
-set -e
-SELFDIR=`dirname "$0"`
-export REPOSITORY=passenger-enterprise-testing
-exec "$SELFDIR/_job.sh"
