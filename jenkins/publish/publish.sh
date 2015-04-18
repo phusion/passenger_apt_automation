@@ -11,6 +11,12 @@ require_envvar REPOSITORY "$REPOSITORY"
 PASSENGER_ROOT="${PASSENGER_ROOT:-$WORKSPACE}"
 CONCURRENCY=${CONCURRENCY:-8}
 
+if [[ "$REPOSITORY" =~ -testing$ ]]; then
+	YANK=-y
+else
+	YANK=
+fi
+
 run ./build \
 	-w "$WORKSPACE/work" \
 	-c "$WORKSPACE/cache" \
@@ -25,4 +31,5 @@ run ./publish \
 	-c ~/.packagecloud_token \
 	-r "$REPOSITORY" \
 	-l "$WORKSPACE/publish-log" \
+	$YANK \
 	publish:all
