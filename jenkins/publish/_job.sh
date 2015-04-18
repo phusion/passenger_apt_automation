@@ -17,6 +17,7 @@ run ./build \
 	-o "$WORKSPACE/output" \
 	-p "$PASSENGER_ROOT" \
 	-j "$CONCURRENCY" \
+	-R \
 	-O \
 	pkg:all
 run ./publish \

@@ -63,6 +63,7 @@ run ./build \
 	-d "$CODENAME" \
 	-a amd64 \
 	-j "$CONCURRENCY" \
+	-R \
 	-O \
 	pkg:all
 run ./test \

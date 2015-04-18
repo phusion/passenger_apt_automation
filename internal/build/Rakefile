@@ -16,7 +16,7 @@ namespace :source do
   desc "Create Passenger orig tarball"
   task :passenger => :nginx do
     track_task(:preparation, 'passenger') do |task|
-      if File.exist?("/cache/#{PASSENGER_TARBALL}")
+      if FETCH_PASSENGER_TARBALL_FROM_CACHE && File.exist?("/cache/#{PASSENGER_TARBALL}")
         task.sh "cp /cache/#{PASSENGER_TARBALL} /work/#{PASSENGER_TARBALL}"
       else
         task.sh "./build-passenger-orig-tarball.sh /work/#{PASSENGER_TARBALL}"
