@@ -17,6 +17,15 @@ else
 	YANK=
 fi
 
+if [[ ! -e ~/.packagecloud_token ]]; then
+	echo "ERROR: ~/.packagecloud_token required."
+	exit 1
+fi
+if [[ ! -e ~/.oss_packagecloud_proxy_admin_password ]]; then
+	echo "ERROR: ~/.oss_packagecloud_proxy_admin_password required."
+	exit 1
+fi
+
 run ./build \
 	-w "$WORKSPACE/work" \
 	-c "$WORKSPACE/cache" \
@@ -33,3 +42,12 @@ run ./publish \
 	-l "$WORKSPACE/publish-log" \
 	$YANK \
 	publish:all
+
+header "Clearing proxy caches"
+
+echo "+ https://oss-binaries.phusionpassenger.com/"
+ADMIN_PASSWORD=`cat ~/.oss_packagecloud_proxy_admin_password`
+curl -X POST -K - --cacert "$SELFDIR/jenkins/publish/oss-binaries.phusionpassenger.com.crt" \
+	https://oss-binaries.phusionpassenger.com/packagecloud_proxy/clear_cache \
+	<<<"user = \"admin:$ADMIN_PASSWORD\""
+echo
