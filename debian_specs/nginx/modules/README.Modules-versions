@@ -35,8 +35,8 @@ README for Modules versions
 
  nginx-push
   Homepage: http://pushmodule.slact.net/#download
-  http://pushmodule.slact.net/downloads/nginx_http_push_module-0.692.tar.gz
-  Version: 0.692
+  https://github.com/slact/nginx_http_push_module/archive/v0.73.tar.gz
+  Version: 0.73
 
  #Removed as it no longer works with 1.3.x and above.
  #nginx-upload
