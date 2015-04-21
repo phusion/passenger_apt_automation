@@ -94,8 +94,8 @@ if $DEBUG_CONSOLE; then
 	echo "---------------------------------------------"
 	echo "A debugging console will now be opened for you."
 	echo
-	bash -l
 	# Do not trigger the debugging console that will be called on failure.
+	bash -l || true
 	exit 0
 fi
 
