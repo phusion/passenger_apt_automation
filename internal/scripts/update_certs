@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e
+set -o pipefail
+
+SELFDIR=`dirname "$0"`
+cd "$SELFDIR/../.."
+
+echo "+ Updating jenkins/publish/oss-binaries.phusionpassenger.com.crt"
+OUTPUT=`openssl s_client -showcerts -connect oss-binaries.phusionpassenger.com:443 </dev/null 2>/dev/null | openssl x509 -outform PEM`
+echo "$OUTPUT" > jenkins/publish/oss-binaries.phusionpassenger.com.crt

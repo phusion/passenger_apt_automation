@@ -17,6 +17,7 @@ This project utilizes Docker for isolation. Because of the usage of Docker, thes
  * [Maintenance](#maintenance)
    - [Adding support for a new distribution](#adding-support-for-a-new-distribution)
    - [Building Nginx packages only](#building-nginx-packages-only)
+   - [Updating SSL certificates](#updating-ssl-certificates)
  * [Jenkins integration](#jenkins-integration)
    - [Debugging a packaging test failure](#debugging-a-packaging-test-failure)
  * [Related projects](#related-projects)
@@ -150,6 +151,12 @@ Sometimes you want to build Nginx packages only, without building the Phusion Pa
 After the build script finishes, you can publish these Nginx packages:
 
     ./publish -d output -c ~/.packagecloud_token -r passenger-testing publish:all
+
+### Updating SSL certificates
+
+The Jenkins publishing script posts to some HTTPS servers. For security reasons, we pin the certificates, but these certificates expire after a while. You can update them by running:
+
+    ./internal/scripts/update_certs
 
 ## Jenkins integration
 
