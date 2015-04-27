@@ -111,6 +111,7 @@ echo "+ Relaxing permissions in /var/lib/nginx"
 find /var/lib/nginx -type d | xargs --no-run-if-empty chmod o+rwx
 find /var/lib/nginx -type f | xargs --no-run-if-empty chmod o+rw
 
+run passenger-config validate-install --auto --validate-apache2
 run setuser app bundle exec drake -j$COMPILE_CONCURRENCY \
 	test:integration:native_packaging PRINT_FAILED_COMMAND_OUTPUT=1
 run setuser app env PASSENGER_LOCATION_CONFIGURATION_FILE=/usr/lib/ruby/vendor_ruby/phusion_passenger/locations.ini \
