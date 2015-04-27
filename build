@@ -21,7 +21,7 @@ ARGV=
 
 function usage()
 {
-	echo "./build [OPTIONS] <TASK NAMES...>"
+	echo "Usage: ./build [OPTIONS] <TASK NAMES...>"
 	echo "Build Debian packages."
 	echo
 	echo "Required options:"
@@ -30,7 +30,7 @@ function usage()
 	echo "  -c DIR     Path to cache directory"
 	echo "  -o DIR     Path in which to store build products"
 	echo
-	echo "Other optional options:"
+	echo "Optional options:"
 	echo "  -j NUM     Set build concurrency. Default: 1"
 	echo "  -d NAMES   Build only for given distributions. This is a space-separated list"
 	echo "             of distribution names."
@@ -172,7 +172,7 @@ else
 	run mkdir -p "$OUTPUT_DIR"
 
 	echo "+ Initializing ccache directory"
-	docker run \
+	verbose_run docker run \
 		--rm $TTY_ARGS \
 		-v "$SELFDIR:/system:ro" \
 		-v "$CACHE_DIR:/cache" \

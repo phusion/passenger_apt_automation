@@ -17,7 +17,7 @@ ARGV=
 
 function usage()
 {
-	echo "./publish [OPTIONS] <TASK NAMES...>"
+	echo "Usage: ./publish [OPTIONS] <TASK NAMES...>"
 	echo "Publish built Debian packages to PackageCloud."
 	echo
 	echo "Required options:"
@@ -25,7 +25,7 @@ function usage()
 	echo "  -c PATH    Path to PackageCloud token file"
 	echo "  -r NAME    Repository name, e.g. passenger-testing"
 	echo
-	echo "Other optional options:"
+	echo "Optional options:"
 	echo "  -l DIR     Write logs to the given directory"
 	echo "  -j NUM     Set concurrency. Default: 8"
 	echo "  -y         Yank old packages"

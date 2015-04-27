@@ -17,7 +17,7 @@ JENKINS=false
 
 function usage()
 {
-	echo "./test [OPTIONS]"
+	echo "Usage: ./test [OPTIONS]"
 	echo "Test built packages."
 	echo
 	echo "Required options:"
@@ -27,7 +27,7 @@ function usage()
 	echo "  -d DIR     Path to built packages"
 	echo "  -c DIR     Path to cache directory"
 	echo
-	echo "Other optional options:"
+	echo "Optional options:"
 	echo "  -O         Open debugging console instead of running test script"
 	echo "  -D         Open debugging console on test failure"
 	echo "  -e         Use the given Passenger Enterprise license key"
