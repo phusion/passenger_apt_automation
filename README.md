@@ -156,7 +156,7 @@ After the build script finishes, you can publish these Nginx packages:
 
 The Jenkins publishing script posts to some HTTPS servers. For security reasons, we pin the certificates, but these certificates expire after a while. You can update them by running:
 
-    ./internal/scripts/update_certs
+    ./internal/scripts/pin_certificates
 
 ## Jenkins integration
 
