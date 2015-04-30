@@ -46,7 +46,7 @@ header "Installing dependencies"
 run apt-get update -q
 run apt-get install -y -q build-essential gdebi-core ruby rubygems ruby-dev rake \
 	libopenssl-ruby libcurl4-openssl-dev zlib1g-dev libssl-dev wget curl \
-	python python2.6-dev python-pip git-core reprepro
+	python python2.6-dev python-pip git-core reprepro ccache
 run ln -s /usr/bin/python2.6 /bin/my_init_python
 
 run wget http://production.cf.rubygems.org/rubygems/rubygems-update-2.4.6.gem -O /tmp/rubygems.gem

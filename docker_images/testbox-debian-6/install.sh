@@ -44,7 +44,7 @@ header "Installing dependencies"
 run apt-get update -q
 run apt-get install -y -q build-essential gdebi-core ruby rubygems ruby-dev rake \
 	libopenssl-ruby libcurl4-openssl-dev zlib1g-dev libssl-dev wget curl \
-	python python2.6-dev python-pip git-core reprepro adduser
+	python python2.6-dev python-pip git-core reprepro adduser ccache
 run ln -s /usr/bin/python2.6 /bin/my_init_python
 
 header "Creating users and directories"

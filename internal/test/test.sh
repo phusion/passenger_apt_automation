@@ -67,6 +67,11 @@ cd /tmp/passenger
 
 echo
 header "Preparing system..."
+export PATH=/usr/lib64/ccache:$PATH
+export CCACHE_DIR=/cache/test-$DISTRIBUTION/ccache
+export CCACHE_COMPRESS=1
+export CCACHE_COMPRESS_LEVEL=3
+run setuser app mkdir -p $CCACHE_DIR
 echo "+ Updating /etc/hosts"
 cat /system/internal/test/misc/hosts.conf >> /etc/hosts
 APACHE_VERSION=`dpkg-query -p apache2 | grep Version | sed 's/.*: //'`
@@ -83,8 +88,10 @@ else
 	run chmod 644 $APACHE_CONF_D_DIR/apache-pre-24.conf
 fi
 run a2enmod passenger
-run setuser app mkdir -p /cache/test/bundle
-run setuser app rake test:install_deps DOCTOOLS=no DEPS_TARGET=/cache/test/bundle BUNDLE_ARGS="-j 4"
+run setuser app mkdir -p /cache/test-$DISTRIBUTION/bundle
+run setuser app mkdir -p /cache/test-$DISTRIBUTION/node_modules
+run setuser app ln -s /cache/test-$DISTRIBUTION/node_modules node_modules
+run setuser app rake test:install_deps DOCTOOLS=no DEPS_TARGET=/cache/test-$DISTRIBUTION/bundle BUNDLE_ARGS="-j 4"
 run setuser app cp /system/internal/test/misc/config.json test/config.json
 find /var/{log,lib}/nginx -type d | xargs --no-run-if-empty chmod o+rwx
 find /var/{log,lib}/nginx -type f | xargs --no-run-if-empty chmod o+rw

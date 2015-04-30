@@ -45,7 +45,8 @@ run create_user app "Passenger APT Automation" 2446
 header "Installing dependencies"
 run apt-get update -q
 run apt-get install -y -q build-essential gdebi-core ruby rubygems ruby-dev rake \
-	libcurl4-openssl-dev zlib1g-dev libssl-dev wget curl python3 git reprepro
+	libcurl4-openssl-dev zlib1g-dev libssl-dev wget curl python3 git reprepro \
+	ccache
 run ln -s /usr/bin/python3 /bin/my_init_python
 run gem1.8 install bundler -v 1.9.1 --no-rdoc --no-ri
 run env BUNDLE_GEMFILE=/paa_build/Gemfile bundle install

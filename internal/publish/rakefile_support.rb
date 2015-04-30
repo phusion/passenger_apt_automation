@@ -1,9 +1,9 @@
 require_relative '../lib/distro_info'
 
 REPOSITORY = ENV['REPOSITORY']
-YANK       = !!ENV['YANK']
-SHOW_TASKS = !!ENV['SHOW_TASKS']
-SHOW_OVERVIEW_PERIODICALLY = !!ENV['SHOW_OVERVIEW_PERIODICALLY']
+YANK       = ENV['YANK'] == 'true'
+SHOW_TASKS = ENV['SHOW_TASKS'] == 'true'
+SHOW_OVERVIEW_PERIODICALLY = ENV['SHOW_OVERVIEW_PERIODICALLY'] == 'true'
 
 def initialize_rakefile!
   STDOUT.sync = true
