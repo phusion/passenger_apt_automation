@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-SELFDIR=`dirname "$0"`
-SELFDIR=`cd "$SELFDIR" && pwd`
+SELFDIR="`dirname \"$0\"`"
+SELFDIR="`cd \"$SELFDIR\" && pwd`"
 source "$SELFDIR/internal/lib/library.sh"
 
 PASSENGER_DIR=
