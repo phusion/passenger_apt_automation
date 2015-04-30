@@ -1,12 +1,14 @@
 #!/bin/bash
 set -e
 
-SELFDIR=`dirname "$0"`
+SELFDIR="`dirname \"$0\"`"
 cd "$SELFDIR/../.."
+SELFDIR="`pwd`"
 source "./internal/lib/library.sh"
 
 require_envvar WORKSPACE "$WORKSPACE"
 require_envvar REPOSITORY "$REPOSITORY"
+require_envvar HOME "$HOME"
 
 PASSENGER_ROOT="${PASSENGER_ROOT:-$WORKSPACE}"
 CONCURRENCY=${CONCURRENCY:-8}
@@ -23,6 +25,10 @@ if [[ ! -e ~/.packagecloud_token ]]; then
 fi
 if [[ ! -e ~/.oss_packagecloud_proxy_admin_password ]]; then
 	echo "ERROR: ~/.oss_packagecloud_proxy_admin_password required."
+	exit 1
+fi
+if [[ ! -e ~/.enterprise_packagecloud_proxy_admin_password ]]; then
+	echo "ERROR: ~/.enterprise_packagecloud_proxy_admin_password required."
 	exit 1
 fi
 
@@ -44,10 +50,15 @@ run ./publish \
 	publish:all
 
 header "Clearing proxy caches"
-
-echo "+ https://oss-binaries.phusionpassenger.com/"
-ADMIN_PASSWORD=`cat ~/.oss_packagecloud_proxy_admin_password`
-curl -X POST -K - --cacert "$SELFDIR/jenkins/publish/oss-binaries.phusionpassenger.com.crt" \
-	https://oss-binaries.phusionpassenger.com/packagecloud_proxy/clear_cache \
-	<<<"user = \"admin:$ADMIN_PASSWORD\""
-echo
+exec docker run -t -i --rm \
+	-v "$SELFDIR:/system:ro" \
+	-v "$HOME/.oss_packagecloud_proxy_admin_password:/oss_packagecloud_proxy_admin_password.txt:ro" \
+	-v "$HOME/.enterprise_packagecloud_proxy_admin_password:/enterprise_packagecloud_proxy_admin_password.txt:ro" \
+	-e "APP_UID=`/usr/bin/id -u`" \
+	-e "APP_GID=`/usr/bin/id -g`" \
+	-e "LC_CTYPE=en_US.UTF-8" \
+	phusion/passenger_apt_automation_buildbox \
+	/sbin/my_init --quiet --skip-runit --skip-startup-files -- \
+	/system/internal/scripts/inituidgid.sh \
+	/sbin/setuser app \
+	/system/jenkins/publish/clear_caches.rb

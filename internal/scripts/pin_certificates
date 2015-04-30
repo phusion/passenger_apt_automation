@@ -1,0 +1,34 @@
+#!/usr/bin/env ruby
+require 'net/https'
+
+def get_fingerprint(host, port = 443)
+  fingerprint = nil
+  http = Net::HTTP.new(host, port)
+  http.use_ssl = true
+  http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+  http.verify_callback = lambda do |preverify_ok, store_context|
+    if preverify_ok and store_context.error == 0
+      certificate = OpenSSL::X509::Certificate.new(store_context.chain[0])
+      fingerprint = Digest::SHA256.hexdigest(certificate.to_der).upcase.scan(/../).join(":")
+      true
+    else
+      false
+    end
+  end
+  request = Net::HTTP::Get.new("/")
+  http.request(request)
+  fingerprint
+end
+
+def update_pin_file(path, hostname, port = 443)
+  puts "+ Updating #{path}"
+  fingerprint = get_fingerprint(hostname, port)
+  puts fingerprint
+  File.open(path, "w") do |f|
+    f.write(fingerprint)
+  end
+end
+
+update_pin_file "internal/publish/packagecloud_fingerprint.txt", "packagecloud.io"
+update_pin_file "internal/publish/oss-binaries.phusionpassenger.com-fingerprint.txt", "oss-binaries.phusionpassenger.com"
+update_pin_file "internal/publish/passenger_website_fingerprint.txt", "www.phusionpassenger.com"
