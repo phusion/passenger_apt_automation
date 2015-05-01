@@ -1,21 +1,35 @@
+<%
+case distribution_class
+when :ubuntu
+  if is_distribution?("<= saucy")
+    ruby_dependencies = "ruby1.8, ruby1.8-dev, rubygems1.8, ruby1.9.1, ruby1.9.1-dev"
+  elsif is_distribution?("<= trusty")
+    ruby_dependencies = "ruby1.9.1, ruby1.9.1-dev, ruby2.0, ruby2.0-dev"
+  elsif is_distribution?("<= utopic")
+    ruby_dependencies = "ruby2.0, ruby2.0-dev, ruby2.1, ruby2.1-dev"
+  else
+    ruby_dependencies = "ruby2.1, ruby2.1-dev"
+  end
+when :debian
+  if is_distribution?("<= wheezy")
+    ruby_dependencies = "ruby1.8, ruby1.8-dev, rubygems1.8, ruby1.9.1, ruby1.9.1-dev"
+  else
+    ruby_dependencies = "ruby2.1, ruby2.1-dev"
+  end
+else
+  raise "Unknown distribution class"
+end
+-%>
 Source: passenger
 Section: ruby
 Priority: optional
 Maintainer: <%= MAINTAINER_NAME %> <<%= MAINTAINER_EMAIL %>>
 Uploaders: <%= MAINTAINER_NAME %> <<%= MAINTAINER_EMAIL %>>
 Build-Depends: debhelper (>= 7.0.50~), rake,
-<% if is_distribution?("<= lucid") -%>
- ruby1.8, ruby1.8-dev, rubygems1.8,
- ruby1.9.1, ruby1.9.1-dev, rubygems1.9,
-<% elsif is_distribution?("<= saucy") || is_distribution?("<= wheezy") -%>
- ruby1.8, ruby1.8-dev, rubygems1.8,
- ruby1.9.1, ruby1.9.1-dev,
-<% else -%>
- ruby1.9.1, ruby1.9.1-dev,
- ruby2.0, ruby2.0-dev,
-<% end -%>
+ <%= ruby_dependencies %>,
  apache2-mpm-worker | apache2-mpm, apache2-threaded-dev,
- libapr1-dev, libcurl4-openssl-dev
+ libapr1-dev, libcurl4-openssl-dev, zlib1g-dev, libpcre3-dev,
+ libssl-dev
 Standards-Version: 3.9.3
 Homepage: https://www.phusionpassenger.com/
 Vcs-Git: git://github.com/phusion/passenger.git
@@ -58,7 +72,7 @@ Description: Rails and Rack support for Apache2 and Nginx
 Package: passenger-dev
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends},
- ruby2.2 | ruby2.1 | ruby2.0 | ruby1.9.1 | ruby1.8 | ruby-interpreter,
+ ruby2.4 | ruby2.3 | ruby2.2 | ruby2.1 | ruby2.0 | ruby1.9.1 | ruby1.8 | ruby-interpreter,
  passenger (= ${binary:Version})
 Replaces: ruby-passenger-dev
 Conflicts: ruby-passenger-dev

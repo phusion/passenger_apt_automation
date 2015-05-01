@@ -1,6 +1,12 @@
+<%
+if is_distribution?("<= quantal") || is_distribution?("<= wheezy")
+  localstatedir = "/var/run"
+else
+  localstatedir = "/run"
+end
+-%>
 #!/bin/sh
 
-<% if is_distribution?(">= trusty") || is_distribution?(">= jessie") -%>
 ### BEGIN INIT INFO
 # Provides:   nginx
 # Required-Start:    $local_fs $remote_fs $network $syslog $named
@@ -21,17 +27,18 @@ if [ -r /etc/default/nginx ]; then
     . /etc/default/nginx
 fi
 
+STOP_SCHEDULE="${STOP_SCHEDULE:-QUIT/5/TERM/5/KILL/5}"
+
 test -x $DAEMON || exit 0
 
 . /lib/init/vars.sh
 . /lib/lsb/init-functions
 
-# We made the awk expression more precise:
-# https://code.google.com/p/phusion-passenger/issues/detail?id=1060
-PID=$(awk -F'[ \t;]+' '/[^#]\<pid/ {print $2}' /etc/nginx/nginx.conf)
+# Try to extract nginx pidfile
+PID=$(cat /etc/nginx/nginx.conf | grep -Ev '^\s*#' | awk 'BEGIN { RS="[;{}]" } { if ($1 == "pid") print $2 }' | head -n1)
 if [ -z "$PID" ]
 then
-    PID=/run/nginx.pid
+    PID=<%= localstatedir %>/nginx.pid
 fi
 
 # Check if the ULIMIT is set in /etc/default/nginx
@@ -70,7 +77,7 @@ do_stop()
     #   1 if daemon was already stopped
     #   2 if daemon could not be stopped
     #   other if a failure occurred
-    start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PID --name $NAME
+    start-stop-daemon --stop --quiet --retry=$STOP_SCHEDULE --pidfile $PID --name $NAME
     RETVAL="$?"
 
     sleep 1
@@ -209,120 +216,3 @@ case "$1" in
 esac
 
 :
-<% else -%>
-### BEGIN INIT INFO
-# Provides:	  nginx
-# Required-Start:    $local_fs $remote_fs $network $syslog $named
-# Required-Stop:     $local_fs $remote_fs $network $syslog $named
-# Default-Start:     2 3 4 5
-# Default-Stop:      0 1 6
-# Short-Description: starts the nginx web server
-# Description:       starts nginx using start-stop-daemon
-### END INIT INFO
-
-PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-DAEMON=/usr/sbin/nginx
-NAME=nginx
-DESC=nginx
-
-# Include nginx defaults if available
-if [ -r /etc/default/nginx ]; then
-	. /etc/default/nginx
-fi
-
-test -x $DAEMON || exit 0
-
-set -e
-
-. /lib/lsb/init-functions
-
-# We made the awk expression more precise:
-# https://code.google.com/p/phusion-passenger/issues/detail?id=1060
-PID=$(awk -F'[ \t;]+' '/[^#]\<pid/ {print $2}' /etc/nginx/nginx.conf)
-if [ -z "$PID" ]
-then
-<% if is_distribution?("<= quantal") || is_distribution?("<= wheezy") -%>
-  PID=/var/run/nginx.pid
-<% else -%>
-  PID=/run/nginx.pid
-<% end -%>
-fi
-
-# Check if the ULIMIT is set in /etc/default/nginx
-if [ -n "$ULIMIT" ]; then
-  # Set the ulimits
-  ulimit $ULIMIT
-fi
-
-test_nginx_config() {
-		$DAEMON -t $DAEMON_OPTS >/dev/null 2>&1
-		retvar=$?
-		if [ $retvar -ne 0 ]
-		then
-			exit $retvar
-		fi
-}
-
-start() {
-		start-stop-daemon --start --quiet --pidfile $PID \
-			--retry 5 --exec $DAEMON --oknodo -- $DAEMON_OPTS
-}
-
-stop() {
-		start-stop-daemon --stop --quiet --pidfile $PID \
-			--retry 5 --oknodo --exec $DAEMON
-}
-
-case "$1" in
-	start)
-		test_nginx_config
-		log_daemon_msg "Starting $DESC" "$NAME"
-		start
-		log_end_msg $?
-		;;
-
-	stop)
-		log_daemon_msg "Stopping $DESC" "$NAME"
-		stop
-		log_end_msg $?
-		;;
-
-	restart|force-reload)
-		test_nginx_config
-		log_daemon_msg "Restarting $DESC" "$NAME"
-		stop
-		sleep 1
-		start
-		log_end_msg $?
-		;;
-
-	reload)
-		test_nginx_config
-		log_daemon_msg "Reloading $DESC configuration" "$NAME"
-		start-stop-daemon --stop --signal HUP --quiet --pidfile $PID \
-			--oknodo --exec $DAEMON
-		log_end_msg $?
-		;;
-
-	configtest|testconfig)
-		log_daemon_msg "Testing $DESC configuration"
-		if test_nginx_config; then
-			log_daemon_msg "$NAME"
-		else
-			exit $?
-		fi
-		log_end_msg $?
-		;;
-
-	status)
-		status_of_proc -p $PID "$DAEMON" nginx
-		;;
-
-	*)
-		echo "Usage: $NAME {start|stop|restart|reload|force-reload|status|configtest}" >&2
-		exit 1
-		;;
-esac
-
-exit 0
-<% end -%>

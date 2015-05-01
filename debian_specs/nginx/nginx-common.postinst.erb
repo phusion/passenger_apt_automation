@@ -1,5 +1,35 @@
+<%
+case distribution_class
+when :ubuntu
+  if is_distribution?("<= quantal")
+    default_document_root = "/usr/share/nginx/www"
+  elsif is_distribution?("<= utopic")
+    default_document_root = "/usr/share/nginx/html"
+  else
+    default_document_root = "/var/www/html"
+  end
+when :debian
+  if is_distribution?("<= wheezy")
+    default_document_root = "/usr/share/nginx/www"
+  else
+    default_document_root = "/var/www/html"
+  end
+else
+  raise "Unsupported distribution class"
+end
+-%>
 #!/bin/sh
 set -e
+
+# Handle naxsi removal
+dpkg-maintscript-helper rm_conffile \
+                 /etc/nginx/naxsi.rules         1.6.2-2~ -- "$@"
+dpkg-maintscript-helper rm_conffile \
+                 /etc/nginx/naxsi_core.rules    1.6.2-2~ -- "$@"
+dpkg-maintscript-helper rm_conffile \
+                 /etc/nginx/naxsi-ui.conf.1.4.1 1.6.2-2~ -- "$@"
+dpkg-maintscript-helper rm_conffile \
+                 /etc/nginx/naxsi-ui.conf       1.6.2-2~ -- "$@"
 
 case "$1" in
   configure)
@@ -29,6 +59,14 @@ case "$1" in
        [ -d /etc/nginx/sites-enabled ] && [ -d /etc/nginx/sites-available ]; then
       ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
     fi
+
+<% if default_document_root != "/usr/share/nginx/html" -%>
+    # Create a default index page when not already present.
+    if [ ! -e <%= default_document_root %>/index.nginx-debian.html ]; then
+      cp /usr/share/nginx/html/index.html <%= default_document_root %>/index.nginx-debian.html
+    fi
+<% end -%>
+
     ;;
 
   abort-upgrade|abort-remove|abort-deconfigure)

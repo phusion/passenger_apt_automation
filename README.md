@@ -134,8 +134,9 @@ Once packages have been built, you can publish them to PackageCloud. The `publis
 There are three things you want to add support for a new distribution.
 
  1. Add a definition for this new distribution to `internal/lib/distro_info.rb` and `internal/lib/distro_info.sh`.
- 2. Update the package definitions in `debian_specs/`.
- 3. Build and publish packages for this distribution only. You can do that by running the build script with the `-d` option.
+ 2. Add the distribution's codename to the `DISTRIBUTIONS` variable's default value inside the `build` script.
+ 3. Update the package definitions in `debian_specs/`.
+ 4. Build and publish packages for this distribution only. You can do that by running the build script with the `-d` option.
 
     For example, if the new distribution is Ubuntu 14.04 "trusty", then run:
 

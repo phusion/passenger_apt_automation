@@ -1,6 +1,16 @@
 #!/bin/sh
 set -e
 
+# Handle naxsi removal
+dpkg-maintscript-helper rm_conffile \
+                 /etc/nginx/naxsi.rules         1.6.2-2~ -- "$@"
+dpkg-maintscript-helper rm_conffile \
+                 /etc/nginx/naxsi_core.rules    1.6.2-2~ -- "$@"
+dpkg-maintscript-helper rm_conffile \
+                 /etc/nginx/naxsi-ui.conf.1.4.1 1.6.2-2~ -- "$@"
+dpkg-maintscript-helper rm_conffile \
+                 /etc/nginx/naxsi-ui.conf       1.6.2-2~ -- "$@"
+
 <% if is_distribution?("<= saucy") || is_distribution?("<= wheezy") -%>
 # systemd: reload the daemon
 if [ -x /bin/systemctl ]; then

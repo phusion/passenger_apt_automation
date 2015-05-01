@@ -1,10 +1,24 @@
+<%
+case distribution_class
+when :ubuntu
+  if is_distribution?("<= quantal")
+    localstatedir = "/var/run"
+  else
+    localstatedir = "/run"
+  end
+when :debian
+  if is_distribution?("<= wheezy")
+    localstatedir = "/var/run"
+  else
+    localstatedir = "/run"
+  end
+else
+  raise "Unsupported distribution class"
+end
+-%>
 user www-data;
 worker_processes 4;
-<% if is_distribution?("<= quantal") || is_distribution?("<= wheezy") -%>
-pid /var/run/nginx.pid;
-<% else -%>
-pid /run/nginx.pid;
-<% end -%>
+pid <%= localstatedir %>/nginx.pid;
 
 events {
 	worker_connections 768;
@@ -33,6 +47,7 @@ http {
 	##
 	# SSL Settings
 	##
+
 	ssl_protocols TLSv1 TLSv1.1 TLSv1.2; # Dropping SSLv3, ref: POODLE
 	ssl_prefer_server_ciphers on;
 
@@ -55,15 +70,7 @@ http {
 	# gzip_comp_level 6;
 	# gzip_buffers 16 8k;
 	# gzip_http_version 1.1;
-	# gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
-
-	##
-	# nginx-naxsi config
-	##
-	# Uncomment it if you installed nginx-naxsi
-	##
-
-	#include /etc/nginx/naxsi_core.rules;
+	# gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
 
 	##
 	# Phusion Passenger config
@@ -83,7 +90,7 @@ http {
 }
 
 
-# mail {
+#mail {
 #	# See sample authentication script at:
 #	# http://wiki.nginx.org/ImapAuthenticateWithApachePhpScript
 # 
@@ -102,4 +109,4 @@ http {
 #		protocol   imap;
 #		proxy      on;
 #	}
-# }
+#}

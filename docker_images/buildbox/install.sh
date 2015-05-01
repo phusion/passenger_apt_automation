@@ -51,7 +51,7 @@ header "Installing dependencies"
 run apt-get update -q
 run apt-get install -y -q ubuntu-dev-tools debhelper source-highlight \
 	ruby ruby-dev libsqlite3-dev runit git gawk rake realpath debian-keyring \
-	zlib1g-dev libxml2-dev libxslt1-dev gdebi-core gnupg
+	zlib1g-dev libxml2-dev libxslt1-dev gdebi-core gnupg dh-systemd
 run gem1.9.1 install bundler --no-rdoc --no-ri
 run env BUNDLE_GEMFILE=/paa_build/Gemfile bundle install
 

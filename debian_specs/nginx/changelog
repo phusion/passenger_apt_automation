@@ -1,3 +1,512 @@
+nginx (1.6.2-5ubuntu3) vivid-proposed; urgency=medium
+
+  * debian/rules:
+    * Reversed Debian change in 1.6.2-5ubuntu2.
+    * Added DEB_BUILD_MAINT_OPTIONS=hardening=+all to enable all
+      dpkg-buildflags to harden the code, except for PIE flags.
+    * Manually define DEB_BUILD_MAINT_OPTIONS in DEBIAN_NGINX_PERL_LDFLAGS
+      to not have -fPIE conflicts in Perl flags.
+
+ -- Thomas Ward <teward@ubuntu.com>  Wed, 01 Apr 2015 14:57:34 -0400
+
+nginx (1.6.2-5ubuntu2) vivid-proposed; urgency=medium
+
+  * debian/rules:
+    * Added -fPIE -pie to build rules (enables position-independent builds)
+      using Debian's committed change to enable. (LP: #1315426)
+
+ -- Thomas Ward <teward@ubuntu.com>  Wed, 01 Apr 2015 14:26:32 -0400
+
+nginx (1.6.2-5ubuntu1) vivid; urgency=medium
+
+  * Merge from Debian.  Remaining changes: (LP: #1399967)
+    - debian/patches/ubuntu-branding.patch: add Ubuntu branding (refreshed)
+    - debian/rules: Drop from -O3 to -O2 to work around a build failure.
+    - d/{control,rules,nginx-core.*}: add new binary package for main,
+      nginx-core, which contains only source-tarball-included modules
+      and no third-party modules.
+    - debian/tests/control: add nginx-core test.
+    - debian/control: drop luajit from Build-Depends as it is in universe.
+
+ -- Thomas Ward <teward@ubuntu.com>  Sat, 06 Dec 2014 13:06:55 -0500
+
+nginx (1.6.2-5) unstable; urgency=medium
+
+  [ Christos Trochalakis ]
+  * debian/conf/nginx.conf:
+    + Drop SSLv3 protocol (POODLE), and prefer server ciphers
+      by default. (Closes: #767456)
+  * debian/copyright:
+    + Add copyright for ngx_http_substitutions_filter_module.
+  * debian/nginx-common.{preinst,postinst,postrm}:
+    + Remove /etc/nginx/naxsi-ui.conf conffile. (Closes: #768233)
+  * debian/README.Debian:
+    + Add a list of important changes since wheezy.
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Sun, 30 Nov 2014 10:39:55 +0200
+
+nginx (1.6.2-4ubuntu1) vivid; urgency=medium
+
+  * Merge from Debian. Remaining changes: (LP: #1388621)
+    - debian/patches/ubuntu-branding.patch: add Ubuntu branding
+      (refreshed).
+    - debian/rules: Drop from -O3 to -O2 to work around a build failure.
+    - d/{control,rules,nginx-core.*}: add new binary package for main,
+      nginx-core, which contains only source-tarball-included modules
+      and no third-party modules.
+    - debian/tests/control: add nginx-core test.
+    - debian/control: drop luajit from Build-Depends as it is in universe.
+  * debian/control:
+    * Remove nginx-naxsi* from nginx-core and related
+      package stanzas, as the naxsi packages have all been dropped.
+    * Remove reference to nginx-naxsi from nginx metapackage description
+  * debian/index.html: Modify included index.html file to have Ubuntu
+    branding, Ubuntu bug reporting tool references, and a link to the
+    Launchpad bugs page for the nginx package.
+
+ -- Thomas Ward <teward@ubuntu.com>  Wed, 05 Nov 2014 10:05:07 -0500
+
+nginx (1.6.2-4) unstable; urgency=medium
+
+  [ Christos Trochalakis ]
+  * debian/modules/nginx-development-kit:
+    + Upgrade v0.2.17-7-g24202b4 -> v0.2.19
+  * debian/modules/nginx-echo:
+    + Upgrade v0.51 -> v0.56
+  * debian/modules/nginx-upload-progress:
+    + Upgrade v0.9.0-0-ga788dea -> 0.9.1
+  * debian/modules/ngx-fancy-index:
+    + Upgrade v0.3.3 -> v0.3.4
+  * debian/copyright:
+    + Rewrite copyright file fixing various issues.
+  * debian/nginx-common.nginx.logrotate:
+    + Switch postrotate to the initscript's rotate command.
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Sun, 19 Oct 2014 08:23:33 +0300
+
+nginx (1.6.2-3) unstable; urgency=medium
+
+  [ Christos Trochalakis ]
+  * Change the default document root to /var/www/html according to debian
+    policy 3.9.6.0. (Closes: #730382)
+  * Provide a new, debian specific, default landing page.
+  * debian/nginx-common.nginx.service:
+    + Graceful stopping of nginx was not handled correctly with systemd.
+  * debian/nginx-common.nginx.init:
+    + Gracefully stop nginx by default, we are switcing to a configurable
+      STOP/5/TERM/5/KILL/5 schedule. We are now in sync with the systemd
+      service file. (Closes: #762708)
+  * debian/conf:
+    + Introduce a `snippets/fastcgi-php.conf` snippet with a basic
+      php configuration that can be included when needed. (Closes: #762491)
+    + Introduce a `snippets/snakeoil.conf` snippet that enabled https
+      using the certs installed by the ssl-cert package.
+    + Suggest disabling SSLv3 in default site with a ref to POODLE.
+  * debian/control:
+    + nginx-common now suggests ssl-cert.
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Thu, 16 Oct 2014 13:34:29 +0300
+
+nginx (1.6.2-2) unstable; urgency=medium
+
+  [ Christos Trochalakis ]
+  * Drop nginx-naxsi, nginx-naxsi-dbg, nginx-naxsi-ui packages.
+    (Closes: #746199, #737146, #712445)
+  * debian/conf/nginx.conf:
+    + Remove relic passenger stanga.
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Fri, 26 Sep 2014 11:06:47 +0300
+
+nginx (1.6.2-1ubuntu1.1) utopic; urgency=medium
+
+  * debian/conf/sites-available/default: Remove SSLv3 from the ssl_protocols
+    line in the default config example, due to POODLE vulnerability.
+
+ -- Thomas Ward <teward@dark-net.net>  Wed, 22 Oct 2014 09:43:35 -0400
+
+nginx (1.6.2-1ubuntu1) utopic; urgency=medium
+
+  * Merge from Debian. Remaining changes:
+    - debian/patches/ubuntu-branding.patch: add Ubuntu branding
+      (refreshed).
+    - debian/rules: Drop from -O3 to -O2 to work around a build failure.
+    - d/{control,rules,nginx-core.*}: add new binary package for main,
+      nginx-core, which contains only source-tarball-included modules
+      and no third-party modules.
+  * debian/tests/control: add nginx-core test.
+  * debian/control: drop luajit from Build-Depends as it is in universe.
+
+ -- Marc Deslauriers <marc.deslauriers@ubuntu.com>  Mon, 22 Sep 2014 13:32:30 -0400
+
+nginx (1.6.2-1) unstable; urgency=high
+
+  [ Christos Trochalakis ]
+  * New upstream release.
+    CVE-2014-3616: "it was possible to reuse SSL sessions in unrelated
+    contexts if a shared SSL session cache or the same TLS session ticket
+    key was used for multiple "server" blocks".
+    (Closes: #761940)
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Wed, 17 Sep 2014 11:19:01 +0300
+
+nginx (1.6.1-2) unstable; urgency=medium
+
+  [ Christos Trochalakis ]
+  * debian/control:
+    + Build nginx-extras against luajit (Closes: #755875)
+  * debian/modules/nginx-lua:
+    + Update nginx-lua to v0.9.12
+  * debian/nginx-common.nginx.init:
+    + Better pidfile extraction from nginx.conf (Closes: #747329)
+  * debian/conf/mime.types:
+    + Upgrade to the latest upstream mime types.
+      As a consequence, nginx now uses "application/javascript" for
+      javascript files.
+  * debian/conf/nginx.conf:
+    + Add application/javascript to the gzip_types list. (Closes: #737176)
+  * debian/rules:
+    + Make naxsi module first in configure parameters.
+      Fixes erratic naxsi behaviour. (Closes: #758642)
+  * debian/conf/{koi-utf,koi-win,scgi_params,uwsgi_params}:
+    + Sync with upstream config files.
+  * debian/conf/fastcgi_params:
+    + Sync with upstream and remove `SCRIPT_FILENAME` parameter.
+      This change might break fastcgi sites. (Closes: #718639)
+  + debian/conf/fastcgi.conf:
+    + Ship upstream file.
+  * debian/nginx-common.NEWS:
+    + Document syncing conf files with upstream.
+  * debian/tests/control:
+    + Include some simple autopkgtests.
+      Thanks to Robie Basak for the initial patch. (Closes: #756391)
+  * debian/modules/nginx-http-push:
+    + Update to v0.73.
+      Fixes fd leak on reload. (Closes: #745921)
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Thu, 04 Sep 2014 13:00:46 +0300
+
+nginx (1.6.1-1ubuntu2) utopic; urgency=medium
+
+  * Rebuild for Perl 5.20.0.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Sun, 24 Aug 2014 06:43:36 -0700
+
+nginx (1.6.1-1ubuntu1) utopic; urgency=medium
+
+  * Merge from Debian. Remaining changes:
+    - debian/patches/ubuntu-branding.patch: add Ubuntu branding
+      (refreshed).
+    - debian/rules: Drop from -O3 to -O2 to work around a build failure.
+    - d/{control,rules,nginx-core.*}: add new binary package for main,
+      nginx-core, which contains only source-tarball-included modules
+      and no third-party modules.
+  * Add dep8 smoke test
+
+ -- Robie Basak <robie.basak@ubuntu.com>  Fri, 15 Aug 2014 16:46:48 +0000
+
+nginx (1.6.1-1) unstable; urgency=medium
+
+  [ Christos Trochalakis ]
+  * New upstream release.
+    Handle CVE-2014-3556 SMTP STARTTLS vulnerability (Closes: #757196)
+    http://mailman.nginx.org/pipermail/nginx-announce/2014/000144.html
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Wed, 06 Aug 2014 10:05:08 +0300
+
+nginx (1.6.0-2) unstable; urgency=medium
+
+  [ gregor herrmann ]
+  * Patch from Gregor Herrmann <gregoa@debian.org>:
+    Fix "hardcodes /usr/lib/perl5":
+    - drop debian/nginx-extras.dirs, not needed, dh_install uses the
+      directories from debian/nginx-extras.install
+    - make debian/nginx-extras.install executable, and use $Config{vendorarch}
+      for the perl library path there
+    (Closes: #752796)
+
+ -- Kartik Mistry <kartik@debian.org>  Tue, 29 Jul 2014 04:56:03 +0000
+
+nginx (1.6.0-1) unstable; urgency=medium
+
+  [ Christos Trochalakis ]
+  * New upstream release.
+  * debian/rules:
+    + Enable auth request http module. (Closes: #725732)
+  * debian/patches/series:
+    + Remove backported openssl guard patch.
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Thu, 24 Apr 2014 19:23:22 +0300
+
+nginx (1.4.7-2) unstable; urgency=medium
+
+  [ Christos Trochalakis ]
+  * debian/rules:
+    + Convert to dh $@
+      As a side effect, fixes make dependency issues (Closes: #744050)
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Thu, 17 Apr 2014 14:30:27 +0300
+
+nginx (1.4.7-1) unstable; urgency=medium
+
+  [ Christos Trochalakis ]
+  * New upstream release. (Closes: #742059)
+    + Fixes pottential arbitrary code execution (CVE-2014-0133)
+      Debian build was not vulnerable since it was compiled
+      with the --with-debug configure option.
+  * debian/modules/nginx-http-push:
+    + Update to v0.711 (Closes: #732251)
+  * debian/modules/headers-more-nginx-module:
+    + Update to v0.25, containing several bugfixes.
+  * debian/modules/nginx-echo:
+    + Update to v0.51, containing several bugfixes.
+  * debian/modules/nginx-dav-ext-module:
+    + Update to v0.0.3, containing some uri encoding fixes.
+  * debian/modules/ngx_http_substitutions_filter_module:
+    + Update to v0.6.4, containing some enhancements.
+  * debian/modules/nginx-auth-pam:
+    + Update to v1.3.
+      This version contains our downstream patch (See: #721702)
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Tue, 18 Mar 2014 22:03:47 +0200
+
+nginx (1.4.6-1ubuntu3) trusty; urgency=medium
+
+  * Add new binary package for main, nginx-core, which contains only
+    source-tarball-included modules and no third-party modules.
+  * Changes to debian/ directory:
+    - control:
+      + Add entry for nginx-core and nginx-core-dbg.
+    - rules:
+      + Add nginx-core flavor to the build rules.
+    - nginx-core.*: Add new packaging files for nginx-core based on
+      the packaging files for nginx-full.
+  * The above changes satisfy the requirements for main (LP: #1262710)
+
+ -- Thomas Ward <teward@ubuntu.com>  Mon, 10 Mar 2014 18:23:36 -0400
+
+nginx (1.4.6-1ubuntu2) trusty; urgency=medium
+
+  * debian/rules: Drop from -O3 to -O2 to work around a build failure.
+
+ -- Adam Conrad <adconrad@ubuntu.com>  Sun, 09 Mar 2014 11:49:28 -0600
+
+nginx (1.4.6-1ubuntu1) trusty; urgency=low
+
+  * Merge from Debian unstable.  Remaining changes:
+    - debian/patches/ubuntu-branding.patch: Add Ubuntu branding.
+
+ -- Adam Conrad <adconrad@ubuntu.com>  Sun, 09 Mar 2014 11:13:26 -0600
+
+nginx (1.4.6-1) unstable; urgency=medium
+
+  [ Christos Trochalakis ]
+  * New upstream release.
+  * debian/rules:
+    + Avoid double declaration of hardening flags.
+    + Expand buildflags so the build log is easier to follow.
+    + Switch to --with--cc-opt, --with-ld-opt configure flags.
+      Nginx is now compiled with --Werror, making all warnings
+      into errors.
+    + Split common configure options.
+    + Enable realip module for nginx-light.
+    + Enable debug module for nginx-light and nginx-extras.
+  * debian/patches/perl-use-dpkg-buildflags.patch:
+    + Rewrite patch to just just override LDDLFLAGS and not
+      CCFLAGS since this is handled by --with-cc-opt.
+  * debian/watch, debian/upstream/signing-key.asc:
+    + Fix upstream signature verification.
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Tue, 04 Mar 2014 18:06:55 +0200
+
+nginx (1.4.5-1ubuntu1) trusty; urgency=medium
+
+  * Resynchronise with Debian (LP: #1280511).  Remaining changes:
+    - debian/patches/ubuntu-branding.patch:
+      + Add Ubuntu branding to server_tokens.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Sat, 15 Feb 2014 03:05:42 +0000
+
+nginx (1.4.5-1) unstable; urgency=medium
+
+  [ Christos Trochalakis ]
+  * New upstream release.
+  * debian/modules/nginx-lua:
+    + Update nginx-lua to v0.9.4
+  * debian/nginx-naxsi-ui.preinst:
+    + Fix exit status issue (Closes: #735152)
+  * debian/control:
+    + Fix arch:all to arch:any dependencies
+    + Make nginx depend on specific flavor version
+  * debian/nginx-*.postinst:
+    + Make nginx start by default (Closes: #735551)
+  * debian/nginx-*.prerm:
+    + No need to check for invoke-rc.d,
+      correctly set the exit code on error
+  * debian/nginx-common.nginx.init:
+    + Rewrite some parts of the initscript
+    + Introduce rotate command
+    + Introduce upgrade command
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Thu, 13 Feb 2014 11:41:49 +0200
+
+nginx (1.4.4-4) unstable; urgency=medium
+
+  [ Christos Trochalakis ]
+  * debian/nginx-common.postinst:
+    + Fix log re-opening issue due to wrong /var/log/nginx
+      permissions. (Closes: #734139)
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Sat, 04 Jan 2014 09:41:40 +0200
+
+nginx (1.4.4-3) unstable; urgency=medium
+
+  [ Christos Trochalakis ]
+  * debian/nginx-naxsi-ui.postinst:
+    + Fix early exit issue (Closes: #715435)
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Tue, 31 Dec 2013 11:47:07 +0200
+
+nginx (1.4.4-2ubuntu1) trusty; urgency=medium
+
+  * Resynchronise with Debian.  Remaining changes:
+    - debian/patches/ubuntu-branding.patch:
+      + Add Ubuntu branding to server_tokens.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Sat, 28 Dec 2013 10:21:44 +0000
+
+nginx (1.4.4-2) unstable; urgency=low
+
+  [ Michael Lustfield ]
+  * debian/control:
+    + Added Provides: httpd-cgi to packages. (Closes: #701508)
+    + Added other options to nginx depends. (Closes: #729860)
+    + Added Spdy to nginx-full package description.
+  * debian/nginx-common.nginx.init:
+    + Added missing line from patch. (Closes: #728103)
+  * debian/conf/sites-available/default:
+    + Changed ssl_protocols and ssl_ciphers. (Closes: 730142)
+  * debian/nginx-common.preinst:
+    + Modify permissions of /var/log/nginx. (Closes: #701112)
+  * debian/rules:
+    + Added spdy support to nginx-full. (Closes: #730432)
+
+  [ Christos Trochalakis ]
+  * debian/nginx-doc,docs, debian/nginx-common.NEWS:
+    + Ship NEWS with nginx-common instead of nginx-doc.
+  * debian/conf/proxy_params:
+    + Host header should be passed unmodified to the proxied server.
+    + Pass X-Forwarded-Proto header to the proxied server.
+  * debian/control:
+    + Fix nginx-naxsi-ui Depends and Conflicts lines.
+
+  [ Neutron Soutmun ]
+  * debian/patches/guard-use-of-deprecated-openssl-definition.patch:
+    + Fix FTBFS against the recent libssl-dev. (Closes: #733107)
+
+  [ Kartik Mistry ]
+  * debian/control:
+    + Updated to Standards-Version 3.9.5
+  * debian/watch, debian/upstream-signing-key.pgp:
+    + Use upstream PGP signature to verify by watch file.
+
+ -- Kartik Mistry <kartik@debian.org>  Fri, 27 Dec 2013 21:16:01 +0530
+
+nginx (1.4.4-1ubuntu1) trusty; urgency=low
+
+  * Resynchronise with Debian (LP: #1253691).  Remaining changes:
+    - debian/patches/ubuntu-branding.patch:
+      + Add Ubuntu branding to server_tokens.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Fri, 22 Nov 2013 12:23:25 +0000
+
+nginx (1.4.4-1) unstable; urgency=low
+
+  [ Christos Trochalakis ]
+  * New upstream release. (Closes: #730012)
+  * debian/nginx-*.postinst:
+    + Wait for the new master to write its pid file before sending QUIT to the
+      old master. This solves an issue with systemd and the upgrade mechanism.
+      Systemd receives the SIGCHLD from the old master but it can't see the new
+      pid because the new master has not written it yet. As a result, it kills
+      everything inside the cgroup, including the new master.
+  * debian/modules/ngx-fancyindex:
+    + Upgrade Fancy Index module to v0.3.3 (Closes: #728721)
+  * debian/control:
+    + Remove Upload module from nginx-extras description (Closes: #729003)
+
+  [ Michael Lustfield ]
+  * debian/control:
+    + Added spdy to package description (Closes: #728038)
+  * debian/nginx-common.nginx.init:
+    + Showing better start/stop messages. Thanks Pim van den Berg.
+      (Closes: #728103)
+
+ -- Michael Lustfield <michael@lustfield.net>  Thu, 21 Nov 2013 19:25:50 +0530
+
+nginx (1.4.3-2ubuntu1) trusty; urgency=low
+
+  * Resynchronise with Debian.  Remaining changes:
+    - debian/patches/ubuntu-branding.patch:
+      + Add Ubuntu branding to server_tokens.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Mon, 21 Oct 2013 13:26:52 +0100
+
+nginx (1.4.3-2) unstable; urgency=low
+
+  [ Kartik Mistry ]
+  * Renamed debian/nginx-common.service to debian/nginx-common.nginx.service so
+    it is installed properly for systemd. Thanks to Christos Trochalakis.
+  * Set debian/compat to 9 and updated debhelper dependency.
+
+  [ Christos Trochalakis ]
+  * debian/rules, debian/nginx-common.dirs,
+    debian/debian-common.nginx.logrotate:
+    + Switch to dh_installlogrotate.
+  * debian/rules:
+    + *-stamp files are deleted by dh_clean.
+    + Remove unused mime-types target.
+    + Remove not needed config.sub and config.guess targets.
+  * debian/nginx-common.dirs:
+    + Don't ship an empty /run dir.
+  * debian/nginx-{light,full,extras}.lintian-overrides:
+    + Override false lintian spelling error warning.
+
+ -- Kartik Mistry <kartik@debian.org>  Wed, 16 Oct 2013 14:58:11 +0530
+
+nginx (1.4.3-1) unstable; urgency=low
+
+  [ Cyril Lavier ]
+  * debian/nginx-naxsi-ui.postinst, debian/nginx-naxsi-ui.preinst:
+    + Added missing arguments to have clean postinst/preinst scripts.
+  * debian/conf/fastcgi_params:
+    + Defined fastcgi param HTTPS the same as upstream default.
+      (Closes: #712989)
+
+  [ Michael Lustfield ]
+  * conf/sites-available/default:
+    + Removed /doc/ section per bug #715804.
+
+  [ Christos Trochalakis ]
+  * New upstream release. (Closes: #722640)
+  * debian/nginx-common.nginx.init:
+    + Better pidfile extraction from nginx.conf. We now accept multiple
+      spaces and tabs as a field separator.
+  * debian/modules/nginx-auth-pam:
+    + Fixed upstream bug. (Closes: #721702)
+  * debian/watch:
+    + Only check for stable releases.
+  * debian/conf/sites-available/default:
+    + Correctly fallback to 404 when the requested file is missing.
+      (Closes: #724232)
+  * debian/logrotate:
+    + Gracefully handle empty pidfile in logrotate script.
+      (Closes: #696797)
+
+  [ Kartik Mistry ]
+  * Switch to dh-systemd (Closes: #713853)
+
+ -- Kartik Mistry <kartik@debian.org>  Thu, 10 Oct 2013 17:28:56 +0530
+
 nginx (1.4.1-3ubuntu1) saucy; urgency=low
 
   * Resynchronise with Debian.  Remaining changes:

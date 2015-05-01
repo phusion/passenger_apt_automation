@@ -1,0 +1,10 @@
+<%=
+case distribution_class
+when :ubuntu
+  include_file("index-ubuntu.html.in")
+when :debian
+  include_file("index-debian.html.in")
+else
+raise "Unknown distribution class"
+end
+-%>

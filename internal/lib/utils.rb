@@ -48,6 +48,7 @@ module Utils
       puts "Copying files..."
     end
     files.each_with_index do |filename, i|
+      next if filename =~ /\.in(\.erb)?$/
       dir = File.dirname(filename)
       if !File.exist?("#{destination_dir}/#{dir}")
         FileUtils.mkdir_p("#{destination_dir}/#{dir}")
@@ -55,7 +56,6 @@ module Utils
       if !File.directory?(filename)
         if preprocess && filename =~ /\.erb$/
           real_filename = filename.sub(/\.erb$/, '')
-          FileUtils.install(filename, "#{destination_dir}/#{real_filename}", :preserve => true)
           Preprocessor.new.start(filename, "#{destination_dir}/#{real_filename}",
             variables)
         else

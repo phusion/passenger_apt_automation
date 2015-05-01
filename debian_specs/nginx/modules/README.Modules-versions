@@ -49,10 +49,6 @@ README for Modules versions
   rm -r debian/nginx-upload-progress/test
   Version: v0.9.0-0-ga788dea
 
- naxsi
-  Homepage: http://code.google.com/p/naxsi/
-  Version: 0.50
-
  nginx-cache-purge
   Homepage: http://labs.frickle.com/nginx_ngx_cache_purge/
   Version: 2.1

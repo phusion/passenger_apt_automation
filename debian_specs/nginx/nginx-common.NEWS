@@ -1,0 +1,135 @@
+nginx-common (1.6.2-5) unstable; urgency=medium
+
+  We have disabled SSLv3 in nginx.conf for security reasons (ref: POODLE),
+  don't forget to re-enable it if your site depends on it.
+
+  In this release we also include a summary of important changes since wheezy
+  at /usr/share/doc/nginx-common/README.Debian.
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Sun, 02 Nov 2014 09:10:09 +0200
+
+nginx-common (1.6.2-3) unstable; urgency=medium
+
+  Starting with this release, we changed the default document root from
+  /var/www to /var/www/html, so that sensitive files from other virtual hosts
+  wich are typically put into some directory below /var/www are not exposed by
+  the default virtual host.
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Tue, 30 Sep 2014 17:34:58 +0300
+
+nginx-common (1.6.1-2) unstable; urgency=medium
+
+  As of nginx-1.6.1-2 we have synced all configuration files with upstream and
+  we plan to keep them in sync from now on.
+
+  Unfortunately that might break existing configuration for some users. Please
+  check the matrix below for more information:
+
+  File            Changes
+  -----------------------
+  koi-win         whitespace
+  koi-utf         whitespace
+  mime-types      whitespace, changed js/rss mime type,
+                  minor other changes & additions
+  scgi_params     whitespace, added HTTPS
+  uwsgi_params    whitespace, added HTTPS, removed UWSGI_SCHEME
+  fastcgi_params  whitespace, removed SCRIPT_FILENAME
+  fastcgi.conf    new upstream configuration file
+
+  Fastcgi configuration issues
+  ============================
+
+  nginx shipped a modified `fastcgi_params`, which declared `SCRIPT_FILENAME`
+  fastcgi_param. This line has now been removed. From now on we are also
+  shipping fastcgi.conf from the upstream repository, which includes a sane
+  `SCRIPT_FILENAME` parameter value.
+
+  So, if you are using fastcgi_params, you can try switching to fastcgi.conf
+  or manually set the relevant params.
+
+  You might also want to read the documentation section before proceeding.
+
+  http://nginx.org/en/docs/http/ngx_http_fastcgi_module.html
+  section: $fastcgi_script_name variable.
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Thu, 28 Aug 2014 14:23:42 +0300
+
+nginx-common (1.4.4-2) unstable; urgency=low
+
+  Per CVE-2013-0337 (bug #701112), we are changing /var/log/nginx permissions
+  to root:adm 750. If you have manipulated these permissions in any way, you
+  can add a dpkg-statoverride entry and the directory will not be touched.
+  You also have to manually set the permissions once, as dpkg doesn't do that
+  automatically for directories.
+
+  e.g.
+    chown root:adm /var/log/nginx
+    chmod 0755 /var/log/nginx
+    dpkg-statoverride --add root adm 0755 /var/log/nginx
+
+ -- Michael Lustfield <michael@lustfield.net>  Sun, 24 Nov 2013 15:59:52 -0600
+
+nginx (1.4.1-2) unstable; urgency=medium
+
+  Started with nginx 1.4.1-2 upload, nginx-naxsi-ui switched backend from
+  MySQL to SQLite.
+
+  This was mostly caused by the future removal of MySQL support in naxsi-ui.
+  Thus, the nginx maintainers decided to switch from MySQL to SQLite.
+
+  All data contained in the MySQL database is not affected by this switch but
+  you need to start with a clean SQLite database to ensure nginx-naxsi-ui
+  reliability.
+
+ -- Cyril Lavier <cyril.lavier@davromaniak.eu>  Wed,  5 Jun 2013 09:45:03 +0200
+
+nginx (0.8.53-1) unstable; urgency=low
+
+  As stated by upstream, the 0.7.x branch is consedered legacy and 0.8.x will
+  be the new stable branch. For this reason, the nginx maintainers decided to
+  upload 0.8.53 to unstable.
+
+ -- Kartik Mistry <kartik@debian.org>  Fri, 26 Nov 2010 19:42:09 +0530
+
+nginx (0.7.59-1) unstable; urgency=low
+
+  As stated by upstream, the 0.6.x branch is consedered legacy and 0.7.x will
+  be the new stable branch. For this reason, the nginx maintainers decided to
+  upload 0.7.59 to unstable.
+
+  Should you get the following error while starting nginx:
+
+    could not build the server_names_hash, you should increase
+    server_names_hash_bucket_size: 32
+
+  Please add the following parameter to your nginx.conf:
+
+    server_names_hash_bucket_size 100;
+
+  Where 100 is the size of your server names hash bucket. For more information
+  about this option, please read the following resources:
+
+    http://wiki.nginx.org/NginxHttpCoreModule#server_names_hash_bucket_size
+    http://thread.gmane.org/gmane.comp.web.nginx.english/820/focus=821
+    http://thread.gmane.org/gmane.comp.web.nginx.english/985/focus=989
+
+ -- Fabio Tranchitella <kobold@debian.org>  Sun, 31 May 2009 18:30:10 +0200
+
+nginx (0.6.30-2) unstable; urgency=low
+
+  As of May 4th., nginx 0.5.x branch is considered legacy and 0.6.x will
+  be the new stable branch. The announcement was made by Igor Sysoev when
+  releasing the last 0.5.x version, nginx 0.5.36.
+
+  Debian, the universal operating system, has provided binary packages for
+  both 0.5 and 0.6 branches in unstable and experimental, and will now offer
+  only 0.6 packages in the unstable distribution, starting with the
+  0.6.30-1 package.
+
+  In the future, Debian will also provide experimental packages for the
+  next testing branch of nginx, at the moment upstream announces it.
+
+  Should you have any problem with nginx in Debian, please file a bug in
+  the Debian Bug Tracking System.
+
+ -- Fabio Tranchitella <kobold@debian.org>  Mon, 12 May 2008 14:24:53 +0200

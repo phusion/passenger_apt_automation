@@ -74,7 +74,8 @@ export CCACHE_COMPRESS_LEVEL=3
 run setuser app mkdir -p $CCACHE_DIR
 echo "+ Updating /etc/hosts"
 cat /system/internal/test/misc/hosts.conf >> /etc/hosts
-APACHE_VERSION=`dpkg-query -p apache2 | grep Version | sed 's/.*: //'`
+APACHE_INFO=`apache2ctl -V 2>/dev/null`
+APACHE_VERSION=`echo "$APACHE_INFO" | grep 'Server version' | sed 's/.*\///; s/ .*//'`
 if [[ -e /etc/apache2/conf-enabled ]]; then
 	APACHE_CONF_D_DIR=/etc/apache2/conf-enabled
 else
