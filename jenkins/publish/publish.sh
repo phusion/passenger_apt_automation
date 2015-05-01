@@ -14,7 +14,7 @@ PASSENGER_ROOT="${PASSENGER_ROOT:-$WORKSPACE}"
 CONCURRENCY=${CONCURRENCY:-8}
 
 if [[ "$REPOSITORY" =~ -testing$ ]]; then
-	YANK=-y
+	YANK=-Y
 else
 	YANK=
 fi

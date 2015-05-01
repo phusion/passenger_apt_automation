@@ -10,6 +10,7 @@ PACKAGE_CLOUD_TOKEN_FILE=
 REPOSITORY=
 LOG_DIR=
 YANK=false
+YANK_ALL=false
 CONCURRENCY=8
 SHOW_BACKTRACES=false
 SHOW_TASKS=false
@@ -29,6 +30,7 @@ function usage()
 	echo "  -l DIR     Write logs to the given directory"
 	echo "  -j NUM     Set concurrency. Default: 8"
 	echo "  -y         Yank old packages"
+	echo "  -Y         Yank all packages from repository before publishing"
 	echo "  -O         Periodically show progress overview"
 	echo "  -t         Show backtraces on error"
 	echo
@@ -41,7 +43,7 @@ function parse_options()
 	local OPTIND=1
 	local ORIG_ARGV
 	local opt
-	while getopts "d:c:r:D:C:l:j:yOtTh" opt; do
+	while getopts "d:c:r:D:C:l:j:yYOtTh" opt; do
 		case "$opt" in
 		d)
 			OUTPUT_DIR="$OPTARG"
@@ -60,6 +62,9 @@ function parse_options()
 			;;
 		y)
 			YANK=true
+			;;
+		Y)
+			YANK_ALL=true
 			;;
 		O)
 			SHOW_OVERVIEW_PERIODICALLY=true
@@ -111,6 +116,9 @@ function parse_options()
 
 parse_options "$@"
 OUTPUT_DIR="`absolute_path \"$OUTPUT_DIR\"`"
+if [[ "$PACKAGE_CLOUD_TOKEN_FILE" = "" ]]; then
+	PACKAGE_CLOUD_TOKEN_FILE="`absolute_path \"$PACKAGE_CLOUD_TOKEN_FILE\"`"
+fi
 
 EXTRA_MOUNTS=()
 if [[ "$LOG_DIR" != "" ]]; then
@@ -150,6 +158,7 @@ else
 		"${EXTRA_MOUNTS[@]}" \
 		-e "REPOSITORY=$REPOSITORY" \
 		-e "YANK=$YANK" \
+		-e "YANK_ALL=$YANK_ALL" \
 		-e "SHOW_OVERVIEW_PERIODICALLY=$SHOW_OVERVIEW_PERIODICALLY" \
 		-e "APP_UID=`/usr/bin/id -u`" \
 		-e "APP_GID=`/usr/bin/id -g`" \
