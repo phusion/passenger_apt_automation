@@ -1,3 +1,5 @@
+# Returns the Ruby versions available for a given distribution.
+# The result is ordered from least preferred to most preferred.
 def ruby_versions
   case distribution_class
   when :ubuntu

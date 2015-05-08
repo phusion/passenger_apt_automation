@@ -1,0 +1,73 @@
+<%
+require File.dirname(File.absolute_path(__FILE__)) + '/helpers'
+-%>
+/*
+ * This is a simple program for executing either the 'ruby' command in PATH,
+ * or one of the Ruby versions installable by APT. This is necessary because
+ * Debian 6 and Debian 8 (among others) do not install /usr/bin/ruby upon
+ * installing one of the versioned Ruby packages (e.g. apt-get install ruby2.1).
+ * Commands such as 'passenger' are supposed to be runnable under any Ruby
+ * interpreter the user desires, including non-APT-installed Rubies, but we can't
+ * just set the shebang line to '#!/usr/bin/env ruby'. This problem is solved by
+ * setting the shebang line is set to '#!/usr/bin/passenger_default_ruby'.
+ */
+#include <sys/types.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <errno.h>
+
+static char **
+construct_forwarding_argv(const char *ruby, int argc, const char *argv[]) {
+	char **result = malloc(sizeof(char *) * (argc + 1));
+	int i;
+
+	if (result == NULL) {
+		fprintf(stderr, "passenger_default_ruby: cannot allocate memory\n");
+		_exit(1);
+	}
+
+	if (strcmp(argv[0], "/usr/bin/passenger_default_ruby") == 0
+	 || strcmp(argv[0], "passenger_default_ruby") == 0)
+	{
+		result[0] = ruby;
+	} else {
+		// Preserve custom argv0
+		result[0] = argv[0];
+	}
+
+	for (i = 1; i < argc; i++) {
+		result[i] = argv[i];
+	}
+
+	result[argc] = NULL;
+	return result;
+}
+
+static void
+try_exec(const char *ruby, int argc, const char **argv) {
+	char **forwarding_argv = construct_forwarding_argv(ruby, argc, argv);
+	int e;
+
+	execvp(ruby, (char * const *) forwarding_argv);
+	if (errno == ENOENT) {
+		free(forwarding_argv);
+	} else {
+		e = errno;
+		fprintf("passenger_default_ruby: cannot execute '%s': %s\n",
+			ruby, strerror(e));
+		_exit(1);
+	}
+}
+
+int
+main(int argc, const char *argv[]) {
+	try_exec("ruby", argc, argv);
+	<% for ruby_version in ruby_versions.reverse -%>
+		try_exec("/usr/bin/ruby<%= ruby_version %>", argc, argv);
+	<% end -%>
+
+	fprintf(stderr, "passenger_default_ruby: cannot find suitable Ruby interpreter\n");
+	return 1;
+}
