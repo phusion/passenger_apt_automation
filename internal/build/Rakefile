@@ -211,7 +211,7 @@ task :finish do
   puts "Commiting build products to output directory..."
   sh "rm -rf /output/*"
 
-  files = Dir["/work/spkg/*/*/*.{gz,dsc}"]
+  files = Dir["/work/spkg/*/*/*.{gz,xz,dsc}"]
   if files.any?
     puts "Placing #{files.size} files from /work/spkg into output directory"
     files.each do |path|
@@ -222,7 +222,7 @@ task :finish do
     end
   end
 
-  files = Dir["/work/pkg/*/*.{deb,dsc,gz}"]
+  files = Dir["/work/pkg/*/*.{deb,dsc,gz,xz}"]
   if files.any?
     puts "Placing #{files.size} files from /work/pkg into output directory"
     files.each do |path|
