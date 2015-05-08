@@ -1,9 +1,5 @@
 <%
-if is_distribution?("<= quantal") || is_distribution?("<= wheezy")
-  localstatedir = "/var/run"
-else
-  localstatedir = "/run"
-end
+require File.absolute_path(File.dirname(__FILE__)) + '/helpers'
 -%>
 #!/bin/sh
 

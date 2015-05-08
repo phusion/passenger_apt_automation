@@ -48,7 +48,7 @@ module Utils
       puts "Copying files..."
     end
     files.each_with_index do |filename, i|
-      next if filename =~ /\.in(\.erb)?$/
+      next if filename =~ /\.in(\.erb)?$/ || File.basename(filename) == "helpers.rb"
       dir = File.dirname(filename)
       if !File.exist?("#{destination_dir}/#{dir}")
         FileUtils.mkdir_p("#{destination_dir}/#{dir}")

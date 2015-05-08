@@ -1,20 +1,5 @@
 <%
-case distribution_class
-when :ubuntu
-  if is_distribution?("<= quantal")
-    localstatedir = "/var/run"
-  else
-    localstatedir = "/run"
-  end
-when :debian
-  if is_distribution?("<= wheezy")
-    localstatedir = "/var/run"
-  else
-    localstatedir = "/run"
-  end
-else
-  raise "Unsupported distribution class"
-end
+require File.absolute_path(File.dirname(__FILE__)) + '/../helpers'
 -%>
 user www-data;
 worker_processes 4;
@@ -78,7 +63,7 @@ http {
 	# Uncomment it if you installed passenger or passenger-enterprise
 	##
 	
-	# passenger_root /usr/lib/ruby/vendor_ruby/phusion_passenger/locations.ini;
+	# passenger_root @RUBYLIBDIR@/phusion_passenger/locations.ini;
 	# passenger_ruby /usr/bin/ruby;
 
 	##

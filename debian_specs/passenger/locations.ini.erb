@@ -7,7 +7,7 @@ helper_scripts_dir=/usr/share/<%= PhusionPassenger::GLOBAL_NAMESPACE_DIRNAME %>/
 resources_dir=/usr/share/<%= PhusionPassenger::GLOBAL_NAMESPACE_DIRNAME %>
 include_dir=/usr/share/<%= PhusionPassenger::GLOBAL_NAMESPACE_DIRNAME %>/include
 doc_dir=/usr/share/doc/<%= PhusionPassenger::GLOBAL_NAMESPACE_DIRNAME %>
-ruby_libdir=/usr/lib/ruby/vendor_ruby
+ruby_libdir=@RUBYLIBDIR@
 node_libdir=/usr/share/<%= PhusionPassenger::GLOBAL_NAMESPACE_DIRNAME %>/node
 apache2_module_path=/usr/lib/apache2/modules/mod_passenger.so
 ruby_extension_source_dir=/usr/share/<%= PhusionPassenger::GLOBAL_NAMESPACE_DIRNAME %>/ruby_extension_source
