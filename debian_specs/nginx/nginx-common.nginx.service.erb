@@ -27,7 +27,9 @@ PIDFile=<%= localstatedir %>/nginx.pid
 ExecStartPre=/usr/sbin/nginx -t -q -g 'daemon on; master_process on;'
 ExecStart=/usr/sbin/nginx -g 'daemon on; master_process on;'
 ExecReload=/usr/sbin/nginx -g 'daemon on; master_process on;' -s reload
-ExecStop=-/sbin/start-stop-daemon --quiet --stop --retry QUIT/5 --pidfile <%= localstatedir %>/nginx.pid
+ExecStop=-/sbin/start-stop-daemon --quiet --stop --signal QUIT --retry QUIT/5 --pidfile <%= localstatedir %>/nginx.pid
+# Give Passenger a chance to clean up before being killed by systemd.
+ExecStop=/bin/sleep 1
 TimeoutStopSec=5
 KillMode=mixed
 
