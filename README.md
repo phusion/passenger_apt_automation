@@ -38,6 +38,7 @@ Debian package definitions are located in the `debian_specs` directory:
 
 Other noteworthy tools:
 
+ * `shell` -- Open a shell in the buildbox container for debugging purposes.
  * `jenkins` -- Scripts to be run by our Jenkins continuous integration jobs, either after every commit or during release time.
 
 ## Development
