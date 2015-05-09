@@ -21,7 +21,7 @@ else
 fi
 
 if [[ ! -e /cache/base-$DISTRO-$ARCH.tgz ]]; then
-	run pbuilder-dist $DISTRO $ARCH create
+	run pbuilder-dist $DISTRO $ARCH create --updates-only
 	run mv ~/pbuilder/$BASE_TGZ /cache/base-$DISTRO-$ARCH.tgz
 fi
 if [[ ! -e ~/pbuilder/$BASE_TGZ ]]; then
