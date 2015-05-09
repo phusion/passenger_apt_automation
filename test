@@ -112,6 +112,9 @@ fi
 if tty -s; then
 	EXTRA_ARGS+=(-t -i)
 fi
+if [[ -e /sys/kernel/security/apparmor ]]; then
+	EXTRA_ARGS+=(--security-opt=apparmor:unconfined)
+fi
 
 run mkdir -p "$CACHE_DIR/test-$DISTRIBUTION/aptcache/archives/partial"
 run mkdir -p "$CACHE_DIR/test-$DISTRIBUTION/aptlist/partial"
@@ -119,7 +122,6 @@ run mkdir -p "$CACHE_DIR/test-$DISTRIBUTION/aptlist/partial"
 echo "-------- Entering Docker container --------"
 exec docker run \
 	--rm \
-	--security-opt=apparmor:unconfined \
 	-v "$SELFDIR/internal:/system/internal:ro" \
 	-v "$PASSENGER_DIR:/passenger:ro" \
 	-v "$OUTPUT_DIR:/output:ro" \
