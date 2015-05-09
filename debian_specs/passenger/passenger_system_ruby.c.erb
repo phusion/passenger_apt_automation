@@ -1,0 +1,25 @@
+<%
+require File.dirname(File.absolute_path(__FILE__)) + '/helpers'
+-%>
+/*
+ * This is a simple program for executing either one of the Ruby versions installable
+ * by APT. This is necessary because Debian 6 and Debian 8 (among others) do not install
+ * /usr/bin/ruby upon installing one of the versioned Ruby packages (e.g. apt-get
+ * install ruby2.1). Commands such as 'passenger-status' are supposed to be run under
+ * the system Ruby interpreter, but we can't just set the shebang line to
+ * '#!/usr/bin/ruby'. This problem is solved by setting the shebang line to
+ * '#!/usr/bin/passenger_system_ruby'.
+ */
+
+#define PROGRAM_NAME "passenger_system_ruby"
+#include "passenger_ruby_utils.c"
+
+int
+main(int argc, const char *argv[]) {
+	<% for ruby_version in ruby_versions.reverse -%>
+		try_exec("/usr/bin/ruby<%= ruby_version %>", argc, argv);
+	<% end -%>
+
+	fprintf(stderr, "passenger_system_ruby: cannot find suitable Ruby interpreter\n");
+	return 1;
+}

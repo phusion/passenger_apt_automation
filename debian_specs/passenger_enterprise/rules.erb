@@ -36,12 +36,13 @@ override_dh_auto_build:
 		/usr/bin/ruby<%= ruby_version %> /usr/bin/rake fakeroot \
 			RUBYLIBDIR="$$vendordir" \
 			RUBYARCHDIR="$$archdir" \
-			RUBY=/usr/bin/ruby<%= ruby_version %> \
+			RUBY=/usr/bin/passenger_system_ruby \
 			FREE_RUBY=/usr/bin/passenger_free_ruby
 	mv pkg/fakeroot pkg/fakeroot<%= ruby_version %>
 	/usr/bin/ruby<%= ruby_version %> -rrbconfig -e 'puts RbConfig::CONFIG["archdir"]' >> debian/passenger-enterprise.install
 <% end -%>
 	cc -Wall -Os debian/passenger_free_ruby.c -o debian/passenger_free_ruby
+	cc -Wall -Os debian/passenger_system_ruby.c -o debian/passenger_system_ruby
 	cd nginx-<%= PhusionPassenger::PREFERRED_NGINX_VERSION %> && \
 		env $(NGINX_CONFIGURE_OPTIONS) ./configure --prefix=/tmp \
 		<%= PhusionPassenger::STANDALONE_NGINX_CONFIGURE_OPTIONS %> \
@@ -60,6 +61,7 @@ override_dh_auto_install:
 	./dev/install_scripts_bootstrap_code.rb --nginx-module-config /usr/bin debian/tmp/usr/share/<%= PhusionPassenger::GLOBAL_NAMESPACE_DIRNAME %>/ngx_http_passenger_module/config
 	touch debian/tmp/usr/share/<%= PhusionPassenger::GLOBAL_NAMESPACE_DIRNAME %>/release.txt
 	cp debian/passenger_free_ruby debian/tmp/usr/bin/
+	cp debian/passenger_system_ruby debian/tmp/usr/bin/
 
 override_dh_auto_clean:
 	/usr/bin/rake clean CLEAN_DOCS=false
