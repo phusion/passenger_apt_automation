@@ -18,6 +18,11 @@ if [[ "$REPOSITORY" =~ -testing$ ]]; then
 else
 	YANK=
 fi
+if tty -s; then
+	TTY_ARGS="-t -i"
+else
+	TTY_ARGS=
+fi
 
 if [[ ! -e ~/.packagecloud_token ]]; then
 	echo "ERROR: ~/.packagecloud_token required."
@@ -50,7 +55,7 @@ run ./publish \
 	publish:all
 
 header "Clearing proxy caches"
-exec docker run -t -i --rm \
+exec docker run $TTY_ARGS --rm \
 	-v "$SELFDIR:/system:ro" \
 	-v "$HOME/.oss_packagecloud_proxy_admin_password:/oss_packagecloud_proxy_admin_password.txt:ro" \
 	-v "$HOME/.enterprise_packagecloud_proxy_admin_password:/enterprise_packagecloud_proxy_admin_password.txt:ro" \
