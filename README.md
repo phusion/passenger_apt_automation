@@ -248,7 +248,12 @@ You will now be dropped in an SSH session inside the VM. Any futher steps must b
 
 Use the `./build` script to build packages. You must tell the build script which distribution and architecture it should build for. Run:
 
-    ./build -p /passenger -w ~/work -c ~/cache -o output -a <ARCHITECTURE> -d <DISTRIBUTION> pkg:all
+    ./build -p <PATH TO PASSENGER> -w ~/work -c ~/cache -o output -a <ARCHITECTURE> -d <DISTRIBUTION> pkg:all
+
+Replace `<PATH TO PASSENGER>` with one of these:
+
+ * If you are on a Linux system, it should be `../..`.
+ * If you are on a non-Linux system (and using Vagrant), it should be `/passenger`.
 
 Replace `<ARCHITECTURE>` with either `i386` or `amd64`. Replace `<DISTRIBUTION>` with the codename of the distribution you want to build for. For example:
 
@@ -259,15 +264,23 @@ Replace `<ARCHITECTURE>` with either `i386` or `amd64`. Replace `<DISTRIBUTION>`
 
 You can find the codename of your distribution version on Wikipedia: [Ubuntu codenames](http://en.wikipedia.org/wiki/Debian#Release_timeline), [Debian codenames](http://en.wikipedia.org/wiki/Ubuntu_(operating_system)#Releases).
 
+Here is an example invocation for building packages for Ubuntu 14.04, x86_64:
+
+```bash
+# If you are on a Linux system:
+./build -p ../.. -w ~/work -c ~/cache -o output -a amd64 -d trusty pkg:all
+
+# If you are on a non-Linux system (and using Vagrant):
+./build -p /passenger -w ~/work -c ~/cache -o output -a amd64 -d trusty pkg:all
+```
+
+### Step 4: get packages, clean up
+
 When the build is finished, you can find the packages in the `output` directory.
 
-If you are on a non-Linux OS (and thus using Vagrant), you should know that this `output` directory is accessible from your host OS too. It is a subdirectory inside `<PASSENGER REPO>/packaging/debian`.
+If you are on a non-Linux OS (and thus using Vagrant), you should know that this `output` directory is accessible from your host OS too. It is a subdirectory inside `<PASSENGER REPO>/packaging/rpm`.
 
-### Step 4 (non-Linux): spin down Vagrant VM
-
-If you are on a Linux system, then you can skip this section.
-
-If you are not on a Linux system, then you must spin down the Vagrant VM. Run this on your host OS, inside the `packaging/debian` subdirectory:
+If you are not on a Linux system, then you should spin down the Vagrant VM. Run this on your host OS, inside the `packaging/debian` subdirectory:
 
     vagrant halt
 
