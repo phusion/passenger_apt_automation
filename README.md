@@ -278,7 +278,7 @@ Here is an example invocation for building packages for Ubuntu 14.04, x86_64:
 
 When the build is finished, you can find the packages in the `output` directory.
 
-If you are on a non-Linux OS (and thus using Vagrant), you should know that this `output` directory is accessible from your host OS too. It is a subdirectory inside `<PASSENGER REPO>/packaging/rpm`.
+If you are on a non-Linux OS (and thus using Vagrant), you should know that this `output` directory is accessible from your host OS too. It is a subdirectory inside `<PASSENGER REPO>/packaging/debian`.
 
 If you are not on a Linux system, then you should spin down the Vagrant VM. Run this on your host OS, inside the `packaging/debian` subdirectory:
 
