@@ -173,9 +173,10 @@ ngx_int_t
 ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
     ngx_http_variable_value_t *v, uintptr_t data)
 {
+    int                          line_break_len;
     size_t                       size;
     u_char                      *p, *last, *pos;
-    ngx_int_t                    i;
+    ngx_int_t                    i, j;
     ngx_buf_t                   *b, *first = NULL;
     unsigned                     found;
     ngx_connection_t            *c;
@@ -189,28 +190,19 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
     size = 0;
     b = c->buffer;
 
+    if (mr->request_line.data[mr->request_line.len] == CR) {
+        line_break_len = 2;
+
+    } else {
+        line_break_len = 1;
+    }
+
     if (mr->request_line.data >= b->start
-        && mr->request_line.data + mr->request_line.len + 2 <= b->pos)
+        && mr->request_line.data + mr->request_line.len + line_break_len
+           <= b->pos)
     {
         first = b;
-
-        if (mr->header_in == b) {
-            size += mr->header_end + 2 - mr->request_line.data;
-
-        } else {
-            /* the subsequent part of the header is in the large header
-             * buffers */
-#if 1
-            p = b->pos;
-            size += p - mr->request_line.data;
-
-            /* skip truncated header entries (if any) */
-            while (b->pos > b->start && b->pos[-1] != LF) {
-                b->pos--;
-                size--;
-            }
-#endif
-        }
+        size += b->pos - mr->request_line.data;
     }
 
     if (hc->nbusy) {
@@ -220,8 +212,8 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
 
             if (first == NULL) {
                 if (mr->request_line.data >= b->pos
-                    || mr->request_line.data + mr->request_line.len + 2
-                       <= b->start)
+                    || mr->request_line.data + mr->request_line.len
+                       + line_break_len <= b->start)
                 {
                     continue;
                 }
@@ -230,14 +222,13 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
                 first = b;
             }
 
-            if (b == mr->header_in) {
-                size += mr->header_end + 2 - b->start;
-                break;
-            }
-
             size += b->pos - b->start;
         }
     }
+
+
+    size++;  /* plus the null terminator, as required by the later
+                ngx_strstr() call */
 
     v->data = ngx_palloc(r->pool, size);
     if (v->data == NULL) {
@@ -247,31 +238,40 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
     last = v->data;
 
     b = c->buffer;
-    if (first == b) {
-        if (mr->header_in == b) {
-            pos = mr->header_end + 2;
+    found = 0;
 
-        } else {
-            pos = b->pos;
-        }
+    if (first == b) {
+        found = 1;
+        pos = b->pos;
 
         last = ngx_copy(v->data, mr->request_line.data,
                         pos - mr->request_line.data);
 
+        if (b != mr->header_in) {
+            /* skip truncated header entries (if any) */
+            while (last > v->data && last[-1] != LF) {
+                last--;
+            }
+        }
+
+        i = 0;
         for (p = v->data; p != last; p++) {
             if (*p == '\0') {
+                i++;
                 if (p + 1 != last && *(p + 1) == LF) {
                     *p = CR;
 
-                } else {
+                } else if (i % 2 == 1) {
                     *p = ':';
+
+                } else {
+                    *p = LF;
                 }
             }
         }
     }
 
     if (hc->nbusy) {
-        found = (b == c->buffer);
         for (i = 0; i < hc->nbusy; i++) {
             b = hc->busy[i];
 
@@ -286,12 +286,7 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
 
             p = last;
 
-            if (b == mr->header_in) {
-                pos = mr->header_end + 2;
-
-            } else {
-                pos = b->pos;
-            }
+            pos = b->pos;
 
             if (b == first) {
                 dd("request line: %.*s", (int) mr->request_line.len,
@@ -312,8 +307,10 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
             }
 #endif
 
+            j = 0;
             for (; p != last; p++) {
                 if (*p == '\0') {
+                    j++;
                     if (p + 1 == last) {
                         /* XXX this should not happen */
                         dd("found string end!!");
@@ -321,8 +318,11 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
                     } else if (*(p + 1) == LF) {
                         *p = CR;
 
-                    } else {
+                    } else if (j % 2 == 1) {
                         *p = ':';
+
+                    } else {
+                        *p = LF;
                     }
                 }
             }
@@ -333,6 +333,8 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
         }
     }
 
+    *last++ = '\0';
+
     if (last - v->data > (ssize_t) size) {
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                       "buffer error when evaluating "
@@ -340,6 +342,36 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
                       (ngx_int_t) (last - v->data - size));
 
         return NGX_ERROR;
+    }
+
+    /* strip the leading part (if any) of the request body in our header.
+     * the first part of the request body could slip in because nginx core's
+     * ngx_http_request_body_length_filter and etc can move r->header_in->pos
+     * in case that some of the body data has been preread into r->header_in.
+     */
+
+    if ((p = (u_char *) ngx_strstr(v->data, CRLF CRLF)) != NULL) {
+        last = p + sizeof(CRLF CRLF) - 1;
+
+    } else if ((p = (u_char *) ngx_strstr(v->data, CRLF "\n")) != NULL) {
+        last = p + sizeof(CRLF "\n") - 1;
+
+    } else if ((p = (u_char *) ngx_strstr(v->data, "\n" CRLF)) != NULL) {
+        last = p + sizeof("\n" CRLF) - 1;
+
+    } else {
+        for (p = last - 1; p - v->data >= 2; p--) {
+            if (p[0] == LF && p[-1] == CR) {
+                p[-1] = LF;
+                last = p + 1;
+                break;
+            }
+
+            if (p[0] == LF && p[-1] == LF) {
+                last = p + 1;
+                break;
+            }
+        }
     }
 
     v->len = last - v->data;
