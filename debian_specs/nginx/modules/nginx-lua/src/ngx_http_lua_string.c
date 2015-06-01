@@ -238,7 +238,7 @@ ngx_http_lua_ngx_escape_sql_str(u_char *dst, u_char *src, size_t size)
                     case '\n':
                     case '\r':
                     case '\t':
-                    case 26:  /* \z */
+                    case 26:  /* \Z */
                     case '\\':
                     case '\'':
                     case '"':
@@ -285,7 +285,7 @@ ngx_http_lua_ngx_escape_sql_str(u_char *dst, u_char *src, size_t size)
 
                 case 26:
                     *dst++ = '\\';
-                    *dst++ = 'z';
+                    *dst++ = 'Z';
                     break;
 
                 case '\\':
@@ -595,7 +595,7 @@ ngx_http_lua_ngx_hmac_sha1(lua_State *L)
 #endif
 
 
-#ifndef NGX_HTTP_LUA_NO_FFI_API
+#ifndef NGX_LUA_NO_FFI_API
 void
 ngx_http_lua_ffi_md5_bin(const u_char *src, size_t len, u_char *dst)
 {

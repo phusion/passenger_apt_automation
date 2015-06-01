@@ -17,9 +17,10 @@
 #endif
 
 
-#ifndef NGX_HTTP_LUA_NO_FFI_API
+#ifndef NGX_LUA_NO_FFI_API
 typedef struct {
     int          len;
+    /* this padding hole on 64-bit systems is expected */
     u_char      *data;
 } ngx_http_lua_ffi_str_t;
 
@@ -28,7 +29,7 @@ typedef struct {
     ngx_http_lua_ffi_str_t   key;
     ngx_http_lua_ffi_str_t   value;
 } ngx_http_lua_ffi_table_elt_t;
-#endif /* NGX_HTTP_LUA_NO_FFI_API */
+#endif /* NGX_LUA_NO_FFI_API */
 
 
 /* char whose address we use as the key in Lua vm registry for
@@ -64,6 +65,11 @@ extern char ngx_http_lua_headers_metatable_key;
 #endif
 
 
+#ifndef NGX_HTTP_SWITCHING_PROTOCOLS
+#define NGX_HTTP_SWITCHING_PROTOCOLS 101
+#endif
+
+
 #if defined(nginx_version) && nginx_version < 1000000
 #define ngx_memmove(dst, src, n)   (void) memmove(dst, src, n)
 #endif
@@ -88,7 +94,7 @@ extern char ngx_http_lua_headers_metatable_key;
     }
 
 
-#ifndef NGX_HTTP_LUA_NO_FFI_API
+#ifndef NGX_LUA_NO_FFI_API
 static ngx_inline ngx_int_t
 ngx_http_lua_ffi_check_context(ngx_http_lua_ctx_t *ctx, unsigned flags,
     u_char *err, size_t *errlen)
@@ -174,8 +180,8 @@ void ngx_http_lua_process_args_option(ngx_http_request_t *r,
 ngx_int_t ngx_http_lua_open_and_stat_file(u_char *name,
     ngx_open_file_info_t *of, ngx_log_t *log);
 
-ngx_chain_t * ngx_http_lua_chains_get_free_buf(ngx_log_t *log, ngx_pool_t *p,
-    ngx_chain_t **free, size_t len, ngx_buf_tag_t tag);
+ngx_chain_t * ngx_http_lua_chain_get_free_buf(ngx_log_t *log, ngx_pool_t *p,
+    ngx_chain_t **free, size_t len);
 
 void ngx_http_lua_create_new_globals_table(lua_State *L, int narr, int nrec);
 
@@ -215,7 +221,7 @@ void ngx_http_lua_release_ngx_ctx_table(ngx_log_t *log, lua_State *L,
 
 void ngx_http_lua_cleanup_vm(void *data);
 
-ngx_connection_t * ngx_http_lua_create_fake_connection(void);
+ngx_connection_t * ngx_http_lua_create_fake_connection(ngx_pool_t *pool);
 
 ngx_http_request_t * ngx_http_lua_create_fake_request(ngx_connection_t *c);
 
@@ -378,6 +384,33 @@ ngx_http_lua_set_content_type(ngx_http_request_t *r)
     }
 
     return NGX_OK;
+}
+
+
+static ngx_inline void
+ngx_http_lua_cleanup_pending_operation(ngx_http_lua_co_ctx_t *coctx)
+{
+    if (coctx->cleanup) {
+        coctx->cleanup(coctx);
+        coctx->cleanup = NULL;
+    }
+}
+
+
+static ngx_inline ngx_chain_t *
+ngx_http_lua_get_flush_chain(ngx_http_request_t *r, ngx_http_lua_ctx_t *ctx)
+{
+    ngx_chain_t  *cl;
+
+    cl = ngx_http_lua_chain_get_free_buf(r->connection->log, r->pool,
+                                         &ctx->free_bufs, 0);
+    if (cl == NULL) {
+        return NULL;
+    }
+
+    cl->buf->flush = 1;
+
+    return cl;
 }
 
 

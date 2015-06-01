@@ -4,7 +4,10 @@ ngx_feature_name=
 ngx_feature_run=no
 ngx_feature_incs="#include <lauxlib.h>"
 ngx_feature_path=
-ngx_feature_test="(void) luaL_newstate();"
+ngx_feature_test="#if LUA_VERSION_NUM != 501
+#   error unsupported Lua language version
+#endif
+(void) luaL_newstate();"
 
 if [ -n "$LUAJIT_INC" -o -n "$LUAJIT_LIB" ]; then
     # explicitly set Lua lib path
@@ -17,6 +20,19 @@ if [ -n "$LUAJIT_INC" -o -n "$LUAJIT_LIB" ]; then
     fi
 
     . auto/feature
+
+    if [ $ngx_found = no ]; then
+        # retry with -ldl, static linking on Linux requires it.
+        ngx_feature="LuaJIT library in $LUAJIT_LIB and $LUAJIT_INC (specified by the LUAJIT_LIB and LUAJIT_INC env, with -ldl)"
+        ngx_feature_path="$LUAJIT_INC"
+        if [ $NGX_RPATH = YES ]; then
+            ngx_feature_libs="-R$LUAJIT_LIB -L$LUAJIT_LIB -lluajit-5.1 -lm -ldl"
+        else
+            ngx_feature_libs="-L$LUAJIT_LIB -lluajit-5.1 -lm -ldl"
+        fi
+
+        . auto/feature
+    fi
 
     if [ $ngx_found = no ]; then
         cat << END
@@ -158,6 +174,18 @@ END
                 ngx_feature_libs="-R/usr/lib -L/usr/lib -lm -lluajit-5.1"
             else
                 ngx_feature_libs="-L/usr/lib -lm -lluajit-5.1"
+            fi
+            . auto/feature
+        fi
+
+        if [ $ngx_found = no ]; then
+            # Gentoo with LuaJIT-2.0, retry with -ldl
+            ngx_feature="LuaJIT library in /usr/"
+            ngx_feature_path="/usr/include/luajit-2.0"
+            if [ $NGX_RPATH = YES ]; then
+                ngx_feature_libs="-R/usr/lib -L/usr/lib -lm -lluajit-5.1 -ldl"
+            else
+                ngx_feature_libs="-L/usr/lib -lm -lluajit-5.1 -ldl"
             fi
             . auto/feature
         fi

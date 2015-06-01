@@ -14,7 +14,6 @@
 #include <ngx_http.h>
 #include <ngx_md5.h>
 
-#include <assert.h>
 #include <setjmp.h>
 #include <stdint.h>
 
@@ -36,7 +35,14 @@
 #define MD5_DIGEST_LENGTH 16
 #endif
 
-#define ngx_http_lua_assert(a)  assert(a)
+
+#ifdef NGX_LUA_USE_ASSERT
+#   include <assert.h>
+#   define ngx_http_lua_assert(a)  assert(a)
+#else
+#   define ngx_http_lua_assert(a)
+#endif
+
 
 /* Nginx HTTP Lua Inline tag prefix */
 
@@ -90,7 +96,7 @@ typedef struct {
 #define NGX_HTTP_LUA_CONTEXT_INIT_WORKER    0x100
 
 
-#ifndef NGX_HTTP_LUA_NO_FFI_API
+#ifndef NGX_LUA_NO_FFI_API
 #define NGX_HTTP_LUA_FFI_NO_REQ_CTX         -100
 #define NGX_HTTP_LUA_FFI_BAD_CONTEXT        -101
 #endif
@@ -158,6 +164,15 @@ struct ngx_http_lua_main_conf_s {
 
 
 typedef struct {
+#if (NGX_HTTP_SSL)
+    ngx_ssl_t              *ssl;  /* shared by SSL cosockets */
+    ngx_uint_t              ssl_protocols;
+    ngx_str_t               ssl_ciphers;
+    ngx_uint_t              ssl_verify_depth;
+    ngx_str_t               ssl_trusted_certificate;
+    ngx_str_t               ssl_crl;
+#endif
+
     ngx_flag_t              force_read_body; /* whether force request body to
                                                 be read */
 
@@ -174,18 +189,21 @@ typedef struct {
 
     ngx_http_output_body_filter_pt         body_filter_handler;
 
+    u_char                  *rewrite_chunkname;
     ngx_http_complex_value_t rewrite_src;    /*  rewrite_by_lua
                                                 inline script/script
                                                 file path */
 
     u_char                 *rewrite_src_key; /* cached key for rewrite_src */
 
+    u_char                  *access_chunkname;
     ngx_http_complex_value_t access_src;     /*  access_by_lua
                                                 inline script/script
                                                 file path */
 
     u_char                  *access_src_key; /* cached key for access_src */
 
+    u_char                  *content_chunkname;
     ngx_http_complex_value_t content_src;    /*  content_by_lua
                                                 inline script/script
                                                 file path */
@@ -193,6 +211,7 @@ typedef struct {
     u_char                 *content_src_key; /* cached key for content_src */
 
 
+    u_char                      *log_chunkname;
     ngx_http_complex_value_t     log_src;     /* log_by_lua inline script/script
                                                  file path */
 
@@ -268,9 +287,6 @@ struct ngx_http_lua_co_ctx_s {
 
     ngx_http_cleanup_pt      cleanup;
 
-    unsigned                 nsubreqs;  /* number of subrequests of the
-                                         * current request */
-
     ngx_int_t               *sr_statuses; /* all capture subrequest statuses */
 
     ngx_http_headers_out_t **sr_headers;
@@ -279,10 +295,18 @@ struct ngx_http_lua_co_ctx_s {
 
     uint8_t                 *sr_flags;
 
+    unsigned                 nsubreqs;  /* number of subrequests of the
+                                         * current request */
+
     unsigned                 pending_subreqs; /* number of subrequests being
                                                  waited */
 
     ngx_event_t              sleep;  /* used for ngx.sleep */
+
+#ifdef NGX_LUA_USE_ASSERT
+    int                      co_top; /* stack top after yielding/creation,
+                                        only for sanity checks */
+#endif
 
     int                      co_ref; /*  reference to anchor the thread
                                          coroutines (entry coroutine and user
@@ -341,13 +365,10 @@ typedef struct ngx_http_lua_ctx_s {
     unsigned                 flushing_coros; /* number of coroutines waiting on
                                                 ngx.flush(true) */
 
-    unsigned                 uthreads; /* number of active user threads */
-
     ngx_chain_t             *out;  /* buffered output chain for HTTP 1.0 */
     ngx_chain_t             *free_bufs;
     ngx_chain_t             *busy_bufs;
     ngx_chain_t             *free_recv_bufs;
-    ngx_chain_t             *flush_buf;
 
     ngx_http_cleanup_pt     *cleanup;
 
@@ -369,6 +390,8 @@ typedef struct ngx_http_lua_ctx_s {
                                                     request */
 
     ngx_http_lua_posted_thread_t   *posted_threads;
+
+    int                      uthreads; /* number of active user threads */
 
     uint16_t                 context;   /* the current running directive context
                                            (or running phase) for the current
