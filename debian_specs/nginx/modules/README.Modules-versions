@@ -13,8 +13,8 @@ README for Modules versions
   Version: v0.2.19
 
  nginx-auth-pam
-  http://web.iti.upv.es/~sto/nginx/
-  Version: 1.3
+  https://github.com/stogh/ngx_http_auth_pam_module/
+  Version: 1.4
 
  nginx-echo
   https://github.com/agentzh/echo-nginx-module
