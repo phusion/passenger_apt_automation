@@ -524,15 +524,15 @@ static ngx_int_t
 ngx_http_dav_ext_send_propfind(ngx_http_request_t *r)
 {
 	size_t                    root;
-	ngx_str_t                 path, spath, suri;
+	ngx_str_t                 path, spath, ruri, suri;
 	ngx_chain_t               *l = NULL, **ll = &l;
 	DIR                       *dir;
 	int                       depth;
 	struct dirent             *de;
-	size_t                    len;
+	size_t                    len, uc_len;
 	ngx_http_variable_value_t vv;
 	ngx_str_t                 depth_name = ngx_string("depth");
-	u_char                    *p;
+	u_char                    *p, *uc;
 
 	if (ngx_http_variable_unknown_header(&vv, &depth_name, 
 					&r->headers_in.headers.part, 0) == NGX_OK
@@ -572,8 +572,19 @@ ngx_http_dav_ext_send_propfind(ngx_http_request_t *r)
 		);
 
 	ngx_http_dav_ext_flush(r, ll);
+/*
+	ruri.data = ngx_palloc(r->pool, r->uri.len + 2 * ngx_escape_uri(NULL,
+						r->uri.data, r->uri.len, NGX_ESCAPE_URI));
+	if (ruri.data == NULL) {
+		return NGX_ERROR;
+	}
 
-	ngx_http_dav_ext_send_propfind_item(r, (char*)path.data, &r->uri);
+	ruri.len = (u_char *) ngx_escape_uri(ruri.data, r->uri.data, r->uri.len,
+						NGX_ESCAPE_URI) - ruri.data;
+*/
+	ruri = r->unparsed_uri;
+
+	ngx_http_dav_ext_send_propfind_item(r, (char*)path.data, &ruri);
 
 	if (depth) {
 
@@ -594,8 +605,18 @@ ngx_http_dav_ext_send_propfind(ngx_http_request_t *r)
 				ngx_http_dav_ext_make_child(r->pool, &path, 
 					(u_char*)de->d_name, len, &spath);
 
-				ngx_http_dav_ext_make_child(r->pool, &r->uri, 
-					(u_char*)de->d_name, len, &suri);
+				/* escape uri component */
+
+				uc = ngx_palloc(r->pool, len + 2 * ngx_escape_uri(NULL,
+							(u_char *) de->d_name, len, NGX_ESCAPE_URI_COMPONENT));
+				if (uc == NULL) {
+					return NGX_ERROR;
+				}
+
+				uc_len = (u_char*)ngx_escape_uri(uc, (u_char *) de->d_name, len,
+							NGX_ESCAPE_URI_COMPONENT) - uc;
+
+				ngx_http_dav_ext_make_child(r->pool, &ruri, uc, uc_len, &suri);
 
 				ngx_http_dav_ext_send_propfind_item(r, (char*)spath.data, &suri);
 
