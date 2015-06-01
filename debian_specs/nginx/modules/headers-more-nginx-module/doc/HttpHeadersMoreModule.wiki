@@ -93,13 +93,15 @@ default apply to all the status codes, including <code>4xx</code> and <code>5xx<
 
 '''phase:''' ''output-header-filter''
 
-Adds or replaces the specified output headers when the response status code matches the codes specified by the <code>-s</code> option ''AND'' the response content type matches the types specified by the <code>-t</code> option.
+Replaces (if any) or adds (if not any) the specified output headers when the response status code matches the codes specified by the <code>-s</code> option ''AND'' the response content type matches the types specified by the <code>-t</code> option.
 
 If either <code>-s</code> or <code>-t</code> is not specified or has an empty list value, then no match is required. Therefore, the following directive set the <code>Server</code> output header to the custom value for ''any'' status code and ''any'' content type:
 
 <geshi lang="nginx">
   more_set_headers    "Server: my_server";
 </geshi>
+
+Existing response headers with the same name are always overridden. If you want to add headers incrementally, use the standard [[HttpHeadersModule#add_header|add_header]] directive instead.
 
 A single directive can set/add multiple output headers. For example
 
@@ -249,12 +251,12 @@ See [[#more_set_input_headers|more_set_input_headers]] for more details.
 = Installation =
 
 Grab the nginx source code from [http://nginx.org/ nginx.org], for example,
-the version 1.5.8 (see [[#Compatibility|nginx compatibility]]), and then build the source with this module:
+the version 1.7.7 (see [[#Compatibility|nginx compatibility]]), and then build the source with this module:
 
 <geshi lang="bash">
-    wget 'http://nginx.org/download/nginx-1.5.8.tar.gz'
-    tar -xzvf nginx-1.5.8.tar.gz
-    cd nginx-1.5.8/
+    wget 'http://nginx.org/download/nginx-1.7.7.tar.gz'
+    tar -xzvf nginx-1.7.7.tar.gz
+    cd nginx-1.7.7/
     
     # Here we assume you would install you nginx under /opt/nginx/.
     ./configure --prefix=/opt/nginx \
@@ -272,6 +274,8 @@ Also, this module is included and enabled by default in the [http://openresty.or
 
 The following versions of Nginx should work with this module:
 
+* '''1.7.x'''                       (last tested: 1.7.7)
+* '''1.6.x'''                       (last tested: 1.6.2)
 * '''1.5.x'''                       (last tested: 1.5.8)
 * '''1.4.x'''                       (last tested: 1.4.4)
 * '''1.3.x'''                       (last tested: 1.3.7)
@@ -388,3 +392,4 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * The original [http://agentzh.blogspot.com/2009/11/headers-more-module-scripting-input-and.html blog post] about this module's initial development.
 * The [[HttpEchoModule|echo module]] for Nginx module's automated testing.
 * The standard [[HttpHeadersModule|headers]] module.
+
