@@ -2,6 +2,10 @@
 Nginx Fancy Index module
 ========================
 
+.. image:: https://drone.io/github.com/aperezdc/ngx-fancyindex/status.png
+   :target: https://drone.io/github.com/aperezdc/ngx-fancyindex/latest
+   :alt: Build Status
+
 .. contents::
 
 The Fancy Index module makes possible the generation of file listings, like
@@ -70,6 +74,15 @@ a ``server`` section in your Nginx_ configuration file::
   }
 
 
+Advanced Theming
+~~~~~~~~~~~~~~~~
+
+For a more elaborate example using `fancyindex_header`_ and
+`fancyindex_footer`_ you can check `nice theme
+<https://github.com/TheInsomniac/Nginx-Fancyindex-Theme>`__
+designed by `@TheInsomniac <https://github.com/TheInsomniac>`__.
+
+
 Directives
 ==========
 
@@ -80,6 +93,14 @@ fancyindex
 :Context: http, server, location
 :Description:
   Enables or disables fancy directory indexes.
+
+fancyindex_default_sort
+~~~~~~~~~~~~~~~~~~~~~~~
+:Syntax: *fancyindex_default_sort* [*name* | *size* | *date* | *name_desc* | *size_desc* | *date_desc*]
+:Default: fancyindex_default_sort name
+:Context: http, server, location
+:Description:
+  Defines sorting criterion by default.
 
 fancyindex_css_href
 ~~~~~~~~~~~~~~~~~~~
@@ -101,6 +122,14 @@ fancyindex_exact_size
   Defines how to represent file sizes in the directory listing; either
   accurately, or rounding off to the kilobyte, the megabyte and the
   gigabyte.
+
+fancyindex_name_length
+~~~~~~~~~~~~~~~~~~~~~~
+:Syntax: *fancyindex_name_length length*
+:Default: fancyindex_name_length 50
+:Context: http, server, location
+:Description:
+  Defines the maximum file name length limit in bytes.
 
 fancyindex_footer
 ~~~~~~~~~~~~~~~~~
