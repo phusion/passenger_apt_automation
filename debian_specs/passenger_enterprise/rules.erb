@@ -25,12 +25,12 @@ override_dh_auto_configure:
 	# Do nothing
 
 override_dh_auto_build:
-	vendordir=`/usr/bin/ruby<%= ruby_versions[0] %> -rrbconfig -e 'puts RbConfig::CONFIG["vendordir"]'` && \
+	vendordir=`/usr/bin/ruby<%= distro_ruby_versions[0] %> -rrbconfig -e 'puts RbConfig::CONFIG["vendordir"]'` && \
 		sed -i "s|@RUBYLIBDIR@|$$vendordir|g" \
 			debian/locations.ini \
 			debian/passenger-enterprise.install \
 			debian/passenger.conf
-<% ruby_versions.each do |ruby_version| -%>
+<% distro_ruby_versions.each do |ruby_version| -%>
 	vendordir=`/usr/bin/ruby<%= ruby_version %> -rrbconfig -e 'puts RbConfig::CONFIG["vendordir"]'` && \
 		archdir=`/usr/bin/ruby<%= ruby_version %> -rrbconfig -e 'puts RbConfig::CONFIG["archdir"]'` && \
 		/usr/bin/ruby<%= ruby_version %> /usr/bin/rake fakeroot \
@@ -53,10 +53,10 @@ override_dh_auto_build:
 override_dh_auto_install:
 	mkdir debian/tmp/
 	# Merge the files for all Ruby versions into a single directory.
-<% ruby_versions.each do |ruby_version| -%>
+<% distro_ruby_versions.each do |ruby_version| -%>
 	cp -a pkg/fakeroot<%= ruby_version %>/* debian/tmp/
 <% end -%>
-	vendordir=`/usr/bin/ruby<%= ruby_versions[0] %> -rrbconfig -e 'puts RbConfig::CONFIG["vendordir"]'` && \
+	vendordir=`/usr/bin/ruby<%= distro_ruby_versions[0] %> -rrbconfig -e 'puts RbConfig::CONFIG["vendordir"]'` && \
 		./dev/install_scripts_bootstrap_code.rb --ruby "$$vendordir" debian/tmp/usr/bin/* debian/tmp/usr/sbin/*
 	./dev/install_scripts_bootstrap_code.rb --nginx-module-config /usr/bin debian/tmp/usr/share/<%= PhusionPassenger::GLOBAL_NAMESPACE_DIRNAME %>/ngx_http_passenger_module/config
 	touch debian/tmp/usr/share/<%= PhusionPassenger::GLOBAL_NAMESPACE_DIRNAME %>/release.txt
@@ -65,7 +65,7 @@ override_dh_auto_install:
 
 override_dh_auto_clean:
 	/usr/bin/rake clean CLEAN_DOCS=false
-<% ruby_versions.each do |ruby_version| -%>
+<% distro_ruby_versions.each do |ruby_version| -%>
 	rm -rf pkg/fakeroot<%= ruby_version %>
 <% end -%>
 	cd nginx-<%= PhusionPassenger::PREFERRED_NGINX_VERSION %> && if test -f Makefile; then make clean; fi

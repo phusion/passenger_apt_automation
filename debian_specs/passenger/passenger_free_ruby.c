@@ -1,6 +1,3 @@
-<%
-require File.dirname(File.absolute_path(__FILE__)) + '/helpers'
--%>
 /*
  * This is a simple program for executing either the 'ruby' command in PATH,
  * or one of the Ruby versions installable by APT. This is necessary because
@@ -18,9 +15,14 @@ require File.dirname(File.absolute_path(__FILE__)) + '/helpers'
 int
 main(int argc, const char *argv[]) {
 	try_exec("ruby", argc, argv);
-	<% for ruby_version in ruby_versions.reverse -%>
-		try_exec("/usr/bin/ruby<%= ruby_version %>", argc, argv);
-	<% end -%>
+	try_exec("/usr/bin/ruby2.5", argc, argv);
+	try_exec("/usr/bin/ruby2.4", argc, argv);
+	try_exec("/usr/bin/ruby2.3", argc, argv);
+	try_exec("/usr/bin/ruby2.2", argc, argv);
+	try_exec("/usr/bin/ruby2.1", argc, argv);
+	try_exec("/usr/bin/ruby2.0", argc, argv);
+	try_exec("/usr/bin/ruby1.9.1", argc, argv);
+	try_exec("/usr/bin/ruby1.8", argc, argv);
 
 	fprintf(stderr, "passenger_default_ruby: cannot find suitable Ruby interpreter\n");
 	return 1;

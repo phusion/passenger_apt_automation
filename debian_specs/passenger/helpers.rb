@@ -1,6 +1,6 @@
 # Returns the Ruby versions available for a given distribution.
 # The result is ordered from least preferred to most preferred.
-def ruby_versions
+def distro_ruby_versions
   case distribution_class
   when :ubuntu
     if is_distribution?("<= saucy")

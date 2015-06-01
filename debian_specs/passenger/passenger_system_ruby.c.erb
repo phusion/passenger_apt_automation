@@ -1,5 +1,9 @@
 <%
 require File.dirname(File.absolute_path(__FILE__)) + '/helpers'
+all_ruby_versions_to_try = distro_ruby_versions.reverse +
+  ['2.5', '2.4', '2.3', '2.2', '2.1', '2.0',
+   '1.9.1', '1.8']
+all_ruby_versions_to_try.uniq!
 -%>
 /*
  * This is a simple program for executing either one of the Ruby versions installable
@@ -9,6 +13,14 @@ require File.dirname(File.absolute_path(__FILE__)) + '/helpers'
  * the system Ruby interpreter, but we can't just set the shebang line to
  * '#!/usr/bin/ruby'. This problem is solved by setting the shebang line to
  * '#!/usr/bin/passenger_system_ruby'.
+ *
+ * Unlike passenger_free_ruby, passenger_system_ruby doesn't use the 'ruby'
+ * in PATH. This is because tools like 'passenger-status' behave the same
+ * no matter which Ruby version is used (e.g. they don't depend on
+ * user-installed gems or user-provided code), so there is no reason to
+ * allow them to be run under arbitrary Ruby interpters. We run a well-known
+ * Ruby version in order to reduce risk: the arbitrary user-installed version
+ * might be broken.
  */
 
 #define PROGRAM_NAME "passenger_system_ruby"
@@ -16,7 +28,7 @@ require File.dirname(File.absolute_path(__FILE__)) + '/helpers'
 
 int
 main(int argc, const char *argv[]) {
-	<% for ruby_version in ruby_versions.reverse -%>
+	<% for ruby_version in all_ruby_versions_to_try.reverse -%>
 		try_exec("/usr/bin/ruby<%= ruby_version %>", argc, argv);
 	<% end -%>
 
