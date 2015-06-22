@@ -187,12 +187,12 @@ If a packaging test job fails, here's what you should do.
 
  3. Build packages for the distribution for which the test failed.
 
-        ./build -w ~/work -c ~/cache -o ~/output -p /passenger -d ubuntu10.04 -a amd64 -j 2 pkg:all
+        ./build -w ~/work -c ~/cache -o ~/output -p /passenger -d ubuntu14.04 -a amd64 -j 2 pkg:all
 
     Be sure to customize the value passed to `-d` based on the distribution for which the test failed.
  4. Run the tests with the debugging console enabled:
 
-        ./test -p /passenger -x ubuntu10.04 -d ~/output/lucid -c ~/cache -D
+        ./test -p /passenger -x ubuntu14.04 -d ~/output/lucid -c ~/cache -D
 
     Be sure to customize the values passed to `-x` and `-d` based on the distribution for which the test failed.
 
