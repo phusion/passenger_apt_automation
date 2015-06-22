@@ -192,7 +192,7 @@ If a packaging test job fails, here's what you should do.
     Be sure to customize the value passed to `-d` based on the distribution for which the test failed.
  4. Run the tests with the debugging console enabled:
 
-        ./test -p /passenger -x ubuntu14.04 -d ~/output/lucid -c ~/cache -D
+        ./test -p /passenger -x ubuntu14.04 -d ~/output/trusty -c ~/cache -D
 
     Be sure to customize the values passed to `-x` and `-d` based on the distribution for which the test failed.
 
