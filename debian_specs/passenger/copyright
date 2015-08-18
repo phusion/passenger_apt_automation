@@ -8,8 +8,8 @@ Micah Anderson <micah@riseup.net>.
 
 It was downloaded from https://www.phusionpassenger.com/
 
-Upstream Authors: Hongli Lai <hongli@plan99.net>
-                    Ninh Bui <ninh.bui@gmail.com>
+Upstream Authors: Hongli Lai <hongli@phusion.nl>
+                    Ninh Bui <hongli@phusion.nl>
 
 Copyright:
 
@@ -92,8 +92,8 @@ The file lib/phusion_passenger/railz/cgi_fixed.rb license is as follows:
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-All files under ext/oxt are licensed under the MIT license and are
-Copyright (c) 2008 Phusion:
+All files under src/cxx_supportlib/oxt are licensed under the MIT license and are
+Copyright (c) 2008-2015 Phusion:
 
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -135,11 +135,11 @@ THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-All files located under ext/common hold the same Copyright and license
-as the main Passenger source (Copyright (C) 2008 Hongli Lai & Ninh Bui
+All files located under src/cxx_supportlib hold the same Copyright and license
+as the main Passenger source (Copyright (C) 2008-2015 Hongli Lai & Ninh Bui
 and GPLv2 only), except where noted below:
 
-ext/common/Base65.[cpp,h] is Copyright (C) 2004-2008 René Nyffenegger:
+src/cxx_supportlib/Utils/Base65.[cpp,h] is Copyright (C) 2004-2008 René Nyffenegger:
 
  * Modified by Phusion for inclusion in Phusion Passenger.
  *
@@ -165,11 +165,11 @@ ext/common/Base65.[cpp,h] is Copyright (C) 2004-2008 René Nyffenegger:
  *
  */
 ---------------------------------------------------------------------------
-All files located under ext/apache2 hold the same Copyright and license
-as the main Passenger source (Copyright (C) 2008 Hongli Lai & Ninh Bui
+All files located under src/apache2_module hold the same Copyright and license
+as the main Passenger source (Copyright (C) 2008-2015 Hongli Lai & Ninh Bui
 and GPLv2 only), except where noted below:
 
-A few functions in ext/apache2/Hooks.cpp are based on the source code of
+A few functions in src/apache2_module/Hooks.cpp are based on the source code of
 mod_scgi version 1.9. Its license is included in this file.
 Please note that these licensing terms *only* encompass those few
 functions, and not Passenger as a whole.
@@ -249,11 +249,11 @@ AGREEMENT.
    Agreement.
 
 ---------------------------------------------------------------------------
-All files located under ext/nginx hold the same Copyright and license
-as the main Passenger source (Copyright (C) 2008 Hongli Lai & Ninh Bui
+All files located under src/nginx_module hold the same Copyright and license
+as the main Passenger source (Copyright (C) 2008-2015 Hongli Lai & Ninh Bui
 and GPLv2 only), except where noted below:
 
-ext/nginx/Configuration.[c,h], ContentHandler.[c,h],
+src/nginx_module/Configuration.[c,h], ContentHandler.[c,h],
 ngx_http_passenger_module.[c,h] and StaticContentHandler.h is:
 
 /* Copyright (C) Igor Sysoev
@@ -282,7 +282,7 @@ ngx_http_passenger_module.[c,h] and StaticContentHandler.h is:
  * SUCH DAMAGE.
  */
 
-ext/nginx/StaticContentHandler.c is:
+src/nginx_module/StaticContentHandler.c is:
 /*
  * Copyright (C) Igor Sysoev
  * Copyright (C) 2009 Phusion

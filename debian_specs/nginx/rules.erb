@@ -127,7 +127,7 @@ extras_configure_flags := \
 			--add-module=$(MODULESDIR)/nginx-upload-progress \
 			--add-module=$(MODULESDIR)/nginx-upstream-fair \
 			--add-module=$(MODULESDIR)/ngx_http_substitutions_filter_module \
-			--add-module=$(MODULESDIR)/passenger/ext/nginx
+			--add-module=$(MODULESDIR)/passenger/src/nginx_module
 
 <% if is_distribution?(">= utopic") || is_distribution?(">= jessie") -%>
 %:
@@ -163,7 +163,7 @@ strip.arch.%:
 	dh_strip --package=nginx-$(*) --dbg-package=nginx-$(*)-dbg
 
 passenger_nginx_libs:
-	cd $(MODULESDIR)/passenger/ext/nginx && \
+	cd $(MODULESDIR)/passenger/src/nginx_module && \
 		EXTRA_CFLAGS="$(debian_cflags_nooptimize)" \
 		EXTRA_CXXFLAGS="$(debian_cflags_nooptimize)" \
 		EXTRA_LDFLAGS="$(debian_ldflags)" \

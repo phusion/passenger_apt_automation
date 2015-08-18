@@ -67,7 +67,7 @@ sh "tar -C #{SPKG_DIR} -xzf /work/#{TARBALL}"
 
 if DEBIAN_NAME =~ /passenger/
   puts "+ Loading Passenger constants"
-  require("#{SPKG_DIR}/#{SOURCENAME}/lib/phusion_passenger")
+  require("#{SPKG_DIR}/#{SOURCENAME}/src/ruby_supportlib/phusion_passenger")
   PhusionPassenger.locate_directories
   PhusionPassenger.require_passenger_lib 'constants'
   include PhusionPassenger
