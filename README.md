@@ -5,7 +5,7 @@ This repository contains Debian package definitions for [Phusion Passenger](http
 The goal of this project is twofold:
 
  1. To allow Phusion to release Debian packages for multiple distributions and architectures, immediately after a Passenger source release, in a completely automated manner.
- 2. To allow users to build their own RPM packages for Passenger, without having to wait for Phusion to do so.
+ 2. To allow users to build their own Debian packages for Passenger, without having to wait for Phusion to do so.
 
 > Are you a user who wants to build your own packages for a Passenger version that hasn't been released yet? Read [Tutorial: building your own packages](#tutorial-building-your-own-packages).
 
