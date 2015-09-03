@@ -6,14 +6,17 @@ source "$ROOTDIR/internal/lib/library.sh"
 
 COMPILE_CONCURRENCY=${COMPILE_CONCURRENCY:-2}
 export DEBIAN_FRONTEND=noninteractive
-if [[ "$DISTRIBUTION" = ubuntu10.04 ]] || [[ "$DISTRIBUTION" = debian6 ]]; then
+if [[ "$DISTRIBUTION" = debian6 ]]; then
 	export LC_ALL=POSIX
 	export LC_CTYPE=POSIX
-	APACHE2_DEV_PACKAGE=apache2-dev
 else
 	export LC_ALL=C.UTF-8
 	export LC_CTYPE=C.UTF-8
-	APACHE2_DEV_PACKAGE=apache2-threaded-dev
+fi
+if [[ "$DISTRIBUTION" = debian7 ]]; then
+	APACHE2_DEV_PACKAGES="apache2 apache2-threaded-dev"
+else
+	APACHE2_DEV_PACKAGES="apache2 apache2-dev"
 fi
 
 if ls /output/*enterprise* >/dev/null 2>/dev/null; then
@@ -41,7 +44,7 @@ else
 fi
 run gdebi -n -q /output/nginx-common_*_all.deb
 run gdebi -n -q /output/nginx-extras_*_amd64.deb
-run apt-get install -y -q $APACHE2_DEV_PACKAGE
+run apt-get install -y -q $APACHE2_DEV_PACKAGES
 
 echo
 header "Preparing Passenger source code..."
@@ -58,7 +61,9 @@ if [[ -e /passenger/.git ]]; then
 		set -o pipefail
 		git archive --format=tar HEAD | setuser app tar -C /tmp/passenger -x
 	)
-	[[ $? = 0 ]]
+	if [[ $? != 0 ]]; then
+		exit 1
+	fi
 else
 	run setuser app cp -R /passenger /tmp/passenger
 fi

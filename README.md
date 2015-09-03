@@ -5,7 +5,7 @@ This repository contains Debian package definitions for [Phusion Passenger](http
 The goal of this project is twofold:
 
  1. To allow Phusion to release Debian packages for multiple distributions and architectures, immediately after a Passenger source release, in a completely automated manner.
- 2. To allow users to build their own RPM packages for Passenger, without having to wait for Phusion to do so.
+ 2. To allow users to build their own Debian packages for Passenger, without having to wait for Phusion to do so.
 
 > Are you a user who wants to build your own packages for a Passenger version that hasn't been released yet? Read [Tutorial: building your own packages](#tutorial-building-your-own-packages).
 
@@ -138,17 +138,43 @@ Once packages have been built, you can publish them to PackageCloud. The `publis
 
 ### Adding support for a new distribution
 
-There are three things you want to add support for a new distribution.
+There are three things you want to add support for a new distribution. In these instructions, we assume that  the new distribution is Ubuntu 15.05 "wily". Update the actual parameters accordingly.
 
- 1. Add a definition for this new distribution to `internal/lib/distro_info.rb` and `internal/lib/distro_info.sh`.
- 2. Add the distribution's codename to the `DISTRIBUTIONS` variable's default value inside the `build` script.
- 3. Update the package definitions in `debian_specs/`.
- 4. Build and publish packages for this distribution only. You can do that by running the build script with the `-d` option.
+ 1. Rebuild the build box so that it has the latest distribution information:
 
-    For example, if the new distribution is Ubuntu 14.04 "trusty", then run:
+        ./docker-images/setup-buildbox-docker-image
 
-        ./build -p /passenger -w work -c cache -o output -d trusty pkg:all
-        ./publish -d output -c ~/.packagecloud_token -r passenger-testing publish:all
+ 2. Add a definition for this new distribution to `internal/lib/distro_info.rb` and `internal/lib/distro_info.sh`.
+ 3. Add the distribution's codename to the `DISTRIBUTIONS` variable's default value inside the `build` script.
+ 4. Update the package definitions in `debian_specs/`.
+ 5. Build publish packages for this distribution only. You can do that by running the build script with the `-d` option.
+
+    For example:
+
+        ./build -p /passenger -w work -c cache -o output -d wily pkg:all
+
+ 6. Create a test box for this new distribution.
+
+     1. Create `docker_images/setup-testbox-docker-image-ubuntu-15.10`
+     2. Create `docker_images/testbox-ubuntu-15.10/`
+     3. Edit `docker_images/Makefile` and add entries for this new testbox.
+     4. Run `./docker_images/setup-testbox-docker-image-ubuntu-15.10`
+
+    When done, test Passenger under the new testbox:
+
+        ./test -p /passenger -x ubuntu15.10 -d output/wily -c cache
+
+ 7. Commit and push all changes, then publish the new packages and the updated Docker images by running:
+
+        git add docker_images
+        git commit -a -m "Add support for Ubuntu 15.10 Wily"
+        git push
+        cd docker_images
+        make upload
+
+ 8. On the Phusion CI server, pull the latest buildbox:
+
+        docker pull phusion/passenger_apt_automation_buildbox
 
 ### Building Nginx packages only
 

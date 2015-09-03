@@ -9,7 +9,8 @@ UBUNTU_DISTRIBUTIONS = {
   "saucy"    => "13.10",
   "trusty"   => "14.04",
   "utopic"   => "14.10",
-  "vivid"    => "15.04"
+  "vivid"    => "15.04",
+  "wily"     => "15.10"
 }
 DEBIAN_DISTRIBUTIONS = {
   "squeeze"  => 6,

@@ -1,7 +1,9 @@
 function distro_name_to_codename()
 {
 	local DISTRIBUTION="$1"
-	if [[ "$DISTRIBUTION" = ubuntu15.04 ]]; then
+	if [[ "$DISTRIBUTION" = ubuntu15.10 ]]; then
+		echo wily
+	elif [[ "$DISTRIBUTION" = ubuntu15.04 ]]; then
 		echo vivid
 	elif [[ "$DISTRIBUTION" = ubuntu14.04 ]]; then
 		echo trusty
@@ -28,7 +30,9 @@ function distro_name_to_codename()
 function distro_name_to_testbox_image()
 {
 	local DISTRIBUTION="$1"
-	if [[ "$DISTRIBUTION" = ubuntu15.04 ]]; then
+	if [[ "$DISTRIBUTION" = ubuntu15.10 ]]; then
+		echo phusion/passenger_apt_automation_testbox_ubuntu_15_10
+	elif [[ "$DISTRIBUTION" = ubuntu15.04 ]]; then
 		echo phusion/passenger_apt_automation_testbox_ubuntu_15_04
 	elif [[ "$DISTRIBUTION" = ubuntu14.04 ]]; then
 		echo phusion/passenger_apt_automation_testbox_ubuntu_14_04
