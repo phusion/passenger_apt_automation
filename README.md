@@ -112,11 +112,11 @@ If anything goes wrong during a build, please take a look at the various log fil
 
 Once packages have been built, you can test them with the test script. Here is an example invocation:
 
-    ./test -p /passenger -x ubuntu14.04 -d output/trusty -c cache
+    ./test -p /passenger -x trusty -d output/trusty -c cache
 
  * `-p` tells it where the Passenger source code is.
- * `-x` tells it which environment it should use for running the tests. To learn which environments are supported, run `./test -h`.
- * `-d` tells it where to find the packages that are to be tested. This must point to a subdirectory in the output directory produced by the build script, and the packages must match the test environment as specified by `-x`. For example, if you specified `-x ubuntu14.04`, and if the build script stored packages in the directory `output`, then you should pass `-d output/trusty`.
+ * `-x` tells it which distribution it should use for running the tests. To learn which distributions are supported, run `./test -h`.
+ * `-d` tells it where to find the packages that are to be tested. This must point to a subdirectory in the output directory produced by the build script, and the packages must match the test environment as specified by `-x`. For example, if you specified `-x trusty`, and if the build script stored packages in the directory `output`, then you should pass `-d output/trusty`.
  * `-c` tells it where the cache directory is. The test script caches files into this directory so that subsequent runs will be faster.
 
 #### Vagrant notes
@@ -144,8 +144,12 @@ There are three things you want to add support for a new distribution. In these 
 
         ./docker-images/setup-buildbox-docker-image
 
- 2. Add a definition for this new distribution to `internal/lib/distro_info.rb` and `internal/lib/distro_info.sh`.
- 3. Add the distribution's codename to the `DISTRIBUTIONS` variable's default value inside the `build` script.
+ 2. Add a definition for this new distribution to `internal/lib/distro_info.rb`.
+
+     * Add to either the `UBUNTU_DISTRIBUTIONS` or the `DEBIAN_DISTRIBUTIONS` constant.
+     * Add to the `DEFAULT_DISTROS` constant.
+
+ 3. Run `./internal/scripts/regen_distro_info_script.sh`.
  4. Update the package definitions in `debian_specs/`.
  5. Build publish packages for this distribution only. You can do that by running the build script with the `-d` option.
 
@@ -162,7 +166,7 @@ There are three things you want to add support for a new distribution. In these 
 
     When done, test Passenger under the new testbox:
 
-        ./test -p /passenger -x ubuntu15.10 -d output/wily -c cache
+        ./test -p /passenger -x wily -d output/wily -c cache
 
  7. Commit and push all changes, then publish the new packages and the updated Docker images by running:
 
@@ -180,7 +184,7 @@ There are three things you want to add support for a new distribution. In these 
 
 Sometimes you want to build Nginx packages only, without building the Phusion Passenger packages. You can do this by invoking the build script with the `pkg:nginx:all` task. For example:
 
-    ./build -p /passenger -w work -c cache -o output -d trusty pkg:nginx:all
+    ./build -p /passenger -w work -c cache -o output -d wily pkg:nginx:all
 
 After the build script finishes, you can publish these Nginx packages:
 
@@ -213,12 +217,12 @@ If a packaging test job fails, here's what you should do.
 
  3. Build packages for the distribution for which the test failed.
 
-        ./build -w ~/work -c ~/cache -o ~/output -p /passenger -d trusty -a amd64 -j 2 -R pkg:all
+        ./build -w ~/work -c ~/cache -o ~/output -p /passenger -d wily -a amd64 -j 2 -R pkg:all
 
     Be sure to customize the value passed to `-d` based on the distribution for which the test failed.
  4. Run the tests with the debugging console enabled:
 
-        ./test -p /passenger -x ubuntu14.04 -d ~/output/trusty -c ~/cache -D
+        ./test -p /passenger -x wily -d ~/output/wily -c ~/cache -D
 
     Be sure to customize the values passed to `-x` and `-d` based on the distribution for which the test failed.
 

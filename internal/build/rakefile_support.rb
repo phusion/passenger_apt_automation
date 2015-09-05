@@ -2,7 +2,7 @@ require 'etc'
 require_relative '../lib/utils'
 require_relative '../lib/distro_info'
 
-DISTROS = ENV['DISTRIBUTIONS'].split(/ +/)
+DISTROS = ENV['DISTRIBUTIONS'].split(/ +/).map { |distro| to_distro_codename(distro) }
 ARCHITECTURES = ENV['ARCHITECTURES'].split(/ +/)
 SHOW_TASKS = !!ENV['SHOW_TASKS']
 SHOW_OVERVIEW_PERIODICALLY = ENV['SHOW_OVERVIEW_PERIODICALLY'] == 'true'
@@ -27,10 +27,6 @@ def initialize_rakefile!
     load_passenger
     set_constants_and_envvars
   end
-end
-
-def valid_distro_name?(name)
-  UBUNTU_DISTRIBUTIONS.has_key?(name) || DEBIAN_DISTRIBUTIONS.has_key?(name)
 end
 
 def create_fake_directories

@@ -29,7 +29,7 @@ require_envvar DISTRIBUTION "$DISTRIBUTION"
 PASSENGER_ROOT="${PASSENGER_ROOT:-$WORKSPACE}"
 CONCURRENCY=${CONCURRENCY:-4}
 
-CODENAME=`distro_name_to_codename "$DISTRIBUTION"`
+CODENAME=`to_distro_codename "$DISTRIBUTION"`
 if [[ "$DEBUG_CONSOLE" = true ]]; then
 	EXTRA_TEST_PARAMS=-D
 else
@@ -48,7 +48,7 @@ run ./build \
 	-c "$WORKSPACE/cache" \
 	-o "$WORKSPACE/output" \
 	-p "$PASSENGER_ROOT" \
-	-d "$CODENAME" \
+	-d "$DISTRIBUTION" \
 	-a amd64 \
 	-j "$CONCURRENCY" \
 	-R \
