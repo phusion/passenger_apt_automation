@@ -22,8 +22,8 @@ function usage()
 	echo
 	echo "Required options:"
 	echo "  -p DIR     Path to Passenger source code"
-	echo "  -x DISTRO  Distribution to run tests in: ubuntu14.04,ubuntu12.04,"
-	echo "             ubuntu10.04,debian7,debian6"
+	echo "  -x DISTRO  Distribution to run tests in. One of:"
+	echo "             $DEFAULT_DISTROS"
 	echo "  -d DIR     Path to built packages"
 	echo "  -c DIR     Path to cache directory"
 	echo
@@ -87,7 +87,7 @@ function parse_options()
 		echo "ERROR: please specify a distribution with -x."
 		exit 1
 	else
-		IMAGE=`distro_name_to_testbox_image "$DISTRIBUTION"`
+		IMAGE=`to_testbox_image "$DISTRIBUTION"`
 	fi
 	if [[ "$OUTPUT_DIR" = "" ]]; then
 		echo "ERROR: please specify a build products directory with -d."

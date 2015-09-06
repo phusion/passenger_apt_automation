@@ -4,10 +4,11 @@ set -e
 SELFDIR="`dirname \"$0\"`"
 SELFDIR="`cd \"$SELFDIR\" && pwd`"
 source "$SELFDIR/internal/lib/library.sh"
+source "$SELFDIR/internal/lib/distro_info.sh"
 
 WORK_DIR=
 CACHE_DIR=
-DISTRIBUTIONS="precise trusty vivid squeeze wheezy jessie"
+DISTRIBUTIONS="$DEFAULT_DISTROS"
 ARCHITECTURES="i386 amd64"
 ARGV=
 
@@ -23,7 +24,7 @@ function usage()
 	echo "  -w DIR     Path to work directory (for temporary files)"
 	echo "  -d NAMES   Build only for given distributions. This is a space-separated list"
 	echo "             of distribution names."
-	echo "             Default: $DISTRIBUTIONS"
+	echo "             Default: $DEFAULT_DISTROS"
 	echo "  -a NAMES   Build only for given architectures. This is a space-separated list"
 	echo "             of architecture names."
 	echo "             Default: $ARCHITECTURES"

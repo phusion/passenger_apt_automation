@@ -4,13 +4,14 @@ set -e
 SELFDIR="`dirname \"$0\"`"
 SELFDIR="`cd \"$SELFDIR\" && pwd`"
 source "$SELFDIR/internal/lib/library.sh"
+source "$SELFDIR/internal/lib/distro_info.sh"
 
 PASSENGER_DIR=
 WORK_DIR=
 CACHE_DIR=
 OUTPUT_DIR=
 CONCURRENCY=1
-DISTRIBUTIONS="precise trusty vivid wily squeeze wheezy jessie"
+DISTRIBUTIONS="$DEFAULT_DISTROS"
 ARCHITECTURES="i386 amd64"
 FETCH_PASSENGER_TARBALL_FROM_CACHE=true
 CLEAR_WORK_DIR=true
@@ -34,7 +35,7 @@ function usage()
 	echo "  -j NUM     Set build concurrency. Default: 1"
 	echo "  -d NAMES   Build only for given distributions. This is a space-separated list"
 	echo "             of distribution names."
-	echo "             Default: $DISTRIBUTIONS"
+	echo "             Default: $DEFAULT_DISTROS"
 	echo "  -a NAMES   Build only for given architectures. This is a space-separated list"
 	echo "             of architecture names."
 	echo "             Default: $ARCHITECTURES"
