@@ -4,7 +4,7 @@ set -o pipefail
 set -x
 
 if [[ ! -e /usr/bin/docker ]]; then
-	wget -qO- https://get.docker.com/ | bash
+	curl -sSL https://get.docker.com/ | bash
 fi
 usermod -aG docker vagrant
 if ! grep -q 'cd /vagrant' ~vagrant/.profile; then
