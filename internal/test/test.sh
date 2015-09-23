@@ -60,6 +60,14 @@ if [[ -e /passenger/.git ]]; then
 	(
 		set -o pipefail
 		git archive --format=tar HEAD | setuser app tar -C /tmp/passenger -x
+		submodules=`git submodule status | awk '{ print $2 }'`
+		for submodule in $submodules; do
+			echo "+ Git copying submodule $submodule"
+			pushd $submodule >/dev/null
+			mkdir -p /tmp/passenger/$submodule
+			git archive --format=tar HEAD | setuser app tar -C /tmp/passenger/$submodule -x
+			popd >/dev/null
+		done
 	)
 	if [[ $? != 0 ]]; then
 		exit 1
