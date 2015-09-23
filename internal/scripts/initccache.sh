@@ -7,10 +7,12 @@ set -e
 ROOTDIR=`dirname "$0"`
 ROOTDIR=`cd "$ROOTDIR/../.." && pwd`
 source "$ROOTDIR/internal/lib/library.sh"
+source "$ROOTDIR/internal/lib/distro_info.sh"
 
 SUBDIRS="0 1 2 3 4 5 6 7 8 9 a b c d e f tmp"
 
 for DISTRO in $DISTRIBUTIONS; do
+	DISTRO=`to_distro_codename "$DISTRO"`
 	for ARCH in $ARCHITECTURES; do
 		dir="/cache/pbuilder/ccache/$DISTRO-$ARCH"
 		verbose_run mkdir -p "$dir"
