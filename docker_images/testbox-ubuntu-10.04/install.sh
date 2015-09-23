@@ -52,7 +52,7 @@ run ln -s /usr/bin/python2.6 /bin/my_init_python
 run wget http://production.cf.rubygems.org/rubygems/rubygems-update-2.4.6.gem -O /tmp/rubygems.gem
 run gem install /tmp/rubygems.gem --no-rdoc --no-ri
 run /var/lib/gems/1.8/bin/update_rubygems --no-rdoc --no-ri
-run gem install bundler -v 1.9.1 --no-rdoc --no-ri
+run gem install bundler -v 1.10.6 --no-rdoc --no-ri
 run env BUNDLE_GEMFILE=/paa_build/Gemfile bundle install
 
 run cp /paa_build/argparse.py /usr/lib/python2.6/
