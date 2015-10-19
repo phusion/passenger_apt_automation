@@ -45,7 +45,7 @@ override_dh_auto_build:
 	cc -Wall -Os debian/passenger_system_ruby.c -o debian/passenger_system_ruby
 	cd nginx-<%= PhusionPassenger::PREFERRED_NGINX_VERSION %> && \
 		env $(NGINX_CONFIGURE_OPTIONS) ./configure --prefix=/tmp \
-		<%= PhusionPassenger::STANDALONE_NGINX_CONFIGURE_OPTIONS %> \
+		<%= PhusionPassenger::Config::NginxEngineCompiler.configure_script_options %> \
 		--add-module=`pwd`/../src/nginx_module && \
 		make && \
 		mv objs/nginx objs/nginx-<%= PhusionPassenger::PREFERRED_NGINX_VERSION %>
