@@ -70,6 +70,7 @@ if DEBIAN_NAME =~ /passenger/
   require("#{SPKG_DIR}/#{SOURCENAME}/src/ruby_supportlib/phusion_passenger")
   PhusionPassenger.locate_directories
   PhusionPassenger.require_passenger_lib 'constants'
+  PhusionPassenger.require_passenger_lib 'config/nginx_engine_compiler'
   include PhusionPassenger
 end
 
