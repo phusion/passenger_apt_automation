@@ -138,7 +138,7 @@ Once packages have been built, you can publish them to PackageCloud. The `publis
 
 ### Adding support for a new distribution
 
-There are three things you want to add support for a new distribution. In these instructions, we assume that  the new distribution is Ubuntu 15.05 "wily". Update the actual parameters accordingly.
+In these instructions, we assume that the new distribution is Ubuntu 15.05 "wily". Update the actual parameters accordingly.
 
  1. Rebuild the build box so that it has the latest distribution information:
 
@@ -159,10 +159,10 @@ There are three things you want to add support for a new distribution. In these 
 
  6. Create a test box for this new distribution.
 
-     1. Create `docker_images/setup-testbox-docker-image-ubuntu-15.10`
-     2. Create `docker_images/testbox-ubuntu-15.10/`
-     3. Edit `docker_images/Makefile` and add entries for this new testbox.
-     4. Run `./docker_images/setup-testbox-docker-image-ubuntu-15.10`
+     1. Create `docker-images/setup-testbox-docker-image-ubuntu-15.10`
+     2. Create `docker-images/testbox-ubuntu-15.10/`
+     3. Edit `docker-images/Makefile` and add entries for this new testbox.
+     4. Run `./docker-images/setup-testbox-docker-image-ubuntu-15.10`
 
     When done, test Passenger under the new testbox:
 
@@ -170,7 +170,7 @@ There are three things you want to add support for a new distribution. In these 
 
  7. Commit and push all changes, then publish the new packages and the updated Docker images by running:
 
-        git add docker_images
+        git add docker-images
         git commit -a -m "Add support for Ubuntu 15.10 Wily"
         git push
         cd docker_images
@@ -179,6 +179,15 @@ There are three things you want to add support for a new distribution. In these 
  8. On the Phusion CI server, pull the latest buildbox:
 
         docker pull phusion/passenger_apt_automation_buildbox
+
+ 9. Inside the [passenger](https://github.com/phusion/passenger) repository, update the `packaging/debian` submodule (which refers to the `passenger_apt_automation` repository) to the latest commit, then commit the result. Assuming you want the submodule to update to the latest `master` branch commit:
+
+        cd packaging/debian
+        git checkout master
+        git pull
+        cd ../..
+        git commit -a -m "Add packaging support for Ubuntu 15.10 Wily"
+        git push
 
 ### Building Nginx packages only
 
