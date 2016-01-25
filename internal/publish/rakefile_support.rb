@@ -77,28 +77,43 @@ def initialize_packagecloud!
 end
 
 def make_packagecloud_http
-  expected_fingerprint = File.read("/system/internal/publish/packagecloud_fingerprint.txt").strip
+  expected_fingerprints = File.read("/system/internal/publish/packagecloud_fingerprint.txt").split("\n")
 
   http = Net::HTTP::Persistent.new
   http.verify_mode = OpenSSL::SSL::VERIFY_PEER
   http.verify_callback = lambda do |preverify_ok, store_context|
-    if preverify_ok and store_context.error == 0
-      certificate = OpenSSL::X509::Certificate.new(store_context.chain[0])
-      fingerprint = Digest::SHA256.hexdigest(certificate.to_der).upcase.scan(/../).join(":")
-      if fingerprint == expected_fingerprint
-        true
-      else
-        abort "Fingerprint verification for #{host} failed.\n" +
-          "  Expected: #{expected_fingerprint}\n" +
-          "  Actual  : #{fingerprint}"
-        false
-      end
+    if preverify_ok && store_context.error == 0
+      verify_certificate_chain('packagecloud.io',
+        store_context.chain, expected_fingerprints)
     else
       false
     end
   end
 
   http
+end
+
+def verify_certificate_chain(host, chain, expected_fingerprints)
+  chain_fingerprints = {}
+  chain.each do |chain_item|
+    certificate = OpenSSL::X509::Certificate.new(chain_item)
+    fingerprint = Digest::SHA256.hexdigest(certificate.to_der).upcase.scan(/../).join(":")
+    chain_fingerprints[certificate.subject] = fingerprint
+  end
+
+  if chain_fingerprints.values.any? { |v| expected_fingerprints.include?(v) }
+    true
+  else
+    message = "Fingerprint verification for #{host} failed.\n" \
+      "  Expected: #{expected_fingerprints.inspect}\n" \
+      "  Actual  :\n"
+    chain_fingerprints.each_pair do |subject, fingerprint|
+      message << "    - #{subject}\n"
+      message << "      #{fingerprint}\n"
+    end
+    STDERR.puts(message)
+    false
+  end
 end
 
 def get_packagecloud_package_urls
