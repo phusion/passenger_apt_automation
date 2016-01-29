@@ -27,7 +27,7 @@ def verify_certificate_chain(host, chain, expected_fingerprints)
 end
 
 def clear_cache(url, fingerprint_file, password_file)
-  expected_fingerprint = File.read(fingerprint_file).split("\n")
+  expected_fingerprints = File.read(fingerprint_file).split("\n")
   admin_password = File.read(password_file).strip
 
   puts "+ POST #{url}"
