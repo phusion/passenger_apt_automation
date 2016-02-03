@@ -27,7 +27,6 @@ DEBIAN_DISTRIBUTIONS = {
 DEFAULT_DISTROS = %w(
   precise
   trusty
-  vivid
   wily
 
   squeeze
