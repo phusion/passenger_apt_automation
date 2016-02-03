@@ -111,6 +111,14 @@ function to_distro_codename()
 			return
 		fi
 	
+		if [[ "$INPUT" = "xenial"
+			|| "$INPUT" = "ubuntu16.04"
+			|| "$INPUT" = "ubuntu-16.04" ]]
+		then
+			echo "xenial"
+			return
+		fi
+	
 	
 		if [[ "$INPUT" = "squeeze"
 			|| "$INPUT" = "debian6"
@@ -254,6 +262,14 @@ function to_testbox_image()
 			|| "$INPUT" = "ubuntu-15.10" ]]
 		then
 			echo phusion/passenger_apt_automation_testbox_ubuntu_15_10
+			return
+		fi
+	
+		if [[ "$INPUT" = "xenial"
+			|| "$INPUT" = "ubuntu16.04"
+			|| "$INPUT" = "ubuntu-16.04" ]]
+		then
+			echo phusion/passenger_apt_automation_testbox_ubuntu_16_04
 			return
 		fi
 	

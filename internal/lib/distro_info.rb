@@ -10,7 +10,8 @@ UBUNTU_DISTRIBUTIONS = {
   "trusty"   => "14.04",
   "utopic"   => "14.10",
   "vivid"    => "15.04",
-  "wily"     => "15.10"
+  "wily"     => "15.10",
+  "xenial"   => "16.04"
 }
 
 DEBIAN_DISTRIBUTIONS = {
