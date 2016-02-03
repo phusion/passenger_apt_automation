@@ -29,7 +29,6 @@ DEFAULT_DISTROS = %w(
   trusty
   wily
 
-  squeeze
   wheezy
   jessie
 )
