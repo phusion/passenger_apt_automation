@@ -79,7 +79,7 @@ run mkdir -p "$CACHE_DIR/pbuilder/ccache"
 if [[ "$WORK_DIR" != "" ]]; then
 	WORK_DIR="`absolute_path \"$WORK_DIR\"`"
 	run mkdir -p "$WORK_DIR"
-	DOCKER_OPTIONS+=(-v "/work:$WORK_DIR")
+	DOCKER_OPTIONS+=(-v "$WORK_DIR:/work")
 fi
 
 echo "+ Initializing ccache directory"
