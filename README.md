@@ -174,7 +174,7 @@ In these instructions, we assume that the new distribution is Ubuntu 15.05 "wily
         git add docker-images
         git commit -a -m "Add support for Ubuntu 15.10 Wily"
         git push
-        cd docker_images
+        cd docker-images
         make upload
 
  8. On the Phusion CI server, pull the latest buildbox:
