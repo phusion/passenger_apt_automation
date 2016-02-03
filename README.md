@@ -20,6 +20,7 @@ The goal of this project is twofold:
  * [Maintenance](#maintenance)
    - [Adding support for a new distribution](#adding-support-for-a-new-distribution)
    - [Removing support for a distribution](#removing-support-for-a-distribution)
+   - [Updating the build box's APT cache](#updating-the-build-boxs-apt-cache)
    - [Building Nginx packages only](#building-nginx-packages-only)
    - [Updating SSL certificates](#updating-ssl-certificates)
  * [Jenkins integration](#jenkins-integration)
@@ -217,6 +218,27 @@ In these instructions, we assume that the distribution to be removed is Ubuntu 1
         cd ../..
         git commit -a -m "Remove packaging support for Ubuntu 15.10 Wily"
         git push
+
+### Updating the build box's APT cache
+
+The package building process works by running `pbuilder-dist` inside a Docker container. `pbuilder-dist`, in turn, is a Debian tool for managing chroots for building packages for specific distributions. Once in a while, the APT cache inside these chroots will get out of date, resulting in HTTP 404 errors while building packages, like this:
+
+    Get: 1 http://security.debian.org/ wheezy/updates/main libtasn1-3 amd64 2.13-2+deb7u2 [67.8 kB]
+    Err http://security.debian.org/ wheezy/updates/main libxml2 amd64 2.8.0+dfsg1-7+wheezy4
+      404  Not Found [IP: 212.211.132.250 80]
+
+When this happens, it is time to update the chroot's APT cache. There are two ways to do this.
+
+The first way is by deleting the pbuilder chroot tarball in the cache directory. It will be recreated next time you run a build process. For example:
+
+    rm ~/cache/base-wheezy-amd64.tgz
+
+The second way is by updating it in-place. For example:
+
+ 1. Run: `./shell -c ~/cache`. This will drop you into the buildbox shell.
+ 2. Run: `initpbuilder wheezy amd64`.
+ 3. Run: `pbuilder-dist wheezy amd64 update`.
+ 4. Run `exit` to exit the build box shell.
 
 ### Building Nginx packages only
 

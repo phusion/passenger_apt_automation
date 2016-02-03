@@ -24,5 +24,10 @@ echo
 echo "  initpbuilder <CODENAME> <ARCH>"
 echo "  pbuilder-dist <CODENAME> <ARCH> login"
 echo
+echo To update a pbuilder chroot, run this:
+echo
+echo "  initpbuilder <CODENAME> <ARCH>"
+echo "  pbuilder-dist <CODENAME> <ARCH> update"
+echo
 
 exec "$@"
