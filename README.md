@@ -19,6 +19,7 @@ The goal of this project is twofold:
    - [The publish script](#the-publish-script)
  * [Maintenance](#maintenance)
    - [Adding support for a new distribution](#adding-support-for-a-new-distribution)
+   - [Removing support for a distribution](#removing-support-for-a-distribution)
    - [Building Nginx packages only](#building-nginx-packages-only)
    - [Updating SSL certificates](#updating-ssl-certificates)
  * [Jenkins integration](#jenkins-integration)
@@ -150,7 +151,7 @@ In these instructions, we assume that the new distribution is Ubuntu 15.05 "wily
      * Add to the `DEFAULT_DISTROS` constant.
 
  3. Run `./internal/scripts/regen_distro_info_script.sh`.
- 4. Update the package definitions in `debian_specs/`.
+ 4. Update the package definitions in `debian_specs/`. Add `<% if %>` statements accordingly to output the appropriate content for the target distribution.
  5. Build publish packages for this distribution only. You can do that by running the build script with the `-d` option.
 
     For example:
@@ -187,6 +188,34 @@ In these instructions, we assume that the new distribution is Ubuntu 15.05 "wily
         git pull
         cd ../..
         git commit -a -m "Add packaging support for Ubuntu 15.10 Wily"
+        git push
+
+### Removing support for a distribution
+
+In these instructions, we assume that the distribution to be removed is Ubuntu 15.05 "wily". Update the actual parameters accordingly.
+
+ 1. Remove the distribution's definition from `internal/lib/distro_info.rb`, `DEFAULT_DISTROS` constant.
+ 2. Run `./internal/scripts/regen_distro_info_script.sh`.
+ 3. Update the package definitions in `debian_specs/`. Remove `<% if %>` statements that target only this distribution.
+ 4. Remove the test box for this distribution.
+
+     1. Remove `docker-images/setup-testbox-docker-image-ubuntu-15.10`
+     2. Remove `docker-images/testbox-ubuntu-15.10/`
+     3. Edit `docker-images/Makefile` and remove entries for this distribution's testbox.
+
+ 5. Commit and push all changes:
+
+        git add -u docker-images
+        git commit -a -m "Remove support for Ubuntu 15.10 Wily"
+        git push
+
+ 6. Inside the [passenger](https://github.com/phusion/passenger) repository, update the `packaging/debian` submodule (which refers to the `passenger_apt_automation` repository) to the latest commit, then commit the result. Assuming you want the submodule to update to the latest `master` branch commit:
+
+        cd packaging/debian
+        git checkout master
+        git pull
+        cd ../..
+        git commit -a -m "Remove packaging support for Ubuntu 15.10 Wily"
         git push
 
 ### Building Nginx packages only
