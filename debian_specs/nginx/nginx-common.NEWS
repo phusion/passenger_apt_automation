@@ -1,3 +1,14 @@
+nginx-common (1.9.1-1) unstable; urgency=medium
+
+  Starting with this release, we have enabled PIE build features which allows
+  Address Space Layout Randomization. This is a hardening feature that
+  prevents some potential security issues.
+
+  While this will significantly help increase security, it can potentially cause
+  significant performance issues on i386 systems.
+
+ -- Michael Lustfield <michael@lustfield.net>  Tue, 07 Apr 2015 18:57:45 -0500
+
 nginx-common (1.6.2-5) unstable; urgency=medium
 
   We have disabled SSLv3 in nginx.conf for security reasons (ref: POODLE),

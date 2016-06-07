@@ -42,3 +42,6 @@ trim_trailing_whitespace = true
 [build-nginx]
 indent_style = tab
 trim_trailing_whitespace = true
+
+[debian_specs/nginx/nginx-common.nginx.init.erb]
+indent_style = tab

@@ -1,0 +1,11 @@
+<%
+require File.absolute_path(File.dirname(__FILE__)) + '/helpers'
+-%>
+debian/conf/* etc/nginx
+debian/ufw/nginx etc/ufw/applications.d
+<% if is_distribution?(">= wily") -%>
+debian/apport/source_nginx.py usr/share/apport/package-hooks
+<% end -%>
+html/index.html <%= default_document_root.sub(/^\//, '') %>/
+debian/vim/nginx.yaml usr/share/vim/registry
+contrib/vim/* usr/share/vim/addons

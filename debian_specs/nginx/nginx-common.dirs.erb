@@ -1,22 +1,5 @@
 <%
-case distribution_class
-when :ubuntu
-  if is_distribution?("<= quantal")
-    default_document_root = "/usr/share/nginx/www"
-  elsif is_distribution?("<= utopic")
-    default_document_root = "/usr/share/nginx/html"
-  else
-    default_document_root = "/var/www/html"
-  end
-when :debian
-  if is_distribution?("<= wheezy")
-    default_document_root = "/usr/share/nginx/www"
-  else
-    default_document_root = "/var/www/html"
-  end
-else
-  raise "Unsupported distribution class"
-end
+require File.absolute_path(File.dirname(__FILE__)) + '/helpers'
 -%>
 etc/nginx
 etc/nginx/sites-available
@@ -27,6 +10,8 @@ etc/ufw/applications.d
 etc/logrotate.d
 <% end -%>
 usr/share/nginx
+usr/share/vim/addons
+usr/share/vim/registry
 var/log/nginx
 var/lib/nginx
 <%= default_document_root %>

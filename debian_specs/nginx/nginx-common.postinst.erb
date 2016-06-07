@@ -43,12 +43,10 @@ case "$1" in
       ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
     fi
 
-<% if default_document_root != "/usr/share/nginx/html" -%>
     # Create a default index page when not already present.
     if [ ! -e <%= default_document_root %>/index.nginx-debian.html ]; then
       cp /usr/share/nginx/html/index.html <%= default_document_root %>/index.nginx-debian.html
     fi
-<% end -%>
 
     ;;
 

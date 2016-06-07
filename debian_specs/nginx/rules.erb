@@ -59,12 +59,7 @@ debian_cflags_nooptimize := $(shell echo "$(debian_cflags)" | sed -E 's/-O[0-3]?
 
 ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
 	NUMJOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
-	ifeq (${NUMJOBS}, 0)
-		NUMJOBS = 1
-	endif
 	MAKEFLAGS += -j$(NUMJOBS)
-else
-	NUMJOBS = 1
 endif
 
 # configure flags
@@ -102,6 +97,7 @@ extras_configure_flags := \
 			--with-http_dav_module \
 			--with-http_flv_module \
 			--with-http_geoip_module \
+			--with-http_gunzip_module \
 			--with-http_gzip_static_module \
 			--with-http_image_filter_module \
 			--with-http_mp4_module \
@@ -115,6 +111,9 @@ extras_configure_flags := \
 			--with-http_xslt_module \
 			--with-mail \
 			--with-mail_ssl_module \
+			--with-stream \
+			--with-stream_ssl_module \
+			--with-threads \
 			--add-module=$(MODULESDIR)/headers-more-nginx-module \
 			--add-module=$(MODULESDIR)/nginx-auth-pam \
 			--add-module=$(MODULESDIR)/nginx-cache-purge \
@@ -179,6 +178,7 @@ config.arch.%: passenger_nginx_libs
 	cp -Pa $(CURDIR)/contrib $(BUILDDIR_$*)/
 	cp -Pa $(CURDIR)/src $(BUILDDIR_$*)/
 	cp -Pa $(CURDIR)/man $(BUILDDIR_$*)/
+	cp -Pa $(CURDIR)/html $(BUILDDIR_$*)/
 	cd $(BUILDDIR_$*) && ./configure $($*_configure_flags)
 
 clean.%:

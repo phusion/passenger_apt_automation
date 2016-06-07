@@ -2,11 +2,14 @@
 case distribution_class
 when :ubuntu
   if is_distribution?("<= trusty")
+    libgd_dependency = "libgd2-dev | libgd2-noxpm-dev"
     lua_dependency = "liblua5.1-dev"
   else
+    libgd_dependency = "libgd-dev"
     lua_dependency = "liblua5.1-0-dev"
   end
 when :debian
+  libgd_dependency = "libgd2-dev | libgd2-noxpm-dev"
   if is_distribution?("<= squeeze")
     lua_dependency = "liblua5.1-dev"
   else
@@ -31,7 +34,7 @@ Build-Depends: autotools-dev,
 <% end -%>
                dpkg-dev (>= 1.15.5),
                libexpat-dev,
-               libgd2-dev | libgd2-noxpm-dev,
+               <%= libgd_dependency %>,
                libgeoip-dev,
                <%= lua_dependency %>,
                libmhash-dev,
