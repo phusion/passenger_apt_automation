@@ -17,7 +17,7 @@ export CFLAGS LDFLAGS
 debian_cflags = $(CFLAGS)
 debian_ldflags = $(LDFLAGS)
 <% else -%>
-debian_cflags:=$(shell dpkg-buildflags --get CFLAGS | sed 's/-O3/-O2/') $(shell dpkg-buildflags --get CPPFLAGS)
+debian_cflags:=$(shell dpkg-buildflags --get CFLAGS) $(shell dpkg-buildflags --get CPPFLAGS)
 debian_ldflags:=$(shell dpkg-buildflags --get LDFLAGS)
 <% end -%>
 
@@ -104,9 +104,7 @@ extras_configure_flags := \
 			--with-http_perl_module \
 			--with-http_random_index_module \
 			--with-http_secure_link_module \
-<% if is_distribution?(">= precise") || is_distribution?(">= wheezy") -%>
 			--with-http_v2_module \
-<% end -%>
 			--with-http_sub_module \
 			--with-http_xslt_module \
 			--with-mail \
@@ -169,6 +167,10 @@ passenger_nginx_libs:
 		OPTIMIZE=yes \
 		rake nginx
 
+<%
+# For some reason, html copy was not specified in the xenial packaging rules (needed
+# because of reference in nginx-common.install).
+-%>
 config.arch.%: passenger_nginx_libs
 	dh_testdir
 	mkdir -p $(BUILDDIR_$*)

@@ -1,7 +1,12 @@
 /var/log/nginx/*.log {
+<% if is_distribution?(">= xenial") -%>
+	daily
+	rotate 14
+<% else -%>
 	weekly
-	missingok
 	rotate 52
+<% end -%>
+	missingok
 	compress
 	delaycompress
 	notifempty

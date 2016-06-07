@@ -1,6 +1,8 @@
 Description: Use linker flags from environment for perl (dpkg-buildflags).
  Necessary for hardening flags.
 Author: Christos Trochalakis <yatiohi@ideopolis.gr>
+Index: b/src/http/modules/perl/Makefile.PL
+===================================================================
 --- a/src/http/modules/perl/Makefile.PL
 +++ b/src/http/modules/perl/Makefile.PL
 @@ -3,6 +3,7 @@
@@ -11,7 +13,7 @@ Author: Christos Trochalakis <yatiohi@ideopolis.gr>
  use ExtUtils::MakeMaker;
  
  WriteMakefile(
-@@ -14,6 +15,9 @@ WriteMakefile(
+@@ -14,6 +15,9 @@
      AUTHOR            => 'Igor Sysoev',
  
      CCFLAGS           => "$ENV{NGX_PM_CFLAGS}",
