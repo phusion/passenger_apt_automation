@@ -46,14 +46,11 @@ header "Installing dependencies"
 run apt-get update -q
 run apt-get install -y -q build-essential gdebi-core ruby ruby-dev rake \
 	libcurl4-openssl-dev zlib1g-dev libssl-dev wget curl python git \
-	ccache reprepro libsqlite3-dev
+	ccache reprepro libsqlite3-dev nodejs npm
 run ln -s /usr/bin/python3 /bin/my_init_python
 run gem install bundler -v 1.10.6 --no-rdoc --no-ri
 run env BUNDLE_GEMFILE=/paa_build/Gemfile bundle install
-
-run wget http://nodejs.org/dist/v0.12.1/node-v0.12.1-linux-x64.tar.gz -O /tmp/node.tar.gz
-run tar -xzf /tmp/node.tar.gz -C /usr/local
-run ln -s /usr/local/node-*/bin/* /usr/bin/
+run ln -s /usr/bin/nodejs /usr/bin/node
 
 header "Miscellaneous"
 run mkdir /etc/container_environment

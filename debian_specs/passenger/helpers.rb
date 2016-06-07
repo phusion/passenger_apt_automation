@@ -7,10 +7,9 @@ def distro_ruby_versions
       ["1.8", "1.9.1"]
     elsif is_distribution?("<= trusty")
       ["1.9.1", "2.0"]
-    elsif is_distribution?("<= utopic")
-      ["2.0", "2.1"]
     else
-      ["2.1"]
+      # Xenial
+      ["2.3"]
     end
   when :debian
     if is_distribution?("<= wheezy")

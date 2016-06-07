@@ -6,6 +6,11 @@ debian/ufw/nginx etc/ufw/applications.d
 <% if is_distribution?(">= wily") -%>
 debian/apport/source_nginx.py usr/share/apport/package-hooks
 <% end -%>
-html/index.html <%= default_document_root.sub(/^\//, '') %>/
+<%
+# Don't use default_document_root here! index.html is supposed
+# to be in /usr/share/nginx/html regardless of the default document
+# root.
+-%>
+html/index.html usr/share/nginx/html/
 debian/vim/nginx.yaml usr/share/vim/registry
 contrib/vim/* usr/share/vim/addons

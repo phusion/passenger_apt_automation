@@ -5,15 +5,15 @@ when :ubuntu
     ruby_dependencies = "ruby1.8, ruby1.8-dev, rubygems1.8, ruby1.9.1, ruby1.9.1-dev"
   elsif is_distribution?("<= trusty")
     ruby_dependencies = "ruby1.9.1, ruby1.9.1-dev, ruby2.0, ruby2.0-dev"
-  elsif is_distribution?("<= utopic")
-    ruby_dependencies = "ruby2.0, ruby2.0-dev, ruby2.1, ruby2.1-dev"
   else
-    ruby_dependencies = "ruby2.1, ruby2.1-dev"
+    # Xenial
+    ruby_dependencies = "ruby2.3, ruby2.3-dev"
   end
 when :debian
   if is_distribution?("<= wheezy")
     ruby_dependencies = "ruby1.8, ruby1.8-dev, rubygems1.8, ruby1.9.1, ruby1.9.1-dev"
   else
+    # Jessie
     ruby_dependencies = "ruby2.1, ruby2.1-dev"
   end
 else
