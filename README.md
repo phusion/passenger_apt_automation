@@ -11,6 +11,7 @@ The goal of this project is twofold:
 
 **Table of Contents**
 
+ * [Conceptual Introduction to Debian Packaging](#conceptual-introduction-to-debian-packaging)
  * [Overview](#overview)
  * [Development](#development)
  * [Package building process](#package-building-process)
@@ -27,6 +28,10 @@ The goal of this project is twofold:
    - [Debugging a packaging test failure](#debugging-a-packaging-test-failure)
  * [Tutorial: building your own packages](#tutorial-building-your-own-packages)
  * [Related projects](#related-projects)
+
+## Conceptual Introduction to Debian Packaging
+
+Not familiar with Debian packaging? See [ConceptualIntroductiontoDebianPackaging.md](https://github.com/phusion/passenger_apt_automation/blob/doc/ConceptualIntroductionToDebianPackaging.md).
 
 ## Overview
 
