@@ -31,7 +31,7 @@ The goal of this project is twofold:
 
 ## Conceptual Introduction to Debian Packaging
 
-Not familiar with Debian packaging? See [ConceptualIntroductiontoDebianPackaging.md](https://github.com/phusion/passenger_apt_automation/blob/doc/ConceptualIntroductionToDebianPackaging.md).
+Not familiar with Debian packaging? See [ConceptualIntroductiontoDebianPackaging.md](https://github.com/phusion/passenger_apt_automation/blob/master/ConceptualIntroductionToDebianPackaging.md).
 
 ## Overview
 
