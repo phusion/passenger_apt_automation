@@ -48,7 +48,7 @@ run apt-get install -y -q build-essential gdebi-core ruby ruby-dev rake \
 	libcurl4-openssl-dev zlib1g-dev libssl-dev wget curl python git \
 	ccache reprepro
 run ln -s /usr/bin/python3 /bin/my_init_python
-run gem1.9.1 install bundler -v 1.10.6 --no-rdoc --no-ri
+run gem1.9.1 install bundler -v 1.11.2 --no-rdoc --no-ri
 run env BUNDLE_GEMFILE=/paa_build/Gemfile bundle install
 
 run wget http://nodejs.org/dist/v0.12.1/node-v0.12.1-linux-x64.tar.gz -O /tmp/node.tar.gz

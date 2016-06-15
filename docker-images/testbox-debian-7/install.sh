@@ -46,7 +46,7 @@ run apt-get install -y -q build-essential gdebi-core ruby rubygems ruby-dev rake
 	libopenssl-ruby libcurl4-openssl-dev zlib1g-dev libssl-dev wget curl \
 	python3 git-core reprepro adduser ccache
 run ln -s /usr/bin/python3 /bin/my_init_python
-run gem install bundler -v 1.10.6 --no-rdoc --no-ri
+run gem install bundler -v 1.11.2 --no-rdoc --no-ri
 run env BUNDLE_GEMFILE=/paa_build/Gemfile bundle install
 
 header "Creating users and directories"
