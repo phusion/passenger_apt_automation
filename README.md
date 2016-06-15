@@ -145,7 +145,7 @@ Once packages have been built, you can publish them to PackageCloud. The `publis
 
 ### Adding support for a new distribution
 
-In these instructions, we assume that the new distribution is Ubuntu 15.05 "wily". Update the actual parameters accordingly.
+In these instructions, we assume that the new distribution is Ubuntu 16.04 "Xenial". Update the actual parameters accordingly.
 
  1. Rebuild the build box so that it has the latest distribution information:
 
@@ -162,23 +162,23 @@ In these instructions, we assume that the new distribution is Ubuntu 15.05 "wily
 
     For example:
 
-        ./build -p /passenger -w work -c cache -o output -d wily pkg:all
+        ./build -p /passenger -w work -c cache -o output -d xenial pkg:all
 
  6. Create a test box for this new distribution.
 
-     1. Create `docker-images/setup-testbox-docker-image-ubuntu-15.10`
-     2. Create `docker-images/testbox-ubuntu-15.10/`
+     1. Create `docker-images/setup-testbox-docker-image-ubuntu-16.04`
+     2. Create `docker-images/testbox-ubuntu-16.04/`
      3. Edit `docker-images/Makefile` and add entries for this new testbox.
-     4. Run `./docker-images/setup-testbox-docker-image-ubuntu-15.10`
+     4. Run `./docker-images/setup-testbox-docker-image-ubuntu-16.04`
 
     When done, test Passenger under the new testbox:
 
-        ./test -p /passenger -x wily -d output/wily -c cache
+        ./test -p /passenger -x xenial -d output/xenial -c cache
 
  7. Commit and push all changes, then publish the new packages and the updated Docker images by running:
 
         git add docker-images
-        git commit -a -m "Add support for Ubuntu 15.10 Wily"
+        git commit -a -m "Add support for Ubuntu 16.04 Xenial"
         git push
         cd docker-images
         make upload
@@ -193,26 +193,26 @@ In these instructions, we assume that the new distribution is Ubuntu 15.05 "wily
         git checkout master
         git pull
         cd ../..
-        git commit -a -m "Add packaging support for Ubuntu 15.10 Wily"
+        git commit -a -m "Add packaging support for Ubuntu 16.04 Xenial"
         git push
 
 ### Removing support for a distribution
 
-In these instructions, we assume that the distribution to be removed is Ubuntu 15.05 "wily". Update the actual parameters accordingly.
+In these instructions, we assume that the distribution to be removed is Ubuntu 16.04 "Xenial". Update the actual parameters accordingly.
 
  1. Remove the distribution's definition from `internal/lib/distro_info.rb`, `DEFAULT_DISTROS` constant.
  2. Run `./internal/scripts/regen_distro_info_script.sh`.
  3. Update the package definitions in `debian_specs/`. Remove `<% if %>` statements that target only this distribution.
  4. Remove the test box for this distribution.
 
-     1. Remove `docker-images/setup-testbox-docker-image-ubuntu-15.10`
-     2. Remove `docker-images/testbox-ubuntu-15.10/`
+     1. Remove `docker-images/setup-testbox-docker-image-ubuntu-16.04`
+     2. Remove `docker-images/testbox-ubuntu-16.04/`
      3. Edit `docker-images/Makefile` and remove entries for this distribution's testbox.
 
  5. Commit and push all changes:
 
         git add -u docker-images
-        git commit -a -m "Remove support for Ubuntu 15.10 Wily"
+        git commit -a -m "Remove support for Ubuntu 16.04 Xenial"
         git push
 
  6. Inside the [passenger](https://github.com/phusion/passenger) repository, update the `packaging/debian` submodule (which refers to the `passenger_apt_automation` repository) to the latest commit, then commit the result. Assuming you want the submodule to update to the latest `master` branch commit:
@@ -221,7 +221,7 @@ In these instructions, we assume that the distribution to be removed is Ubuntu 1
         git checkout master
         git pull
         cd ../..
-        git commit -a -m "Remove packaging support for Ubuntu 15.10 Wily"
+        git commit -a -m "Remove packaging support for Ubuntu 16.04 Xenial"
         git push
 
 ### Updating the build box's APT cache
@@ -249,7 +249,7 @@ The second way is by updating it in-place. For example:
 
 Sometimes you want to build Nginx packages only, without building the Phusion Passenger packages. You can do this by invoking the build script with the `pkg:nginx:all` task. For example:
 
-    ./build -p /passenger -w work -c cache -o output -d wily pkg:nginx:all
+    ./build -p /passenger -w work -c cache -o output -d xenial pkg:nginx:all
 
 After the build script finishes, you can publish these Nginx packages:
 
@@ -282,12 +282,12 @@ If a packaging test job fails, here's what you should do.
 
  3. Build packages for the distribution for which the test failed.
 
-        ./build -w ~/work -c ~/cache -o ~/output -p /passenger -d wily -a amd64 -j 2 -R pkg:all
+        ./build -w ~/work -c ~/cache -o ~/output -p /passenger -d xenial -a amd64 -j 2 -R pkg:all
 
     Be sure to customize the value passed to `-d` based on the distribution for which the test failed.
  4. Run the tests with the debugging console enabled:
 
-        ./test -p /passenger -x wily -d ~/output/wily -c ~/cache -D
+        ./test -p /passenger -x xenial -d ~/output/xenial -c ~/cache -D
 
     Be sure to customize the values passed to `-x` and `-d` based on the distribution for which the test failed.
 
