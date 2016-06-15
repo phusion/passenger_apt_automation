@@ -47,7 +47,7 @@ try_exec(const char *ruby, int argc, const char **argv) {
 		free(forwarding_argv);
 	} else {
 		e = errno;
-		fprintf(PROGRAM_NAME ": cannot execute '%s': %s\n",
+		fprintf(stderr, PROGRAM_NAME ": cannot execute '%s': %s\n",
 			ruby, strerror(e));
 		_exit(1);
 	}
