@@ -1,24 +1,5 @@
 <%
-case distribution_class
-when :ubuntu
-  if is_distribution?("<= saucy")
-    ruby_dependencies = "ruby1.8, ruby1.8-dev, rubygems1.8, ruby1.9.1, ruby1.9.1-dev"
-  elsif is_distribution?("<= trusty")
-    ruby_dependencies = "ruby1.9.1, ruby1.9.1-dev, ruby2.0, ruby2.0-dev"
-  elsif is_distribution?("<= utopic")
-    ruby_dependencies = "ruby2.0, ruby2.0-dev, ruby2.1, ruby2.1-dev"
-  else
-    ruby_dependencies = "ruby2.1, ruby2.1-dev"
-  end
-when :debian
-  if is_distribution?("<= wheezy")
-    ruby_dependencies = "ruby1.8, ruby1.8-dev, rubygems1.8, ruby1.9.1, ruby1.9.1-dev"
-  else
-    ruby_dependencies = "ruby2.1, ruby2.1-dev"
-  end
-else
-  raise "Unknown distribution class"
-end
+require File.dirname(File.absolute_path(__FILE__)) + '/helpers'
 -%>
 Source: passenger
 Section: ruby
@@ -26,7 +7,7 @@ Priority: optional
 Maintainer: <%= MAINTAINER_NAME %> <<%= MAINTAINER_EMAIL %>>
 Uploaders: <%= MAINTAINER_NAME %> <<%= MAINTAINER_EMAIL %>>
 Build-Depends: debhelper (>= 7.0.50~), rake,
- <%= ruby_dependencies %>,
+ <%= ruby_package_dependencies %>,
 <% if is_distribution?(">= trusty") || is_distribution?(">= jessie") -%>
   apache2 (>= 2.4), apache2-dev (>= 2.4),
 <% else -%>

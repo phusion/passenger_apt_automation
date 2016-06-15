@@ -2,11 +2,14 @@
 case distribution_class
 when :ubuntu
   if is_distribution?("<= trusty")
+    libgd_dependency = "libgd2-dev | libgd2-noxpm-dev"
     lua_dependency = "liblua5.1-dev"
   else
-    lua_dependency = "liblua5.1-0-dev"
+    libgd_dependency = "libgd-dev"
+    lua_dependency = "libluajit-5.1-dev [i386 amd64 kfreebsd-i386 armel armhf powerpc powerpcspe mips mipsel] | liblua5.1-0-dev"
   end
 when :debian
+  libgd_dependency = "libgd2-dev | libgd2-noxpm-dev"
   if is_distribution?("<= squeeze")
     lua_dependency = "liblua5.1-dev"
   else
@@ -31,7 +34,7 @@ Build-Depends: autotools-dev,
 <% end -%>
                dpkg-dev (>= 1.15.5),
                libexpat-dev,
-               libgd2-dev | libgd2-noxpm-dev,
+               <%= libgd_dependency %>,
                libgeoip-dev,
                <%= lua_dependency %>,
                libmhash-dev,
@@ -46,7 +49,7 @@ Build-Depends: autotools-dev,
                libcurl4-openssl-dev
 Standards-Version: 3.9.6.0
 Homepage: http://nginx.net
-Vcs-Git: git://github.com/brightbox/deb-nginx.git
+Vcs-Git: git://github.com/phusion/passenger_apt_automation.git
 Vcs-Browser: https://github.com/phusion/passenger_apt_automation
 XS-Testsuite: autopkgtest
 
@@ -95,6 +98,9 @@ Description: small, powerful, scalable web/proxy server - common files
  This package contains base configuration files used by all versions of
  nginx.
 
+<%
+# Dummy dependency packages that install nginx-extras instead
+-%>
 Package: nginx-core
 Architecture: all
 Depends: nginx-extras (>= ${source:Version}) ,
@@ -178,6 +184,10 @@ Breaks: nginx (<< 1.4.5-1)
 Provides: httpd,
           httpd-cgi,
           nginx
+<%
+# keep naxsi as conflict until oldest supported distro has an nginx that
+# doesn't indicate such a conflict.
+-%>
 Conflicts: nginx-naxsi
 Recommends: <%= PASSENGER_DEBIAN_NAME %> (>= <%= PASSENGER_VERSION %>),
             <%= PASSENGER_DEBIAN_NAME %> (<< <%= NEXT_PASSENGER_VERSION %>)
@@ -191,20 +201,20 @@ Description: nginx web/proxy server (extended version)
  extra features and modules such as the Perl module, which allows the
  addition of Perl in configuration files.
  .
- STANDARD HTTP MODULES: Core, Access, Auth Basic, Auto Index, Browser,
- Charset, Empty GIF, FastCGI, Geo, Gzip, Headers, Index, Limit Requests,
- Limit Zone, Log, Map, Memcached, Proxy, Referer, Rewrite, SCGI,
- Split Clients, SSI, Upstream, User ID, UWSGI.
+ STANDARD HTTP MODULES: Core, Access, Auth Basic, Auto Index, Browser, Empty
+ GIF, FastCGI, Geo, Limit Connections, Limit Requests, Map, Memcached, Proxy,
+ Referer, Rewrite, SCGI, Split Clients, UWSGI.
  .
- OPTIONAL HTTP MODULES: Addition, Auth Request, Debug, Embedded Perl, FLV,
- GeoIP, Gzip Precompression, Image Filter, IPv6, MP4, Random Index, Real IP,
- Secure Link, <%= "HTTP 2, " if is_distribution?(">= precise") || is_distribution?(">= wheezy") %>, SSL, Stub Status, Substitution, WebDAV, XSLT.
+ OPTIONAL HTTP MODULES: Addition, Auth Request, Charset, WebDAV, FLV, GeoIP,
+ Gunzip, Gzip, Gzip Precompression, Headers, HTTP/2, Image Filter, Index, Log,
+ MP4, Embedded Perl, Random Index, Real IP, Secure Link, SSI, SSL, Stream,
+ Stub Status, Substitution, Thread Pool, Upstream, User ID, XSLT.
  .
- MAIL MODULES: Mail Core, IMAP, POP3, SMTP, SSL.
+ MAIL MODULES: Mail Core, Auth HTTP, Proxy, SSL, IMAP, POP3, SMTP.
  .
- THIRD PARTY MODULES: Auth PAM, Chunkin, DAV Ext, Echo, Embedded Lua,
- Fancy Index, HttpHeadersMore, HTTP Substitution Filter, http push,
- Nginx Development Kit, Upload Progress, Upstream Fair Queue, Phusion Passenger.
+ THIRD PARTY MODULES: Auth PAM, Cache Purge, DAV Ext, Echo, Fancy Index,
+ Headers More, Embedded Lua, HTTP Push, HTTP Substitutions, Upload Progress,
+ Upstream Fair Queue, Phusion Passenger.
 
 Package: nginx-extras-dbg
 Architecture: any

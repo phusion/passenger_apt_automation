@@ -17,7 +17,7 @@ export CFLAGS LDFLAGS
 debian_cflags = $(CFLAGS)
 debian_ldflags = $(LDFLAGS)
 <% else -%>
-debian_cflags:=$(shell dpkg-buildflags --get CFLAGS | sed 's/-O3/-O2/') $(shell dpkg-buildflags --get CPPFLAGS)
+debian_cflags:=$(shell dpkg-buildflags --get CFLAGS) $(shell dpkg-buildflags --get CPPFLAGS)
 debian_ldflags:=$(shell dpkg-buildflags --get LDFLAGS)
 <% end -%>
 
@@ -59,12 +59,7 @@ debian_cflags_nooptimize := $(shell echo "$(debian_cflags)" | sed -E 's/-O[0-3]?
 
 ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
 	NUMJOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
-	ifeq (${NUMJOBS}, 0)
-		NUMJOBS = 1
-	endif
 	MAKEFLAGS += -j$(NUMJOBS)
-else
-	NUMJOBS = 1
 endif
 
 # configure flags
@@ -102,19 +97,21 @@ extras_configure_flags := \
 			--with-http_dav_module \
 			--with-http_flv_module \
 			--with-http_geoip_module \
+			--with-http_gunzip_module \
 			--with-http_gzip_static_module \
 			--with-http_image_filter_module \
 			--with-http_mp4_module \
 			--with-http_perl_module \
 			--with-http_random_index_module \
 			--with-http_secure_link_module \
-<% if is_distribution?(">= precise") || is_distribution?(">= wheezy") -%>
 			--with-http_v2_module \
-<% end -%>
 			--with-http_sub_module \
 			--with-http_xslt_module \
 			--with-mail \
 			--with-mail_ssl_module \
+			--with-stream \
+			--with-stream_ssl_module \
+			--with-threads \
 			--add-module=$(MODULESDIR)/headers-more-nginx-module \
 			--add-module=$(MODULESDIR)/nginx-auth-pam \
 			--add-module=$(MODULESDIR)/nginx-cache-purge \
@@ -170,6 +167,10 @@ passenger_nginx_libs:
 		OPTIMIZE=yes \
 		rake nginx
 
+<%
+# For some reason, html copy was not specified in the xenial packaging rules (needed
+# because of reference in nginx-common.install).
+-%>
 config.arch.%: passenger_nginx_libs
 	dh_testdir
 	mkdir -p $(BUILDDIR_$*)
@@ -179,6 +180,7 @@ config.arch.%: passenger_nginx_libs
 	cp -Pa $(CURDIR)/contrib $(BUILDDIR_$*)/
 	cp -Pa $(CURDIR)/src $(BUILDDIR_$*)/
 	cp -Pa $(CURDIR)/man $(BUILDDIR_$*)/
+	cp -Pa $(CURDIR)/html $(BUILDDIR_$*)/
 	cd $(BUILDDIR_$*) && ./configure $($*_configure_flags)
 
 clean.%:

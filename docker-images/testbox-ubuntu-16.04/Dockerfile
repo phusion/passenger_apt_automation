@@ -1,3 +1,3 @@
-FROM ubuntu:15.10
+FROM ubuntu:16.04
 ADD . /paa_build
 RUN bash /paa_build/install.sh

@@ -2,7 +2,7 @@
 require File.absolute_path(File.dirname(__FILE__)) + '/../helpers'
 -%>
 user www-data;
-worker_processes 4;
+worker_processes auto;
 pid <%= localstatedir %>/nginx.pid;
 
 events {

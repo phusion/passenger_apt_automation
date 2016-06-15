@@ -10,9 +10,9 @@
 #include <unistd.h>
 #include <errno.h>
 
-static char **
+static const char **
 construct_forwarding_argv(const char *ruby, int argc, const char *argv[]) {
-	char **result = malloc(sizeof(char *) * (argc + 1));
+	const char **result = malloc(sizeof(const char *) * (argc + 1));
 	int i;
 
 	if (result == NULL) {
@@ -39,7 +39,7 @@ construct_forwarding_argv(const char *ruby, int argc, const char *argv[]) {
 
 static void
 try_exec(const char *ruby, int argc, const char **argv) {
-	char **forwarding_argv = construct_forwarding_argv(ruby, argc, argv);
+	const char **forwarding_argv = construct_forwarding_argv(ruby, argc, argv);
 	int e;
 
 	execvp(ruby, (char * const *) forwarding_argv);
@@ -47,7 +47,7 @@ try_exec(const char *ruby, int argc, const char **argv) {
 		free(forwarding_argv);
 	} else {
 		e = errno;
-		fprintf(PROGRAM_NAME ": cannot execute '%s': %s\n",
+		fprintf(stderr, PROGRAM_NAME ": cannot execute '%s': %s\n",
 			ruby, strerror(e));
 		_exit(1);
 	}

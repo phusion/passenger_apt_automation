@@ -68,7 +68,7 @@ export CONFIGURE_OPTS=--disable-audit
 cd /root
 run apt-get -y build-dep pam
 run apt-get -y -b source pam
-run dpkg -i libpam-doc*.deb libpam-modules*.deb libpam-runtime*.deb libpam0g*.deb
+run gdebi -n libpam-doc*.deb libpam-modules*.deb libpam-runtime*.deb libpam0g*.deb
 run rm -rf *.deb *.gz *.dsc *.changes pam-*
 
 header "Finishing up"

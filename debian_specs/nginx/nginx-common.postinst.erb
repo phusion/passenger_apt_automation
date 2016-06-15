@@ -44,6 +44,12 @@ case "$1" in
     fi
 
 <% if default_document_root != "/usr/share/nginx/html" -%>
+<%
+# On Ubuntu 13.04 - 14.10, the default document root is /usr/share/nginx/html.
+# This directory also contains an index.html. On newer versions, /usr/share/nginx/html
+# still exists but is no longer the default document root; that changed to /var/www/html.
+# /var/www/html is empty so we need to create an index page when not already present.
+-%>
     # Create a default index page when not already present.
     if [ ! -e <%= default_document_root %>/index.nginx-debian.html ]; then
       cp /usr/share/nginx/html/index.html <%= default_document_root %>/index.nginx-debian.html

@@ -1,3 +1,295 @@
+nginx (1.9.11-0ubuntu2) xenial; urgency=medium
+
+  * This is a bug-fix only upload and does not include any new changes to
+    features.
+  * debian/conf/sites-available/default: Modify PHP 'default example' settings
+    to account for php5 being replaced with php7.0 in Xenial. Also adapt the
+    UNIX socket path for php7.0-fpm to be the one used by default in Xenial.
+    (LP: #1547642)
+
+ -- Thomas Ward <teward@ubuntu.com>  Fri, 19 Feb 2016 14:13:28 -0500
+
+nginx (1.9.11-0ubuntu1) xenial; urgency=low
+
+  * New upstream release (1.9.11) - see http://nginx.org/en/CHANGES for
+    full changelog.
+  * Ubuntu-specific changes from the 1.9.10 merge remain included here.
+  * Additional changes:
+    - debian/modules/nginx-lua: Apply upstream patch to fix FTBFS issue
+
+ -- Thomas Ward <teward@ubuntu.com>  Tue, 09 Feb 2016 10:33:14 -0500
+
+nginx (1.9.10-1ubuntu1) xenial; urgency=low
+
+  * Merge from Debian unstable.  Remaining changes:  (LP: #1538677)
+    - debian/patches/ubuntu-branding.patch: add Ubuntu branding (refreshed)
+    - d/{control,rules,nginx-core.*}: add new binary package for main,
+      nginx-core, which contains only source-tarball-included modules
+      and no third-party modules.
+    - debian/tests/control: add nginx-core test.
+    - debian/control:
+      - drop luajit from Build-Depends as it is in universe.
+      - Remove HTTP/2 references in package descriptions, per Ubuntu
+        Security Team mandate to disable HTTP/2 support.
+    - debian/rules:
+      - Disable HTTP/2 module support in all flavors, per Ubuntu Security
+        Team mandate.
+    - debian/apport/source_nginx.py: Add apport hooks for additional bug
+      information gathering.
+    - debian/nginx-common.install: Add install rule for apport hooks.
+  * Additional bugs fixed by this merge:
+    - nginx-common should not depend on python (LP: #1480513)
+
+ -- Thomas Ward <teward@ubuntu.com>  Tue, 27 Jan 2016 12:52:00 -0500
+
+nginx (1.9.10-1) unstable; urgency=medium
+
+  [ Christos Trochalakis ]
+  * New upstream release (1.9.10) (Closes: #812806)
+  * debian/control:
+    + Drop python dependency from nginx-common. (Closes: #808699)
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Tue, 26 Jan 2016 20:12:06 +0200
+
+nginx (1.9.10-0ubuntu1) xenial; urgency=medium
+
+  * New upstream release.
+  * debian/patches/ubuntu-branding.patch: Refreshed Ubuntu Branding patch
+  * Security content of this upload addresses the following vulnerabilities
+    and CVE-numbered Security issues: (LP: #1538165)
+    - Invalid pointer dereference might occur during DNS server response
+      processing, allowing an attacker who is able to forge UDP
+      packets from the DNS server to cause worker process crash
+      (CVE-2016-0742).
+    - Use-after-free condition might occur during CNAME response
+      processing. This problem allows an attacker who is able to trigger
+      name resolution to cause worker process crash, or might
+      have potential other impact (CVE-2016-0746).
+    - CNAME resolution was insufficiently limited, allowing an attacker who
+      is able to trigger arbitrary name resolution to cause excessive resource
+      consumption in worker processes (CVE-2016-0747).
+
+ -- Thomas Ward <teward@ubuntu.com>  Tue, 26 Jan 2016 14:53:01 -0500
+
+nginx (1.9.9-1ubuntu1) xenial; urgency=low
+
+  * Merge from Debian unstable. Remaining changes: (LP: #1534208)
+    - debian/patches/ubuntu-branding.patch: add Ubuntu branding (refreshed)
+    - d/{control,rules,nginx-core.*}: add new binary package for main,
+      nginx-core, which contains only source-tarball-included modules
+      and no third-party modules.
+    - debian/tests/control: add nginx-core test.
+    - debian/control:
+      - drop luajit from Build-Depends as it is in universe.
+      - Update nginx-core description to match nginx-full description of the
+        standard and optional HTTP modules that are enabled.
+      - Remove HTTP/2 references in package descriptions, per Ubuntu
+        Security Team mandate to disable HTTP/2 support.
+    - debian/rules:
+      - Update nginx-core configure flags to match nginx-full config flags,
+        due to refreshing the nginx-core 'enabled modules' to match the
+        nginx-full modules (minus third-party modules)
+      - Disable HTTP/2 module support in all flavors, per Ubuntu Security
+        Team mandate.
+    - debian/apport/source_nginx.py: Add apport hooks for additional bug
+      information gathering.
+    - debian/nginx-common.install: Add install rule for apport hooks.
+  * debian/control: Remove HTTP/2 reference in nginx-extras description, which
+    was missed previously due to accidental oversight. (LP: #1534368)
+
+ -- Thomas Ward <teward@ubuntu.com>  Thu, 14 Jan 2016 18:42:00 -0500
+
+nginx (1.9.9-1) unstable; urgency=medium
+
+  [ Michael Lustfield ]
+  * debian/nginx-common.nginx.logrotate:
+    + Switching logrotate to 14 days. (Closes: #805322)
+
+  [ Christos Trochalakis ]
+  * New upstream release (1.9.9).
+  * debian/modules/nginx-lua:
+    + Update nginx-lua to v0.10.0.
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Thu, 14 Jan 2016 10:40:35 +0200
+
+nginx (1.9.9-0ubuntu1) xenial; urgency=medium
+
+  * New upstream release.
+  * debian/patches/ubuntu-branding.patch: Refreshed Ubuntu Branding patch
+
+ -- Thomas Ward <teward@ubuntu.com>  Sun, 03 Jan 2016 12:49:21 -0500
+
+nginx (1.9.6-2ubuntu2) xenial; urgency=medium
+
+  * Rebuild for Perl 5.22.1.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Fri, 18 Dec 2015 12:53:05 +0000
+
+nginx (1.9.6-2ubuntu1) xenial; urgency=medium
+
+  * Merge from Debian unstable.  Remaining changes:  (LP: #1510096)
+    - debian/patches/ubuntu-branding.patch: add Ubuntu branding (refreshed)
+    - d/{control,rules,nginx-core.*}: add new binary package for main,
+      nginx-core, which contains only source-tarball-included modules
+      and no third-party modules.
+    - debian/tests/control: add nginx-core test.
+    - debian/control: drop luajit from Build-Depends as it is in universe.
+    - debian/apport/source_nginx.py: Add apport hooks for additional bug
+      information gathering.
+    - debian/nginx-common.install: Add install rule for apport hooks.
+  * Additional changes:
+    * debian/rules:
+      - Update nginx-core configure flags to match nginx-full config flags,
+        due to refreshing the nginx-core 'enabled modules' to match the
+        nginx-full modules (minus third-party modules)
+      - Disable HTTP/2 module support in all flavors, per Ubuntu Security
+        Team mandate.
+    * debian/control:
+      - Update nginx-core description to match nginx-full description of the
+        standard and optional HTTP modules that are enabled.
+      - Remove HTTP/2 references in package descriptions, per Ubuntu
+        Security Team mandate to disable HTTP/2 support.
+
+ -- Thomas Ward <teward@ubuntu.com>  Mon, 14 Dec 2015 10:34:42 -0500
+
+nginx (1.9.6-2) unstable; urgency=medium
+
+  [ Christos Trochalakis]
+  * debian/modules/nginx-lua:
+    + Update nginx-lua to v0.9.19 fixing HTTP/2 compatibility.
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Fri, 13 Nov 2015 16:08:01 +0200
+
+nginx (1.9.6-1) unstable; urgency=medium
+
+  [ Christos Trochalakis]
+  * New upstream release.
+  * Enable http2 module in nginx-full & nginx-extras
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Tue, 03 Nov 2015 08:59:21 +0200
+
+nginx (1.9.4-1) unstable; urgency=medium
+
+  [ Christos Trochalakis]
+  * New upstream release.
+  * debian/copyright:
+    + Fix licence order.
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Mon, 24 Aug 2015 16:23:20 +0300
+
+nginx (1.9.3-1ubuntu1) wily; urgency=medium
+
+  * Merge from Debian.  Remaining changes: (LP: #1476811)
+    - debian/patches/ubuntu-branding.patch: add Ubuntu branding (refreshed)
+    - d/{control,rules,nginx-core.*}: add new binary package for main,
+      nginx-core, which contains only source-tarball-included modules
+      and no third-party modules.
+    - debian/tests/control: add nginx-core test.
+    - debian/control: drop luajit from Build-Depends as it is in universe.
+    - debian/apport/source_nginx.py: Add apport hooks for additional bug
+      information gathering.
+    - debian/nginx-common.install: Add install rule for apport hooks.
+
+ -- Thomas Ward <teward@ubuntu.com>  Wed, 22 Jul 2015 11:39:44 -0400
+
+nginx (1.9.3-1) unstable; urgency=medium
+
+  [ Christos Trochalakis]
+  * New upstream Release. (Closes: #789924)
+  * debian/control:
+    + Remove XS-Testsuite header, it is now automatically added when
+      `debian/tests/control` is present.
+  * debian/modules/nginx-lua:
+    + Update nginx-lua to v0.9.16 and drop our backported patches.
+  * debian/conf/*:
+    + Add REQUEST_SCHEME to fcgi, wsgi and scgi configs (sync with upstream).
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Tue, 14 Jul 2015 20:24:52 +0300
+
+nginx (1.9.2-1) unstable; urgency=medium
+
+  [ Michael Lustfield ]
+  * debian/nginx-common.nginx.init:
+    + Init script now returns the proper exit status. (Closes: #788573)
+    + Cleaned up the init script to have consistent naming/structure.
+
+  [ Christos Trochalakis ]
+  * New upstream Release.
+  * debian/rules:
+    + Add stream module to nginx-full & nginx-extras.
+    + Add thread pool support to nginx-full & nginx-extras.
+  * debian/modules/nginx-lua:
+    + Backport upstream's 9531e5e7 fixing build failure when thread pool
+      support is enabled.
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Mon, 22 Jun 2015 10:16:19 +0300
+
+nginx (1.9.1-1) unstable; urgency=medium
+
+  [ Michael Lustfield ]
+  * debian/conf/nginx.conf:
+    + Switch worker_processes to auto. (Closes: #781711)
+  * debian/conf/sites-available/default:
+    + Add comment about disabling gzip in HTTPS. (Closes: #773332)
+    + Add comment about checking ssl_ciphers. (Closes: #765782)
+  * debian/modules/*:
+    + Updated nginx-auth-pam 1.3 -> 1.4. (Closes: #777120)
+    + Updated nginx-echo v0.56 -> v0.57.
+    + Updated nginx-lua v0.9.13 -> v0.9.15.
+    + Updated nginx-cache-purge 2.1 -> 2.3.
+    + Updated ngx-fancyindex v0.3.4 -> v0.3.5.
+  * debian/nginx-common.NEWS:
+    + Document potential issues with newer versions on i386.
+  * debian/nginx-common.{dirs,install}, debian/vim/*:
+    + Installing vim syntax highlighting from package. (Closes: #771609)
+      Thanks Emmanuel Bouthenot for building this patch.
+  * debian/nginx-common.nginx.upstart:
+    + Created file to support upstart jobs. (Closes: #745483)
+      Thanks Cameron Norman for building this file.
+  * debian/rules:
+    + Add hardening flags with dpkg-buildflags. (Closes: #747025, #781703)
+      Thanks Thomas Ward.
+    + Supply custom DEB_BUILD_MAINT_OPTIONS for debian_ldflags generation.
+      Thanks Thomas Ward.
+    + Added back missing module gunzip. (Closes: #782065)
+      Thanks Peter Wu for the initial patch.
+  * debian/modules/nginx-lua/*:
+    + Updated module version. (Closes: #762494)
+  * debian/ngx-conf/*
+    + Added configuration utility, not shipped yet. (Closes: #652108)
+  * debian/nginx-common.manpages:
+    + Replaced man page with upstream maintained version. (Closes: #781345)
+  * debian/nginx-common.install:
+    + Changed debian/index.html -> html/index.html. This installs the package
+      maintained version of this file as opposed to our out of date version.
+
+  [ Christos Trochalakis ]
+  * New upstream release. Switching to mainline version. (Closes: #777677)
+  * debian/nginx-common.manpages:
+    + Build & ship manpages with binary packages.
+  * debian/rules:
+    + Adjust configure flags for limit_zone module (renamed to limit_conn).
+  * debian/modules/nginx-lua:
+    + Backport upstream's f4e1311 fixing build failure with mainline nginx.
+  * debian/control:
+    + Depend on libgd-dev now that jessie is released.
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Fri, 12 Jun 2015 15:42:49 +0300
+
+nginx (1.6.2-5ubuntu4) wily; urgency=medium
+
+  * debian/apport/source_nginx.py:
+    - Add apport hooks for additional bug information gathering, as a result
+      of non-useful reports due to postinstall script failure bugs. This is
+      necessary in order to be able to actually debug what is going on in the
+      bug reports, thanks to systemd not putting startup errors to stdout or
+      stderr anymore, like Upstart and others did. (LP: #1472683)
+  * debian/nginx-common.install:
+    - Add install rule for debian/apport/source_nginx.py, which is the new
+      apport hooks to gather additional 'Package' bugtype debug data.
+
+ -- Thomas Ward <teward@ubuntu.com>  Fri, 10 Jul 2015 12:51:48 -0400
+
 nginx (1.6.2-5ubuntu3) vivid-proposed; urgency=medium
 
   * debian/rules:
