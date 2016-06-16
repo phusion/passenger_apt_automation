@@ -91,8 +91,7 @@ describe "The system's Nginx with Passenger enabled" do
     @app_dirs = create_app_dirs
     cp("/system/internal/test/nginx/vhost.conf", "/etc/nginx/sites-enabled/001-testapp.conf")
     chmod(0644, "/etc/nginx/sites-enabled/001-testapp.conf")
-    sh("sed -i 's/# passenger_root/passenger_root/' /etc/nginx/nginx.conf")
-    sh("sed -i 's/# passenger_ruby/passenger_ruby/' /etc/nginx/nginx.conf")
+    sh("sed -i 's|# include /etc/nginx/passenger.conf|include /etc/nginx/passenger.conf|' /etc/nginx/nginx.conf")
     sh("service nginx start")
     eventually do
       ping_tcp_socket("127.0.0.1", 80)
@@ -108,8 +107,7 @@ describe "The system's Nginx with Passenger enabled" do
       rm_rf(path)
     end
     rm("/etc/nginx/sites-enabled/001-testapp.conf")
-    sh("sed -i 's/\tpassenger_root/\t# passenger_root/' /etc/nginx/nginx.conf")
-    sh("sed -i 's/\tpassenger_ruby/\t# passenger_ruby/' /etc/nginx/nginx.conf")
+    sh("sed -i 's|\tinclude /etc/nginx/passenger.conf|\t# include /etc/nginx/passenger.conf|' /etc/nginx/nginx.conf")
   end
 
   describe "Ruby support" do
