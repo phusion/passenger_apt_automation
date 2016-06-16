@@ -139,6 +139,9 @@ override_dh_auto_configure: $(foreach flavour,$(FLAVOURS),config.arch.$(flavour)
 override_dh_auto_build:     $(foreach flavour,$(FLAVOURS),build.arch.$(flavour))
 	vendordir=`/usr/bin/ruby -rrbconfig -e 'puts RbConfig::CONFIG["vendordir"]'` && \
 		sed -i "s|@RUBYLIBDIR@|$$vendordir|g" debian/conf/nginx.conf
+<% if is_distribution?("< wily") -%>
+	rm debian/nginx-common.nginx.upstart
+<% end -%>
 
 override_dh_strip:          $(foreach flavour,$(FLAVOURS),strip.arch.$(flavour))
 override_dh_clean:          $(foreach flavour,$(FLAVOURS),clean.$(flavour))
