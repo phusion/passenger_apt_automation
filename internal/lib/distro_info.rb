@@ -29,6 +29,7 @@ DEFAULT_DISTROS = %w(
   precise
   trusty
   xenial
+  yakkety
 
   wheezy
   jessie

@@ -1,3 +1,73 @@
+nginx (1.10.1-0ubuntu1) yakkety; urgency=medium
+
+  * New upstream release (1.10.1) - full changelog available at upstream
+    website - http://nginx.org/en/CHANGES-1.10.
+  * Update done to address the following security issues:
+    - [CVE-2016-4450] NULL pointer dereference while writing client
+      request body. (LP: #1587577)
+  * Additional changes:
+    * debian/patches/ubuntu-branding.patch: Refreshed Ubuntu Branding patch.
+
+ -- Thomas Ward <teward@ubuntu.com>  Tue, 31 May 2016 19:09:33 -0400
+
+nginx (1.10.0-0ubuntu1) yakkety; urgency=medium
+
+  * New upstream release (1.10.0) - full changelog available at upstream
+    website - http://nginx.org/en/CHANGES-1.10 (LP: #1575217)   
+  * All Ubuntu specific changes from 1.9.15-0ubuntu1 remain included.
+  * Additional changes:
+    * debian/patches/ubuntu-branding.patch: Refreshed Ubuntu Branding patch.
+
+ -- Thomas Ward <teward@ubuntu.com>  Tue, 26 Apr 2016 10:24:23 -0400
+
+nginx (1.9.15-0ubuntu1) xenial-proposed; urgency=medium
+
+  * New upstream release (1.9.15) - full changelog available at upstream 
+    website - http://nginx.org/en/CHANGES (LP: #1572223)
+  * All Ubuntu specific changes from 1.1.14-0ubuntu1, except noted below,
+    remain included in this upload.
+  * Remaining changes:
+    * debian/control: Re-add libluajit-5.1-dev build-dependency, as it will
+      only affect nginx-extras which is in Universe. This reduces the merge
+      delta between Ubuntu and Debian slightly, as well. (LP: #1571444)
+    * debian/patches/ubuntu-branding.patch: Refresh Ubuntu Branding patch.
+
+ -- Thomas Ward <teward@ubuntu.com>  Mon, 18 Apr 2016 15:39:08 -0400
+
+nginx (1.9.14-0ubuntu1) xenial-proposed; urgency=medium
+
+  * New upstream release (1.9.14) - full changelog available at upstream
+    website - htp://nginx.org/en/CHANGES (LP: #1566392)
+  * All Ubuntu specific changes from 1.9.13-0ubuntu1, except noted below,
+    remain included in this upload.
+  * Remaining changes:
+    * Enable HTTP/2 module for nginx-full, nginx-extras, and nginx-core
+      (LP: #1565043)
+      - debian/rules: Enable HTTP/2 module building in flavor rules
+      - debian/control: Add HTTP/2 module to package descriptions.
+    * debian/patches/ubuntu-branding.patch: Refresh Ubuntu Branding patch.
+
+ -- Thomas Ward <teward@ubuntu.com>  Fri, 01 Apr 2016 14:23:47 -0400
+
+nginx (1.9.13-0ubuntu1) xenial-proposed; urgency=medium
+
+  * New upstream release (1.9.13) - full changelog available at upstream
+    website - http://nginx.org/en/CHANGES (LP: #1563393)
+  * All Ubuntu specific changes from 1.9.12-0ubuntu1 remain included in
+    this upload.
+  * debian/patches/ubuntu-branding.patch: Refresh Ubuntu Branding patch.
+
+ -- Thomas Ward <teward@ubuntu.com>  Tue, 29 Mar 2016 18:47:36 -0400
+
+nginx (1.9.12-0ubuntu1) xenial; urgency=medium
+
+  * New upstream release (1.9.12) - full changelog available at upstream
+    website - http://nginx.org/en/CHANGES  (LP: #1549347)
+  * All Ubuntu specific changes from 1.9.11-0ubuntu1 and -0ubuntu2 remain
+    included in this upload.
+
+ -- Thomas Ward <teward@ubuntu.com>  Wed, 24 Feb 2016 10:26:31 -0500
+
 nginx (1.9.11-0ubuntu2) xenial; urgency=medium
 
   * This is a bug-fix only upload and does not include any new changes to

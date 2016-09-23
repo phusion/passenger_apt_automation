@@ -78,7 +78,7 @@ Everything begins with the `build` script and a copy of the Passenger source cod
 
     ./build -p /passenger -w work -c cache -o output pkg:all
 
- * `-p` tells it where the Passenger source code is.
+ * `-p` tells it where the Passenger source code is. N.B. this setting will be ignored (unless you use -R) if the cache already contains a .tar.gz file for the Passenger version in the specified source dir.
  * `-w` tells it where it's work directory is. This is a directory in which in stores temporary files while building packages. WARNING: everything inside this directory will be deleted before the build begins, so only specify a directory that doesn't contain anything important.
  * `-c` tells it where the cache directory is. The build script caches files into this directory so that subsequent runs will be faster.
  * `-o` tells it where to store the final built Debian packages (the output directory). WARNING: everything inside this directory will be deleted when the build finishes, so only specify a directory that doesn't contain anything important.
@@ -121,7 +121,7 @@ Once packages have been built, you can test them with the test script. Here is a
 
     ./test -p /passenger -x trusty -d output/trusty -c cache
 
- * `-p` tells it where the Passenger source code is.
+ * `-p` tells it where the Passenger source code is in order to find the unit tests (those aren't in the debian package). The code / resources / executables under test come from the debian package built by the build script.
  * `-x` tells it which distribution it should use for running the tests. To learn which distributions are supported, run `./test -h`.
  * `-d` tells it where to find the packages that are to be tested. This must point to a subdirectory in the output directory produced by the build script, and the packages must match the test environment as specified by `-x`. For example, if you specified `-x trusty`, and if the build script stored packages in the directory `output`, then you should pass `-d output/trusty`.
  * `-c` tells it where the cache directory is. The test script caches files into this directory so that subsequent runs will be faster.
