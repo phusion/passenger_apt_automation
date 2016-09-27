@@ -137,6 +137,10 @@ done:
         BIO_free(bio);
     }
 
+    if (rc == NGX_ERROR) {
+        ERR_clear_error();
+    }
+
     return rc;
 
 #endif  /* NGX_HTTP_LUA_USE_OCSP */
@@ -248,6 +252,8 @@ failed:
     if (bio) {
         BIO_free(bio);
     }
+
+    ERR_clear_error();
 
     return rc;
 

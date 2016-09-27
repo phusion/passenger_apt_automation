@@ -26,6 +26,8 @@
 #include "ngx_http_lua_semaphore.h"
 #include "ngx_http_lua_balancer.h"
 #include "ngx_http_lua_ssl_certby.h"
+#include "ngx_http_lua_ssl_session_storeby.h"
+#include "ngx_http_lua_ssl_session_fetchby.h"
 
 
 static void *ngx_http_lua_create_main_conf(ngx_conf_t *cf);
@@ -42,6 +44,14 @@ static char *ngx_http_lua_lowat_check(ngx_conf_t *cf, void *post, void *data);
 #if (NGX_HTTP_SSL)
 static ngx_int_t ngx_http_lua_set_ssl(ngx_conf_t *cf,
     ngx_http_lua_loc_conf_t *llcf);
+#endif
+#if (NGX_HTTP_LUA_HAVE_MMAP_SBRK) && (NGX_LINUX)
+/* we cannot use "static" for this function since it may lead to compiler
+ * warnings */
+void ngx_http_lua_limit_data_segment(void);
+#   if !(NGX_HTTP_LUA_HAVE_CONSTRUCTOR)
+static ngx_int_t ngx_http_lua_pre_config(ngx_conf_t *cf);
+#   endif
 #endif
 
 
@@ -517,6 +527,34 @@ static ngx_command_t ngx_http_lua_cmds[] = {
       0,
       (void *) ngx_http_lua_ssl_cert_handler_file },
 
+    { ngx_string("ssl_session_store_by_lua_block"),
+      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_CONF_BLOCK|NGX_CONF_NOARGS,
+      ngx_http_lua_ssl_sess_store_by_lua_block,
+      NGX_HTTP_SRV_CONF_OFFSET,
+      0,
+      (void *) ngx_http_lua_ssl_sess_store_handler_inline },
+
+    { ngx_string("ssl_session_store_by_lua_file"),
+      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_CONF_TAKE1,
+      ngx_http_lua_ssl_sess_store_by_lua,
+      NGX_HTTP_SRV_CONF_OFFSET,
+      0,
+      (void *) ngx_http_lua_ssl_sess_store_handler_file },
+
+    { ngx_string("ssl_session_fetch_by_lua_block"),
+      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_CONF_BLOCK|NGX_CONF_NOARGS,
+      ngx_http_lua_ssl_sess_fetch_by_lua_block,
+      NGX_HTTP_SRV_CONF_OFFSET,
+      0,
+      (void *) ngx_http_lua_ssl_sess_fetch_handler_inline },
+
+    { ngx_string("ssl_session_fetch_by_lua_file"),
+      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_CONF_TAKE1,
+      ngx_http_lua_ssl_sess_fetch_by_lua,
+      NGX_HTTP_SRV_CONF_OFFSET,
+      0,
+      (void *) ngx_http_lua_ssl_sess_fetch_handler_file },
+
     { ngx_string("lua_ssl_verify_depth"),
       NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_num_slot,
@@ -545,7 +583,13 @@ static ngx_command_t ngx_http_lua_cmds[] = {
 
 
 ngx_http_module_t ngx_http_lua_module_ctx = {
+#if (NGX_HTTP_LUA_HAVE_MMAP_SBRK)                                            \
+    && (NGX_LINUX)                                                           \
+    && !(NGX_HTTP_LUA_HAVE_CONSTRUCTOR)
+    ngx_http_lua_pre_config,          /*  preconfiguration */
+#else
     NULL,                             /*  preconfiguration */
+#endif
     ngx_http_lua_init,                /*  postconfiguration */
 
     ngx_http_lua_create_main_conf,    /*  create main configuration */
@@ -667,7 +711,6 @@ ngx_http_lua_init(ngx_conf_t *cf)
     }
 
 #ifndef NGX_LUA_NO_FFI_API
-
     /* add the cleanup of semaphores after the lua_close */
     cln = ngx_pool_cleanup_add(cf->pool, 0);
     if (cln == NULL) {
@@ -675,8 +718,7 @@ ngx_http_lua_init(ngx_conf_t *cf)
     }
 
     cln->data = lmcf;
-    cln->handler = ngx_http_lua_cleanup_semaphore_mm;
-
+    cln->handler = ngx_http_lua_sema_mm_cleanup;
 #endif
 
     if (lmcf->lua == NULL) {
@@ -747,8 +789,11 @@ ngx_http_lua_lowat_check(ngx_conf_t *cf, void *post, void *data)
 static void *
 ngx_http_lua_create_main_conf(ngx_conf_t *cf)
 {
+#ifndef NGX_LUA_NO_FFI_API
+    ngx_int_t       rc;
+#endif
+
     ngx_http_lua_main_conf_t    *lmcf;
-    ngx_http_lua_semaphore_mm_t *mm;
 
     lmcf = ngx_pcalloc(cf->pool, sizeof(ngx_http_lua_main_conf_t));
     if (lmcf == NULL) {
@@ -787,25 +832,14 @@ ngx_http_lua_create_main_conf(ngx_conf_t *cf)
     lmcf->postponed_to_rewrite_phase_end = NGX_CONF_UNSET;
     lmcf->postponed_to_access_phase_end = NGX_CONF_UNSET;
 
-    mm = ngx_palloc(cf->pool, sizeof(ngx_http_lua_semaphore_mm_t));
-    if (mm == NULL) {
+#ifndef NGX_LUA_NO_FFI_API
+    rc = ngx_http_lua_sema_mm_init(cf, lmcf);
+    if (rc != NGX_OK) {
         return NULL;
     }
 
-    lmcf->semaphore_mm = mm;
-    mm->lmcf = lmcf;
-
-    ngx_queue_init(&mm->free_queue);
-    mm->cur_epoch = 0;
-    mm->total = 0;
-    mm->used = 0;
-
-    /* it's better to be 4096, but it needs some space for
-     * ngx_http_lua_semaphore_mm_block_t, one is enough, so it is 4095
-     */
-    mm->num_per_block = 4095;
-
     dd("nginx Lua module main config structure initialized!");
+#endif
 
     return lmcf;
 }
@@ -851,9 +885,18 @@ ngx_http_lua_create_srv_conf(ngx_conf_t *cf)
     }
 
     /* set by ngx_pcalloc:
-     *      lscf->ssl.cert_handler = NULL;
-     *      lscf->ssl.cert_src = { 0, NULL };
-     *      lscf->ssl.cert_src_key = NULL;
+     *      lscf->srv.ssl_cert_handler = NULL;
+     *      lscf->srv.ssl_cert_src = { 0, NULL };
+     *      lscf->srv.ssl_cert_src_key = NULL;
+     *
+     *      lscf->srv.ssl_session_store_handler = NULL;
+     *      lscf->srv.ssl_session_store_src = { 0, NULL };
+     *      lscf->srv.ssl_session_store_src_key = NULL;
+     *
+     *      lscf->srv.ssl_session_fetch_handler = NULL;
+     *      lscf->srv.ssl_session_fetch_src = { 0, NULL };
+     *      lscf->srv.ssl_session_fetch_src_key = NULL;
+     *
      *      lscf->balancer.handler = NULL;
      *      lscf->balancer.src = { 0, NULL };
      *      lscf->balancer.src_key = NULL;
@@ -874,12 +917,13 @@ ngx_http_lua_merge_srv_conf(ngx_conf_t *cf, void *parent, void *child)
 
     dd("merge srv conf");
 
-    if (conf->ssl.cert_src.len == 0) {
-        conf->ssl.cert_src = prev->ssl.cert_src;
-        conf->ssl.cert_handler = prev->ssl.cert_handler;
+    if (conf->srv.ssl_cert_src.len == 0) {
+        conf->srv.ssl_cert_src = prev->srv.ssl_cert_src;
+        conf->srv.ssl_cert_src_key = prev->srv.ssl_cert_src_key;
+        conf->srv.ssl_cert_handler = prev->srv.ssl_cert_handler;
     }
 
-    if (conf->ssl.cert_src.len) {
+    if (conf->srv.ssl_cert_src.len) {
         sscf = ngx_http_conf_get_module_srv_conf(cf, ngx_http_ssl_module);
         if (sscf == NULL || sscf->ssl.ctx == NULL) {
             ngx_log_error(NGX_LOG_EMERG, cf->log, 0,
@@ -908,6 +952,56 @@ ngx_http_lua_merge_srv_conf(ngx_conf_t *cf, void *parent, void *child)
 
 #   endif
 
+#endif
+    }
+
+    if (conf->srv.ssl_sess_store_src.len == 0) {
+        conf->srv.ssl_sess_store_src = prev->srv.ssl_sess_store_src;
+        conf->srv.ssl_sess_store_src_key = prev->srv.ssl_sess_store_src_key;
+        conf->srv.ssl_sess_store_handler = prev->srv.ssl_sess_store_handler;
+    }
+
+    if (conf->srv.ssl_sess_store_src.len) {
+        sscf = ngx_http_conf_get_module_srv_conf(cf, ngx_http_ssl_module);
+        if (sscf == NULL || sscf->ssl.ctx == NULL) {
+            ngx_log_error(NGX_LOG_EMERG, cf->log, 0,
+                          "no ssl configured for the server");
+
+            return NGX_CONF_ERROR;
+        }
+
+#ifdef LIBRESSL_VERSION_NUMBER
+        ngx_log_error(NGX_LOG_EMERG, cf->log, 0,
+                      "LibreSSL does not support ssl_session_store_by_lua*");
+        return NGX_CONF_ERROR;
+#else
+        SSL_CTX_sess_set_new_cb(sscf->ssl.ctx,
+                                ngx_http_lua_ssl_sess_store_handler);
+#endif
+    }
+
+    if (conf->srv.ssl_sess_fetch_src.len == 0) {
+        conf->srv.ssl_sess_fetch_src = prev->srv.ssl_sess_fetch_src;
+        conf->srv.ssl_sess_fetch_src_key = prev->srv.ssl_sess_fetch_src_key;
+        conf->srv.ssl_sess_fetch_handler = prev->srv.ssl_sess_fetch_handler;
+    }
+
+    if (conf->srv.ssl_sess_fetch_src.len) {
+        sscf = ngx_http_conf_get_module_srv_conf(cf, ngx_http_ssl_module);
+        if (sscf == NULL || sscf->ssl.ctx == NULL) {
+            ngx_log_error(NGX_LOG_EMERG, cf->log, 0,
+                          "no ssl configured for the server");
+
+            return NGX_CONF_ERROR;
+        }
+
+#ifdef LIBRESSL_VERSION_NUMBER
+        ngx_log_error(NGX_LOG_EMERG, cf->log, 0,
+                      "LibreSSL does not support ssl_session_fetch_by_lua*");
+        return NGX_CONF_ERROR;
+#else
+        SSL_CTX_sess_set_get_cb(sscf->ssl.ctx,
+                                ngx_http_lua_ssl_sess_fetch_handler);
 #endif
     }
 
@@ -1157,5 +1251,36 @@ ngx_http_lua_set_ssl(ngx_conf_t *cf, ngx_http_lua_loc_conf_t *llcf)
 }
 
 #endif  /* NGX_HTTP_SSL */
+
+
+#if (NGX_HTTP_LUA_HAVE_MMAP_SBRK)                                            \
+    && (NGX_LINUX)                                                           \
+    && !(NGX_HTTP_LUA_HAVE_CONSTRUCTOR)
+static ngx_int_t
+ngx_http_lua_pre_config(ngx_conf_t *cf)
+{
+    ngx_http_lua_limit_data_segment();
+    return NGX_OK;
+}
+#endif
+
+
+/*
+ * we simply assume that LuaJIT is used. it does little harm when the
+ * standard Lua 5.1 interpreter is used instead.
+ */
+#if (NGX_HTTP_LUA_HAVE_MMAP_SBRK) && (NGX_LINUX)
+#   if (NGX_HTTP_LUA_HAVE_CONSTRUCTOR)
+__attribute__((constructor))
+#   endif
+void
+ngx_http_lua_limit_data_segment(void)
+{
+    if (sbrk(0) < (void *) 0x40000000LL) {
+        mmap(ngx_align_ptr(sbrk(0), getpagesize()), 1, PROT_READ,
+             MAP_FIXED|MAP_PRIVATE|MAP_ANON, -1, 0);
+    }
+}
+#endif
 
 /* vi:set ft=c ts=4 sw=4 et fdm=marker: */

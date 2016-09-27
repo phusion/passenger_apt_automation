@@ -22,7 +22,7 @@ README for Modules versions
 
  nginx-lua
   Homepage: https://github.com/openresty/lua-nginx-module
-  Version: v0.10.2
+  Version: v0.10.6
 
  nginx-upstream-fair
   Homepage: https://github.com/gnosek/nginx-upstream-fair
