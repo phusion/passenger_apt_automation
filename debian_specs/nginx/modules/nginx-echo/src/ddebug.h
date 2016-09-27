@@ -1,6 +1,7 @@
 #ifndef DDEBUG_H
 #define DDEBUG_H
 
+#include <ngx_config.h>
 #include <ngx_core.h>
 #include <ngx_http.h>
 
@@ -19,7 +20,8 @@
 
 #include <stdarg.h>
 
-static void dd(const char * fmt, ...) {
+static ngx_inline void
+dd(const char * fmt, ...) {
 }
 
 #    endif
@@ -28,7 +30,8 @@ static void dd(const char * fmt, ...) {
 
 #       define dd_enter() dd_enter_helper(r, __func__)
 
-static void dd_enter_helper(ngx_http_request_t *r, const char *func) {
+static ngx_inline void
+dd_enter_helper(ngx_http_request_t *r, const char *func) {
     ngx_http_posted_request_t       *pr;
 
     fprintf(stderr, ">enter %s %.*s %.*s?%.*s c:%d m:%p r:%p ar:%p pr:%p",
@@ -68,10 +71,12 @@ static void dd_enter_helper(ngx_http_request_t *r, const char *func) {
 
 #include <stdarg.h>
 
-static void dd(const char * fmt, ...) {
+static ngx_inline void
+dd(const char * fmt, ...) {
 }
 
-static void dd_enter() {
+static ngx_inline void
+dd_enter() {
 }
 
 #   endif

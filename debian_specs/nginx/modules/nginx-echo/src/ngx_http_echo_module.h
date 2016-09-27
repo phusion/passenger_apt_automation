@@ -1,4 +1,8 @@
-/* Copyright (C) by agentzh */
+
+/*
+ * Copyright (C) Yichun Zhang (agentzh)
+ */
+
 
 #ifndef NGX_HTTP_ECHO_MODULE_H
 #define NGX_HTTP_ECHO_MODULE_H
@@ -130,6 +134,12 @@ typedef struct {
     unsigned         done:1;
 
     unsigned         run_post_subrequest:1;
+    unsigned         header_sent:1; /* r->header_sent is not sufficient
+                                     * because special header filters like
+                                     * ngx_http_image_filter_module's may
+                                     * intercept the whole header filter chain
+                                     * leaving r->header_sent unset. So we
+                                     * should always test both flags. */
 
 } ngx_http_echo_ctx_t;
 

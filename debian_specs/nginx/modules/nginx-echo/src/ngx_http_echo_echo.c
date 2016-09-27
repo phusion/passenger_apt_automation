@@ -94,7 +94,6 @@ ngx_http_echo_exec_echo(ngx_http_request_t *r,
     ngx_chain_t *cl  = NULL; /* the head of the chain link */
     ngx_chain_t **ll = &cl;  /* always point to the address of the last link */
 
-
     dd_enter();
 
     if (computed_args == NULL) {
@@ -173,6 +172,7 @@ ngx_http_echo_exec_echo(ngx_http_request_t *r,
 
     if (opts && opts->nelts > 0) {
         opt = opts->elts;
+        /* FIXME handle other unrecognized options here */
         if (opt[0].len == 1 && opt[0].data[0] == 'n') {
             goto done;
         }
@@ -287,14 +287,12 @@ ngx_http_echo_exec_echo_duplicate(ngx_http_request_t *r,
 {
     ngx_str_t                   *computed_arg;
     ngx_str_t                   *computed_arg_elts;
-    ssize_t                     i, count;
+    ssize_t                      i, count;
     ngx_str_t                   *str;
     u_char                      *p;
-    ngx_int_t                   rc;
-
+    ngx_int_t                    rc;
     ngx_buf_t                   *buf;
     ngx_chain_t                 *cl;
-
 
     dd_enter();
 

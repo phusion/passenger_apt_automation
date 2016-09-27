@@ -17,55 +17,57 @@
 #include "ngx_http_echo_var.h"
 #include "ngx_http_echo_util.h"
 
+
 #include <nginx.h>
 #include <ngx_config.h>
 #include <ngx_log.h>
 
+
 /* config init handler */
-static void * ngx_http_echo_create_loc_conf(ngx_conf_t *cf);
-static char * ngx_http_echo_merge_loc_conf(ngx_conf_t *cf, void *parent,
+static void *ngx_http_echo_create_loc_conf(ngx_conf_t *cf);
+static char *ngx_http_echo_merge_loc_conf(ngx_conf_t *cf, void *parent,
     void *child);
 static void *ngx_http_echo_create_main_conf(ngx_conf_t *cf);
 static ngx_int_t ngx_http_echo_post_config(ngx_conf_t *cf);
 
 /* config directive handlers */
-static char * ngx_http_echo_echo(ngx_conf_t *cf, ngx_command_t *cmd,
+static char *ngx_http_echo_echo(ngx_conf_t *cf, ngx_command_t *cmd,
     void *conf);
-static char * ngx_http_echo_echo_request_body(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_request_body(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_echo_sleep(ngx_conf_t *cf, ngx_command_t *cmd,
+static char *ngx_http_echo_echo_sleep(ngx_conf_t *cf, ngx_command_t *cmd,
     void *conf);
-static char * ngx_http_echo_echo_flush(ngx_conf_t *cf, ngx_command_t *cmd,
+static char *ngx_http_echo_echo_flush(ngx_conf_t *cf, ngx_command_t *cmd,
     void *conf);
-static char * ngx_http_echo_echo_blocking_sleep(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_blocking_sleep(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_echo_reset_timer(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_reset_timer(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_echo_before_body(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_before_body(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_echo_after_body(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_after_body(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_echo_location_async(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_location_async(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_echo_location(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_location(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_echo_subrequest_async(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_subrequest_async(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_echo_subrequest(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_subrequest(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_echo_duplicate(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_duplicate(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_echo_read_request_body(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_read_request_body(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_echo_foreach_split(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_foreach_split(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_echo_end(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_end(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_echo_abort_parent(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_abort_parent(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_echo_exec(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_exec(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
+static char *ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
     ngx_http_echo_cmd_category_t cat,
     ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
 
@@ -309,7 +311,7 @@ ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
     /* cmds_ptr points to ngx_http_echo_loc_conf_t's
      * handler_cmds, before_body_cmds, or after_body_cmds
      * array, depending on the actual offset */
-    cmds_ptr = (ngx_array_t**)(((u_char*)conf) + cmd->offset);
+    cmds_ptr = (ngx_array_t **) (((u_char *) conf) + cmd->offset);
 
     if (*cmds_ptr == NULL) {
         *cmds_ptr = ngx_array_create(cf->pool, 1,
@@ -344,7 +346,7 @@ ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
 
     args_ptr = &echo_cmd->args;
     *args_ptr = ngx_array_create(cf->pool, 1,
-            sizeof(ngx_http_echo_arg_template_t));
+                                 sizeof(ngx_http_echo_arg_template_t));
 
     if (*args_ptr == NULL) {
         return NGX_CONF_ERROR;
