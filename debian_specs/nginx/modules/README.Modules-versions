@@ -14,7 +14,7 @@ README for Modules versions
 
  nginx-auth-pam
   Homepage: https://github.com/stogh/ngx_http_auth_pam_module
-  Version: 1.4
+  Version: 1.5.1
 
  nginx-echo
   Homepage: https://github.com/agentzh/echo-nginx-module
