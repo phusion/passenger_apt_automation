@@ -10,7 +10,7 @@ README for Modules versions
 
  nginx-development-kit
   Homepage: https://github.com/simpl/ngx_devel_kit/
-  Version: v0.2.19
+  Version: v0.3.0
 
  nginx-auth-pam
   Homepage: https://github.com/stogh/ngx_http_auth_pam_module
