@@ -5,60 +5,50 @@ README for Modules versions
  version.
 
  headers-more-nginx-module
-  https://github.com/agentzh/headers-more-nginx-module
+  Homepage: https://github.com/agentzh/headers-more-nginx-module
   Version: v0.26
 
  nginx-development-kit
-  https://github.com/simpl/ngx_devel_kit/
+  Homepage: https://github.com/simpl/ngx_devel_kit/
   Version: v0.2.19
 
  nginx-auth-pam
-  https://github.com/stogh/ngx_http_auth_pam_module/
+  Homepage: https://github.com/stogh/ngx_http_auth_pam_module
   Version: 1.4
 
  nginx-echo
-  https://github.com/agentzh/echo-nginx-module
+  Homepage: https://github.com/agentzh/echo-nginx-module
   Version: v0.57
 
  nginx-lua
-  Homepage: https://github.com/chaoslawful/lua-nginx-module
-  https://github.com/chaoslawful/lua-nginx-module.git
+  Homepage: https://github.com/openresty/lua-nginx-module
   Version: v0.10.2
 
  nginx-upstream-fair
   Homepage: https://github.com/gnosek/nginx-upstream-fair
   Version: a18b409
 
- #nginx-upstream-check-module
- # Homepage: https://github.com/yaoweibin/nginx_upstream_check_module
- # Version: 2662fe4
-
  nginx-push
   Homepage: http://pushmodule.slact.net/#download
   https://github.com/slact/nginx_http_push_module/archive/v0.73.tar.gz
   Version: 142b637e514e28be (0.73 + uninitialized warning fix)
 
- #Removed as it no longer works with 1.3.x and above.
- #nginx-upload
- # Homepage: https://github.com/vkholodkov/nginx-upload-module
- # Version: 2.2.0 + Patch for: https://github.com/vkholodkov/nginx-upload-module/issues/45
-
  nginx-upload-progress
   Homepage: https://github.com/masterzen/nginx-upload-progress-module
-  rm -r debian/nginx-upload-progress/test
+    rm -r debian/nginx-upload-progress/test
   Version: v0.9.1
 
  nginx-cache-purge
-  Homepage: http://labs.frickle.com/nginx_ngx_cache_purge/
+  Homepage: https://github.com/FRiCKLE/ngx_cache_purge/
   Version: 2.3
 
  nginx-dav-ext-module
   Homepage: https://github.com/arut/nginx-dav-ext-module
-  Version: v0.0.3-89d582d31a
+  Version: v0.0.3
 
  ngx-fancyindex
   Homepage: https://github.com/aperezdc/ngx-fancyindex
-  Version: 0.3.5
+  Version: v0.3.5
 
  ngx_http_substitutions_filter_module
   Homepage: https://github.com/yaoweibin/ngx_http_substitutions_filter_module
