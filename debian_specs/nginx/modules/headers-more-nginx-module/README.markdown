@@ -1,8 +1,3 @@
-<!---
-Don't edit this file manually! Instead you should generate it by using:
-    wiki2markdown.pl doc/HttpHeadersMoreModule.wiki
--->
-
 Name
 ====
 
@@ -13,6 +8,7 @@ Name
 Table of Contents
 =================
 
+* [Name](#name)
 * [Version](#version)
 * [Synopsis](#synopsis)
 * [Description](#description)
@@ -40,7 +36,7 @@ Table of Contents
 Version
 =======
 
-This document describes headers-more-nginx-module [v0.25](http://github.com/agentzh/headers-more-nginx-module/tags) released on 10 January 2014.
+This document describes headers-more-nginx-module [v0.31](https://github.com/openresty/headers-more-nginx-module/tags) released on 15 August 2016.
 
 Synopsis
 ========
@@ -98,14 +94,22 @@ output headers with the [more_set_headers](#more_set_headers) and
 [more_clear_headers](#more_clear_headers) directives. For example,
 
 ```nginx
-
  more_set_headers -s 404 -t 'text/html' 'X-Foo: Bar';
 ```
+
+You can also specify multiple MIME types to filter out in a single `-t` option.
+For example,
+
+```nginx
+more_set_headers -t 'text/html text/plain' 'X-Foo: Bar';
+```
+
+Never use other paramemters like `charset=utf-8` in the `-t` option values; they will not
+work as you would expect.
 
 Input headers can be modified as well. For example
 
 ```nginx
-
  location /foo {
      more_set_input_headers 'Host: foo' 'User-Agent: faked';
      # now $host, $http_host, $user_agent, and
@@ -269,7 +273,10 @@ Very much like [more_set_headers](#more_set_headers) except that it operates on 
 
 Note that using the `-t` option in this directive means filtering by the `Content-Type` *request* header, rather than the response header.
 
-Behind the scene, use of this directive and its friend [more_clear_input_headers](#more_clear_input_headers) will (lazily) register a `rewrite phase` handler that modifies `r->headers_in` the way you specify. Note that it always run at the *end* of the `rewrite` so that it runs *after* the standard [rewrite module](http://nginx.org/en/docs/http/ngx_http_rewrite_module.html) and works in subrequests as well.
+Behind the scene, use of this directive and its friend [more_clear_input_headers](#more_clear_input_headers) will (lazily)
+register a `rewrite phase` handler that modifies `r->headers_in` the way you specify. Note that it always run at the *end* of
+the `rewrite` phase so that it runs *after* the standard [rewrite module](http://nginx.org/en/docs/http/ngx_http_rewrite_module.html)
+and works in subrequests as well.
 
 If the `-r` option is specified, then the headers will be replaced to the new values *only if* they already exist.
 
@@ -324,13 +331,13 @@ Installation
 ============
 
 Grab the nginx source code from [nginx.org](http://nginx.org/), for example,
-the version 1.7.7 (see [nginx compatibility](#compatibility)), and then build the source with this module:
+the version 1.11.2 (see [nginx compatibility](#compatibility)), and then build the source with this module:
 
 ```bash
 
- wget 'http://nginx.org/download/nginx-1.7.7.tar.gz'
- tar -xzvf nginx-1.7.7.tar.gz
- cd nginx-1.7.7/
+ wget 'http://nginx.org/download/nginx-1.11.2.tar.gz'
+ tar -xzvf nginx-1.11.2.tar.gz
+ cd nginx-1.11.2/
 
  # Here we assume you would install you nginx under /opt/nginx/.
  ./configure --prefix=/opt/nginx \
@@ -340,9 +347,17 @@ the version 1.7.7 (see [nginx compatibility](#compatibility)), and then build th
  make install
 ```
 
-Download the latest version of the release tarball of this module from [headers-more-nginx-module file list](http://github.com/agentzh/headers-more-nginx-module/tags).
+Download the latest version of the release tarball of this module from [headers-more-nginx-module file list](https://github.com/openresty/headers-more-nginx-module/tags).
 
-Also, this module is included and enabled by default in the [ngx_openresty bundle](http://openresty.org).
+Starting from NGINX 1.9.11, you can also compile this module as a dynamic module, by using the `--add-dynamic-module=PATH` option instead of `--add-module=PATH` on the
+`./configure` command line above. And then you can explicitly load the module in your `nginx.conf` via the [load_module](http://nginx.org/en/docs/ngx_core_module.html#load_module)
+directive, for example,
+
+```nginx
+load_module /path/to/modules/ngx_http_headers_more_filter_module.so;
+```
+
+Also, this module is included and enabled by default in the [OpenResty bundle](http://openresty.org).
 
 [Back to TOC](#table-of-contents)
 
@@ -351,7 +366,11 @@ Compatibility
 
 The following versions of Nginx should work with this module:
 
-* **1.7.x**                       (last tested: 1.7.7)
+* **1.11.x**                      (last tested: 1.11.2)
+* **1.10.x**
+* **1.9.x**                       (last tested: 1.9.15)
+* **1.8.x**
+* **1.7.x**                       (last tested: 1.7.10)
 * **1.6.x**                       (last tested: 1.6.2)
 * **1.5.x**                       (last tested: 1.5.8)
 * **1.4.x**                       (last tested: 1.4.4)
@@ -393,7 +412,7 @@ Bugs and Patches
 
 Please submit bug reports, wishlists, or patches by
 
-1. creating a ticket on the [GitHub Issue Tracker](http://github.com/chaoslawful/lua-nginx-module/issues),
+1. creating a ticket on the [GitHub Issue Tracker](https://github.com/chaoslawful/lua-nginx-module/issues),
 1. or posting to the [OpenResty community](#community).
 
 [Back to TOC](#table-of-contents)
@@ -401,14 +420,14 @@ Please submit bug reports, wishlists, or patches by
 Source Repository
 =================
 
-Available on github at [agentzh/headers-more-nginx-module](http://github.com/agentzh/headers-more-nginx-module).
+Available on github at [openresty/headers-more-nginx-module](https://github.com/openresty/headers-more-nginx-module).
 
 [Back to TOC](#table-of-contents)
 
 Changes
 =======
 
-The changes of every release of this module can be obtained from the ngx_openresty bundle's change logs:
+The changes of every release of this module can be obtained from the OpenResty bundle's change logs:
 
 <http://openresty.org/#Changes>
 
@@ -417,8 +436,8 @@ The changes of every release of this module can be obtained from the ngx_openres
 Test Suite
 ==========
 
-This module comes with a Perl-driven test suite. The [test cases](http://github.com/agentzh/headers-more-nginx-module/tree/master/t/) are
-[declarative](http://github.com/agentzh/headers-more-nginx-module/blob/master/t/sanity.t) too. Thanks to the [Test::Nginx](http://search.cpan.org/perldoc?Test::Nginx) module in the Perl world.
+This module comes with a Perl-driven test suite. The [test cases](https://github.com/openresty/headers-more-nginx-module/tree/master/t/) are
+[declarative](https://github.com/openresty/headers-more-nginx-module/blob/master/t/sanity.t) too. Thanks to the [Test::Nginx](http://search.cpan.org/perldoc?Test::Nginx) module in the Perl world.
 
 To run it on your side:
 
@@ -439,7 +458,7 @@ You need to terminate any Nginx processes before running the test suite if you h
 
 Because a single nginx server (by default, `localhost:1984`) is used across all the test scripts (`.t` files), it's meaningless to run the test suite in parallel by specifying `-jN` when invoking the `prove` utility.
 
-Some parts of the test suite requires modules [proxy](http://nginx.org/en/docs/http/ngx_http_proxy_module.html), [rewrite](http://nginx.org/en/docs/http/ngx_http_rewrite_module.html), and [echo](http://github.com/openresty/echo-nginx-module) to be enabled as well when building Nginx.
+Some parts of the test suite requires modules [proxy](http://nginx.org/en/docs/http/ngx_http_proxy_module.html), [rewrite](http://nginx.org/en/docs/http/ngx_http_rewrite_module.html), and [echo](https://github.com/openresty/echo-nginx-module) to be enabled as well when building Nginx.
 
 [Back to TOC](#table-of-contents)
 
@@ -505,6 +524,8 @@ See Also
 * The original thread on the Nginx mailing list that inspires this module's development: ["A question about add_header replication"](http://forum.nginx.org/read.php?2,11206,11738).
 * The orginal announcement thread on the Nginx mailing list: ["The "headers_more" module: Set and clear output headers...more than 'add'!"](http://forum.nginx.org/read.php?2,23460).
 * The original [blog post](http://agentzh.blogspot.com/2009/11/headers-more-module-scripting-input-and.html) about this module's initial development.
-* The [echo module](http://github.com/openresty/echo-nginx-module) for Nginx module's automated testing.
+* The [echo module](https://github.com/openresty/echo-nginx-module) for Nginx module's automated testing.
 * The standard [headers](http://nginx.org/en/docs/http/ngx_http_headers_module.html) module.
+
+[Back to TOC](#table-of-contents)
 
