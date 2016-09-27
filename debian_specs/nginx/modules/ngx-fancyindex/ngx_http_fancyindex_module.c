@@ -1,6 +1,6 @@
 /*
  * ngx_http_fancyindex_module.c
- * Copyright © 2007-2013 Adrian Perez <aperez@igalia.com>
+ * Copyright © 2007-2016 Adrian Perez <aperez@igalia.com>
  *
  * Module used for fancy indexing of directories. Features and differences
  * with the stock nginx autoindex module:
@@ -33,6 +33,113 @@
 #endif /* __GNUC__ */
 
 
+static const char *short_weekday[] = {
+    "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun",
+};
+static const char *long_weekday[] = {
+    "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Sunday",
+};
+static const char *short_month[] = {
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+};
+static const char *long_month[] = {
+    "January", "February", "March", "April", "May", "June", "July",
+    "August", "September", "October", "November", "December",
+};
+
+
+#define DATETIME_FORMATS(F_, t) \
+    F_ ('a',  3, "%3s",  short_weekday[((t)->ngx_tm_wday + 6) % 7]) \
+    F_ ('A',  9, "%s",   long_weekday [((t)->ngx_tm_wday + 6) % 7]) \
+    F_ ('b',  3, "%3s",  short_month[(t)->ngx_tm_mon - 1]         ) \
+    F_ ('B',  9, "%s",   long_month [(t)->ngx_tm_mon - 1]         ) \
+    F_ ('d',  2, "%02d", (t)->ngx_tm_mday                         ) \
+    F_ ('e',  2, "%2d",  (t)->ngx_tm_mday                         ) \
+    F_ ('F', 10, "%d-%02d-%02d",                                    \
+                  (t)->ngx_tm_year,                                 \
+                  (t)->ngx_tm_mon,                                  \
+                  (t)->ngx_tm_mday                                ) \
+    F_ ('H',  2, "%02d", (t)->ngx_tm_hour                         ) \
+    F_ ('I',  2, "%02d", ((t)->ngx_tm_hour % 12) + 1              ) \
+    F_ ('k',  2, "%2d",  (t)->ngx_tm_hour                         ) \
+    F_ ('l',  2, "%2d",  ((t)->ngx_tm_hour % 12) + 1              ) \
+    F_ ('m',  2, "%02d", (t)->ngx_tm_mon                          ) \
+    F_ ('M',  2, "%02d", (t)->ngx_tm_min                          ) \
+    F_ ('p',  2, "%2s",  (((t)->ngx_tm_hour < 12) ? "AM" : "PM")  ) \
+    F_ ('P',  2, "%2s",  (((t)->ngx_tm_hour < 12) ? "am" : "pm")  ) \
+    F_ ('r', 11, "%02d:%02d:%02d %2s",                              \
+                 ((t)->ngx_tm_hour % 12) + 1,                       \
+                 (t)->ngx_tm_min,                                   \
+                 (t)->ngx_tm_sec,                                   \
+                 (((t)->ngx_tm_hour < 12) ? "AM" : "PM")          ) \
+    F_ ('R',  5, "%02d:%02d", (t)->ngx_tm_hour, (t)->ngx_tm_min   ) \
+    F_ ('S',  2, "%02d", (t)->ngx_tm_sec                          ) \
+    F_ ('T',  8, "%02d:%02d:%02d",                                  \
+                 (t)->ngx_tm_hour,                                  \
+                 (t)->ngx_tm_min,                                   \
+                 (t)->ngx_tm_sec                                  ) \
+    F_ ('u',  1, "%1d", (((t)->ngx_tm_wday + 6) % 7) + 1          ) \
+    F_ ('w',  1, "%1d", ((t)->ngx_tm_wday + 6) % 7                ) \
+    F_ ('y',  2, "%02d", (t)->ngx_tm_year % 100                   ) \
+    F_ ('Y',  4, "%04d", (t)->ngx_tm_year                         )
+
+
+static size_t
+ngx_fancyindex_timefmt_calc_size (const ngx_str_t *fmt)
+{
+#define DATETIME_CASE(letter, fmtlen, fmt, ...) \
+        case letter: result += (fmtlen); break;
+
+    size_t i, result = 0;
+    for (i = 0; i < fmt->len; i++) {
+        if (fmt->data[i] == '%') {
+            if (++i >= fmt->len) {
+                result++;
+                break;
+            }
+            switch (fmt->data[i]) {
+                DATETIME_FORMATS(DATETIME_CASE,)
+                default:
+                    result++;
+            }
+        } else {
+            result++;
+        }
+    }
+    return result;
+
+#undef DATETIME_CASE
+}
+
+
+static u_char*
+ngx_fancyindex_timefmt (u_char *buffer, const ngx_str_t *fmt, const ngx_tm_t *tm)
+{
+#define DATETIME_CASE(letter, fmtlen, fmt, ...) \
+        case letter: buffer = ngx_snprintf(buffer, fmtlen, fmt, ##__VA_ARGS__); break;
+
+    size_t i;
+    for (i = 0; i < fmt->len; i++) {
+        if (fmt->data[i] == '%') {
+            if (++i >= fmt->len) {
+                *buffer++ = '%';
+                break;
+            }
+            switch (fmt->data[i]) {
+                DATETIME_FORMATS(DATETIME_CASE, tm)
+                default:
+                    *buffer++ = fmt->data[i];
+            }
+        } else {
+            *buffer++ = fmt->data[i];
+        }
+    }
+    return buffer;
+
+#undef DATETIME_CASE
+}
+
 
 /**
  * Configuration structure for the fancyindex module. The configuration
@@ -41,13 +148,17 @@
 typedef struct {
     ngx_flag_t enable;       /**< Module is enabled. */
     ngx_uint_t default_sort; /**< Default sort criterion. */
+    ngx_flag_t dirs_first;   /**< Group directories together first when sorting */
     ngx_flag_t localtime;    /**< File mtime dates are sent in local time. */
     ngx_flag_t exact_size;   /**< Sizes are sent always in bytes. */
     ngx_uint_t name_length;  /**< Maximum length of file names in bytes. */
+    ngx_flag_t hide_symlinks;/**< Hide symbolic links in listings. */
+    ngx_flag_t show_path;    /**< Whether to display or not the path + '</h1>' after the header */
 
     ngx_str_t  header;       /**< File name for header, or empty if none. */
     ngx_str_t  footer;       /**< File name for footer, or empty if none. */
     ngx_str_t  css_href;     /**< Link to a CSS stylesheet, or empty if none. */
+    ngx_str_t  time_format;  /**< Format used for file timestamps. */
 
     ngx_array_t *ignore;     /**< List of files to ignore in listings. */
 } ngx_http_fancyindex_loc_conf_t;
@@ -113,17 +224,19 @@ typedef struct {
 
 
 
-static int ngx_libc_cdecl
+static ngx_int_t ngx_libc_cdecl
+    ngx_http_fancyindex_cmp_entries_dirs_first(const void *one, const void *two);
+static ngx_int_t ngx_libc_cdecl
     ngx_http_fancyindex_cmp_entries_name_desc(const void *one, const void *two);
-static int ngx_libc_cdecl
+static ngx_int_t ngx_libc_cdecl
     ngx_http_fancyindex_cmp_entries_size_desc(const void *one, const void *two);
-static int ngx_libc_cdecl
+static ngx_int_t ngx_libc_cdecl
     ngx_http_fancyindex_cmp_entries_mtime_desc(const void *one, const void *two);
-static int ngx_libc_cdecl
+static ngx_int_t ngx_libc_cdecl
     ngx_http_fancyindex_cmp_entries_name_asc(const void *one, const void *two);
-static int ngx_libc_cdecl
+static ngx_int_t ngx_libc_cdecl
     ngx_http_fancyindex_cmp_entries_size_asc(const void *one, const void *two);
-static int ngx_libc_cdecl
+static ngx_int_t ngx_libc_cdecl
     ngx_http_fancyindex_cmp_entries_mtime_asc(const void *one, const void *two);
 
 static ngx_int_t ngx_http_fancyindex_error(ngx_http_request_t *r,
@@ -174,6 +287,13 @@ static ngx_command_t  ngx_http_fancyindex_commands[] = {
       offsetof(ngx_http_fancyindex_loc_conf_t, default_sort),
       &ngx_http_fancyindex_sort_criteria },
 
+    { ngx_string("fancyindex_directories_first"),
+      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_FLAG,
+      ngx_conf_set_flag_slot,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      offsetof(ngx_http_fancyindex_loc_conf_t, dirs_first),
+      NULL },
+
     { ngx_string("fancyindex_localtime"),
       NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_FLAG,
       ngx_conf_set_flag_slot,
@@ -221,6 +341,27 @@ static ngx_command_t  ngx_http_fancyindex_commands[] = {
       ngx_http_fancyindex_ignore,
       NGX_HTTP_LOC_CONF_OFFSET,
       0,
+      NULL },
+
+    { ngx_string("fancyindex_hide_symlinks"),
+      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_FLAG,
+      ngx_conf_set_flag_slot,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      offsetof(ngx_http_fancyindex_loc_conf_t, hide_symlinks),
+      NULL },
+
+    { ngx_string("fancyindex_show_path"),
+      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_FLAG,
+      ngx_conf_set_flag_slot,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      offsetof(ngx_http_fancyindex_loc_conf_t, show_path),
+      NULL },
+
+    { ngx_string("fancyindex_time_format"),
+      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_FLAG,
+      ngx_conf_set_str_slot,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      offsetof(ngx_http_fancyindex_loc_conf_t, time_format),
       NULL },
 
     ngx_null_command
@@ -406,7 +547,7 @@ make_content_buf(
 {
     ngx_http_fancyindex_entry_t *entry;
 
-    int (*sort_cmp_func) (const void*, const void*);
+    ngx_int_t (*sort_cmp_func) (const void*, const void*);
     const char  *sort_url_args = "";
 
     off_t        length;
@@ -420,11 +561,6 @@ make_content_buf(
     ngx_str_t    path;
     ngx_dir_t    dir;
     ngx_buf_t   *b;
-
-    static char *months[] = {
-        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-    };
 
     /*
      * NGX_DIR_MASK_LEN is lesser than NGX_HTTP_FANCYINDEX_PREALLOCATE
@@ -497,9 +633,14 @@ make_content_buf(
         if (ngx_de_name(&dir)[0] == '.')
             continue;
 
+        if (alcf->hide_symlinks && ngx_de_is_link (&dir))
+            continue;
+
 #if NGX_PCRE
         {
-            ngx_str_t str = { len, ngx_de_name(&dir) };
+            ngx_str_t str;
+            str.len = len;
+            str.data = ngx_de_name(&dir);
 
             if (alcf->ignore && ngx_regex_exec_array(alcf->ignore, &str,
                                                      r->connection->log)
@@ -588,12 +729,29 @@ make_content_buf(
     /*
      * Calculate needed buffer length.
      */
-    len = r->uri.len
-        + ngx_sizeof_ssz(t05_body2)
-        + ngx_sizeof_ssz(t06_list1)
-        + ngx_sizeof_ssz(t_parentdir_entry)
-        + ngx_sizeof_ssz(t07_list2)
-        ;
+    if (alcf->show_path)
+        len = r->uri.len
+          + ngx_sizeof_ssz(t05_body2)
+          + ngx_sizeof_ssz(t06_list1)
+          + ngx_sizeof_ssz(t_parentdir_entry)
+          + ngx_sizeof_ssz(t07_list2)
+          + ngx_fancyindex_timefmt_calc_size (&alcf->time_format) * entries.nelts
+          ;
+   else
+        len = r->uri.len
+          + ngx_sizeof_ssz(t06_list1)
+          + ngx_sizeof_ssz(t_parentdir_entry)
+          + ngx_sizeof_ssz(t07_list2)
+          + ngx_fancyindex_timefmt_calc_size (&alcf->time_format) * entries.nelts
+          ;
+
+    /*
+     * If we are a the root of the webserver (URI =  "/" --> length of 1),
+     * do not display the "Parent Directory" link.
+     */
+    if (r->uri.len == 1) {
+        len -= ngx_sizeof_ssz(t_parentdir_entry);
+    }
 
     entry = entries.elts;
     for (i = 0; i < entries.nelts; i++) {
@@ -609,14 +767,15 @@ make_content_buf(
         len += ngx_sizeof_ssz("<tr><td><a href=\"")
             + entry[i].name.len + entry[i].escape /* Escaped URL */
             + ngx_sizeof_ssz("?C=x&amp;O=y") /* URL sorting arguments */
+            + ngx_sizeof_ssz("\" title=\"")
+            + entry[i].name.len + entry[i].utf_len
             + ngx_sizeof_ssz("\">")
             + entry[i].name.len + entry[i].utf_len
             + alcf->name_length + ngx_sizeof_ssz("&gt;")
             + ngx_sizeof_ssz("</a></td><td>")
             + 20 /* File size */
-            + ngx_sizeof_ssz("</td><td>")
-            + ngx_sizeof_ssz(" 28-Sep-1970 12:00 ")
-            + ngx_sizeof_ssz("</td></tr>\n")
+            + ngx_sizeof_ssz("</td><td>")    /* Date prefix */
+            + ngx_sizeof_ssz("</td></tr>\n") /* Date suffix */
             + 2 /* CR LF */
             ;
     }
@@ -707,31 +866,48 @@ make_content_buf(
 
     /* Sort entries, if needed */
     if (entries.nelts > 1) {
-        ngx_qsort(entry, (size_t) entries.nelts,
+        /* Use ngx_sort for stability */ 
+        ngx_sort(entry, (size_t) entries.nelts,
                   sizeof(ngx_http_fancyindex_entry_t),
                   sort_cmp_func);
+
+        if (alcf->dirs_first)
+        {
+            /* Sort directories first */
+            ngx_sort(entry, (size_t) entries.nelts,
+                      sizeof(ngx_http_fancyindex_entry_t),
+                      ngx_http_fancyindex_cmp_entries_dirs_first);
+        }
+
     }
 
-    b->last = ngx_cpymem_str(b->last, r->uri);
-    b->last = ngx_cpymem_ssz(b->last, t05_body2);
+    /* Display the path, if needed */
+    if (alcf->show_path){
+        b->last = ngx_cpymem_str(b->last, r->uri);
+        b->last = ngx_cpymem_ssz(b->last, t05_body2);
+    }
+
+    /* Open the <table> tag */
     b->last = ngx_cpymem_ssz(b->last, t06_list1);
 
     tp = ngx_timeofday();
 
-    /* "Parent dir" entry, always first */
-    b->last = ngx_cpymem_ssz(b->last,
-                             "<tr>"
-                             "<td><a href=\"../");
-    if (*sort_url_args) {
-        b->last = ngx_cpymem(b->last,
-                             sort_url_args,
-                             ngx_sizeof_ssz("?C=N&amp;O=A"));
+    /* "Parent dir" entry, always first if displayed */
+    if (r->uri.len > 1) {
+        b->last = ngx_cpymem_ssz(b->last,
+                                 "<tr>"
+                                 "<td><a href=\"../");
+        if (*sort_url_args) {
+            b->last = ngx_cpymem(b->last,
+                                 sort_url_args,
+                                 ngx_sizeof_ssz("?C=N&amp;O=A"));
+        }
+        b->last = ngx_cpymem_ssz(b->last,
+                                 "\">Parent directory/</a></td>"
+                                 "<td>-</td>"
+                                 "<td>-</td>"
+                                 "</tr>");
     }
-    b->last = ngx_cpymem_ssz(b->last,
-                             "\">Parent directory/</a></td>"
-                             "<td>-</td>"
-                             "<td>-</td>"
-                             "</tr>");
 
     /* Entries for directories and files */
     for (i = 0; i < entries.nelts; i++) {
@@ -757,6 +933,9 @@ make_content_buf(
             }
         }
 
+        *b->last++ = '"';
+        b->last = ngx_cpymem_ssz(b->last, " title=\"");
+        b->last = ngx_cpymem_str(b->last, entry[i].name);
         *b->last++ = '"';
         *b->last++ = '>';
 
@@ -842,14 +1021,9 @@ make_content_buf(
         }
 
         ngx_gmtime(entry[i].mtime + tp->gmtoff * 60 * alcf->localtime, &tm);
-
-        b->last = ngx_sprintf(b->last, "</td><td>%02d-%s-%d %02d:%02d</td></tr>",
-                              tm.ngx_tm_mday,
-                              months[tm.ngx_tm_mon - 1],
-                              tm.ngx_tm_year,
-                              tm.ngx_tm_hour,
-                              tm.ngx_tm_min);
-
+        b->last = ngx_cpymem_ssz(b->last, "</td><td>");
+        b->last = ngx_fancyindex_timefmt(b->last, &alcf->time_format, &tm);
+        b->last = ngx_cpymem_ssz(b->last, "</td></tr>");
 
         *b->last++ = CR;
         *b->last++ = LF;
@@ -899,7 +1073,7 @@ ngx_http_fancyindex_handler(ngx_http_request_t *r)
         return NGX_DECLINED;
     }
 
-    if ((rc = make_content_buf(r, &out[0].buf, alcf) != NGX_OK))
+    if ((rc = make_content_buf(r, &out[0].buf, alcf)) != NGX_OK)
         return rc;
 
     out[0].buf->last_in_chain = 1;
@@ -910,8 +1084,7 @@ ngx_http_fancyindex_handler(ngx_http_request_t *r)
     r->headers_out.content_type.data = (u_char *) "text/html";
 
     rc = ngx_http_send_header(r);
-
-    if (rc != NGX_OK || r->header_only)
+    if (rc == NGX_ERROR || rc > NGX_OK || r->header_only)
         return rc;
 
     if (alcf->header.len > 0) {
@@ -943,7 +1116,7 @@ ngx_http_fancyindex_handler(ngx_http_request_t *r)
         ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
                 "http fancyindex: header subrequest status = %i",
                 sr->headers_out.status);
-	/* ngx_http_subrequest returns NGX_OK(0), not NGX_HTTP_OK(200) */
+        /* ngx_http_subrequest returns NGX_OK(0), not NGX_HTTP_OK(200) */
         if (sr->headers_out.status != NGX_OK) {
             /*
              * XXX: Should we write a message to the error log just in case
@@ -1038,112 +1211,81 @@ add_builtin_header:
     return (r != r->main) ? rc : ngx_http_send_special(r, NGX_HTTP_LAST);
 }
 
+static ngx_int_t ngx_libc_cdecl
+ngx_http_fancyindex_cmp_entries_dirs_first(const void *one, const void *two)
+{
+    ngx_http_fancyindex_entry_t *first = (ngx_http_fancyindex_entry_t *) one;
+    ngx_http_fancyindex_entry_t *second = (ngx_http_fancyindex_entry_t *) two;
 
-static int ngx_libc_cdecl
+    /* move the directories to the start */
+    if (first->dir && !second->dir) {
+        return -1;
+    }
+    if (!first->dir && second->dir) {
+        return 1;
+    }
+
+    return 0;
+}
+
+
+static ngx_int_t ngx_libc_cdecl
 ngx_http_fancyindex_cmp_entries_name_desc(const void *one, const void *two)
 {
     ngx_http_fancyindex_entry_t *first = (ngx_http_fancyindex_entry_t *) one;
     ngx_http_fancyindex_entry_t *second = (ngx_http_fancyindex_entry_t *) two;
 
-    /* move the directories to the start */
-    if (first->dir && !second->dir) {
-        return -1;
-    }
-    if (!first->dir && second->dir) {
-        return 1;
-    }
-
     return (int) ngx_strcmp(second->name.data, first->name.data);
 }
 
 
-static int ngx_libc_cdecl
+static ngx_int_t ngx_libc_cdecl
 ngx_http_fancyindex_cmp_entries_size_desc(const void *one, const void *two)
 {
     ngx_http_fancyindex_entry_t *first = (ngx_http_fancyindex_entry_t *) one;
     ngx_http_fancyindex_entry_t *second = (ngx_http_fancyindex_entry_t *) two;
 
-    /* move the directories to the start */
-    if (first->dir && !second->dir) {
-        return -1;
-    }
-    if (!first->dir && second->dir) {
-        return 1;
-    }
-
-    return second->size - first->size;
+    return (int) (second->size - first->size);
 }
 
 
-static int ngx_libc_cdecl
+static ngx_int_t ngx_libc_cdecl
 ngx_http_fancyindex_cmp_entries_mtime_desc(const void *one, const void *two)
 {
     ngx_http_fancyindex_entry_t *first = (ngx_http_fancyindex_entry_t *) one;
     ngx_http_fancyindex_entry_t *second = (ngx_http_fancyindex_entry_t *) two;
 
-    /* move the directories to the start */
-    if (first->dir && !second->dir) {
-        return -1;
-    }
-    if (!first->dir && second->dir) {
-        return 1;
-    }
-
-    return second->mtime - first->mtime;
+    return (int) (second->mtime - first->mtime);
 }
 
 
-static int ngx_libc_cdecl
+static ngx_int_t ngx_libc_cdecl
 ngx_http_fancyindex_cmp_entries_name_asc(const void *one, const void *two)
 {
     ngx_http_fancyindex_entry_t *first = (ngx_http_fancyindex_entry_t *) one;
     ngx_http_fancyindex_entry_t *second = (ngx_http_fancyindex_entry_t *) two;
 
-    /* move the directories to the start */
-    if (first->dir && !second->dir) {
-        return -1;
-    }
-    if (!first->dir && second->dir) {
-        return 1;
-    }
-
     return (int) ngx_strcmp(first->name.data, second->name.data);
 }
 
 
-static int ngx_libc_cdecl
+static ngx_int_t ngx_libc_cdecl
 ngx_http_fancyindex_cmp_entries_size_asc(const void *one, const void *two)
 {
     ngx_http_fancyindex_entry_t *first = (ngx_http_fancyindex_entry_t *) one;
     ngx_http_fancyindex_entry_t *second = (ngx_http_fancyindex_entry_t *) two;
 
-    /* move the directories to the start */
-    if (first->dir && !second->dir) {
-        return -1;
-    }
-    if (!first->dir && second->dir) {
-        return 1;
-    }
-
-    return first->size - second->size;
+    return (int) (first->size - second->size);
 }
 
 
-static int ngx_libc_cdecl
+static ngx_int_t ngx_libc_cdecl
 ngx_http_fancyindex_cmp_entries_mtime_asc(const void *one, const void *two)
 {
     ngx_http_fancyindex_entry_t *first = (ngx_http_fancyindex_entry_t *) one;
     ngx_http_fancyindex_entry_t *second = (ngx_http_fancyindex_entry_t *) two;
 
-    /* move the directories to the start */
-    if (first->dir && !second->dir) {
-        return -1;
-    }
-    if (!first->dir && second->dir) {
-        return 1;
-    }
-
-    return first->mtime - second->mtime;
+    return (int) (first->mtime - second->mtime);
 }
 
 
@@ -1171,17 +1313,24 @@ ngx_http_fancyindex_create_loc_conf(ngx_conf_t *cf)
 
     /*
      * Set by ngx_pcalloc:
-     *    conf->header.len   = 0
-     *    conf->header.data  = NULL
-     *    conf->footer.len   = 0
-     *    conf->footer.data  = NULL
+     *    conf->header.len       = 0
+     *    conf->header.data      = NULL
+     *    conf->footer.len       = 0
+     *    conf->footer.data      = NULL
+     *    conf->css_href.len     = 0
+     *    conf->css_href.data    = NULL
+     *    conf->time_format.len  = 0
+     *    conf->time_format.data = NULL
      */
-    conf->enable       = NGX_CONF_UNSET;
-    conf->default_sort = NGX_CONF_UNSET_UINT;
-    conf->localtime    = NGX_CONF_UNSET;
-    conf->name_length  = NGX_CONF_UNSET_UINT;
-    conf->exact_size   = NGX_CONF_UNSET;
-    conf->ignore       = NGX_CONF_UNSET_PTR;
+    conf->enable        = NGX_CONF_UNSET;
+    conf->default_sort  = NGX_CONF_UNSET_UINT;
+    conf->dirs_first    = NGX_CONF_UNSET;
+    conf->localtime     = NGX_CONF_UNSET;
+    conf->name_length   = NGX_CONF_UNSET_UINT;
+    conf->exact_size    = NGX_CONF_UNSET;
+    conf->ignore        = NGX_CONF_UNSET_PTR;
+    conf->hide_symlinks = NGX_CONF_UNSET;
+    conf->show_path     = NGX_CONF_UNSET;
 
     return conf;
 }
@@ -1193,16 +1342,30 @@ ngx_http_fancyindex_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child)
     ngx_http_fancyindex_loc_conf_t *prev = parent;
     ngx_http_fancyindex_loc_conf_t *conf = child;
 
+    (void) cf; /* unused */
+
     ngx_conf_merge_value(conf->enable, prev->enable, 0);
     ngx_conf_merge_uint_value(conf->default_sort, prev->default_sort, NGX_HTTP_FANCYINDEX_SORT_CRITERION_NAME);
+    ngx_conf_merge_value(conf->dirs_first, prev->dirs_first, 1);
     ngx_conf_merge_value(conf->localtime, prev->localtime, 0);
     ngx_conf_merge_value(conf->exact_size, prev->exact_size, 1);
+    ngx_conf_merge_value(conf->show_path, prev->show_path, 1);
     ngx_conf_merge_uint_value(conf->name_length, prev->name_length, 50);
 
     ngx_conf_merge_str_value(conf->header, prev->header, "");
     ngx_conf_merge_str_value(conf->footer, prev->footer, "");
+    ngx_conf_merge_str_value(conf->css_href, prev->css_href, "");
+    ngx_conf_merge_str_value(conf->time_format, prev->time_format, "%Y-%b-%d %H:%M");
 
     ngx_conf_merge_ptr_value(conf->ignore, prev->ignore, NULL);
+    ngx_conf_merge_value(conf->hide_symlinks, prev->hide_symlinks, 0);
+
+    /* Just make sure we haven't disabled the show_path directive without providing a custom header */
+    if (conf->show_path == 0 && conf->header.len == 0)
+    {
+        ngx_conf_log_error(NGX_LOG_EMERG, cf, 0, "FancyIndex : cannot set show_path to off without providing a custom header !");
+        return NGX_CONF_ERROR;
+    }
 
     return NGX_CONF_OK;
 }
@@ -1213,6 +1376,8 @@ ngx_http_fancyindex_ignore(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 {
     ngx_http_fancyindex_loc_conf_t *alcf = conf;
     ngx_str_t *value;
+
+    (void) cmd; /* unused */
 
 #if (NGX_PCRE)
     ngx_uint_t          i;
