@@ -36,7 +36,7 @@ README for Modules versions
  nginx-upload-progress
   Homepage: https://github.com/masterzen/nginx-upload-progress-module
     rm -r debian/nginx-upload-progress/test
-  Version: v0.9.1
+  Version: v0.9.2
 
  nginx-cache-purge
   Homepage: https://github.com/FRiCKLE/ngx_cache_purge/
