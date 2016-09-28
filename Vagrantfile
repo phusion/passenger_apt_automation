@@ -9,9 +9,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box_url = "https://oss-binaries.phusionpassenger.com/vagrant/boxes/latest/ubuntu-12.04-amd64-vbox.box"
 
   if File.exist?("../../bin/passenger")
-    passenger_path = File.absolute_path("../../bin/passenger")
+    passenger_path = File.absolute_path("../../")
   elsif File.directory?("../passenger")
-    passenger_path = File.absolute_path("../passenger")
+    passenger_path = File.absolute_path("../")
   end
   if passenger_path
     config.vm.synced_folder passenger_path, "/passenger"
