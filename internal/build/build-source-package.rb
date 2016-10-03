@@ -89,8 +89,12 @@ if DEBIAN_NAME =~ /nginx/
   sh "rm -rf passenger/debian.template passenger/doc/images/* passenger/test passenger/packaging"
   sh "rm -rf passenger/nginx-*"
   Dir.chdir("../..") do
-    Dir["debian/modules/passenger/doc/*.pdf"].each do |filename|
-      File.open("debian/source/include-binaries", "a") do |f|
+    File.open("debian/source/include-binaries", "a") do |f|
+      Dir["debian/modules/passenger/doc/*.pdf"].each do |filename|
+        puts "+ Including #{filename} as binary"
+        f.puts filename
+      end
+      Dir["debian/modules/passenger/resources/*.p12"].each do |filename|
         puts "+ Including #{filename} as binary"
         f.puts filename
       end
