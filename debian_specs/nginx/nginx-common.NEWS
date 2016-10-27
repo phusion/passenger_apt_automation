@@ -1,3 +1,18 @@
+nginx-common (1.10.1-0ubuntu1.1) yakkety-security; urgency=high
+
+  In order to secure nginx against privilege escalation attacks, we are
+  changing the way log file owners & permissions are handled so that www-data
+  is not allowed to symlink a logfile. /var/log/nginx is now owned by root:adm
+  and its permissions are changed to 0755. The package checks for such symlinks
+  on existing installations and informs the admin using debconf.
+
+  That unfortunately may come at a cost in terms of privacy. /var/log/nginx is
+  now world-readable, and nginx hardcodes permissions of non-existing logs to
+  0644. On systems running logrotate log files are private after the first
+  logrotate run, since the new log files are created with 0640 permissions.
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Tue, 04 Oct 2016 15:20:33 +0300
+
 nginx-common (1.9.9-1) unstable; urgency=medium
 
   Starting with this release we are changing the default logrotate rule to keep

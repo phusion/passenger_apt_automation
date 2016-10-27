@@ -6,14 +6,18 @@ when :ubuntu
     lua_dependency = "liblua5.1-dev"
   else
     libgd_dependency = "libgd-dev"
-    lua_dependency = "libluajit-5.1-dev [i386 amd64 kfreebsd-i386 armel armhf powerpc powerpcspe mips mipsel] | liblua5.1-0-dev"
+    lua_dependency = "libluajit-5.1-dev [i386 amd64 kfreebsd-i386 armel armhf powerpc powerpcspe mips mipsel]," +
+    "\n" +
+    "liblua5.1-0-dev [!i386 !amd64 !kfreebsd-i386 !armel !armhf !powerpc !powerpcspe !mips !mipsel],"
   end
 when :debian
   libgd_dependency = "libgd2-dev | libgd2-noxpm-dev"
   if is_distribution?("<= squeeze")
     lua_dependency = "liblua5.1-dev"
   else
-    lua_dependency = "libluajit-5.1-dev [i386 amd64 kfreebsd-i386 armel armhf powerpc powerpcspe mips mipsel] | liblua5.1-0-dev"
+    lua_dependency = "libluajit-5.1-dev [i386 amd64 kfreebsd-i386 armel armhf powerpc powerpcspe mips mipsel]," +
+    "\n" +
+    "liblua5.1-0-dev [!i386 !amd64 !kfreebsd-i386 !armel !armhf !powerpc !powerpcspe !mips !mipsel],"
   end
 else
   raise "Unknown distribution class"
@@ -29,6 +33,7 @@ Build-Depends: autotools-dev,
 <% else -%>
                debhelper (>= 7),
 <% end -%>
+               po-debconf,
 <% if is_distribution?(">= trusty") || is_distribution?(">= jessie") -%>
                dh-systemd (>= 1.5),
 <% end -%>

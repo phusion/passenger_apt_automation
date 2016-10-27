@@ -1,3 +1,26 @@
+nginx (1.10.1-0ubuntu1.2) yakkety-security; urgency=medium
+
+  * SECURITY REGRESSION: postinst upgrade failure (LP: #1637058)
+    - debian/nginx-common.postinst: fix return code so script doesn't exit.
+
+ -- Marc Deslauriers <marc.deslauriers@ubuntu.com>  Thu, 27 Oct 2016 10:14:26 -0400
+
+nginx (1.10.1-0ubuntu1.1) yakkety-security; urgency=medium
+
+  [ Christos Trochalakis ]
+  * debian/nginx-common.postinst:
+    + Secure log file handling (owner & permissions) against privilege
+      escalation attacks. /var/log/nginx is now owned by root:adm.
+      Thanks Dawid Golunski (http://legalhackers.com) for the report.
+      Changing /var/log/nginx permissions effectively reopens #701112,
+      since log files can be world-readable. This is a trade-off until
+      a better log opening solution is implemented upstream (trac:376).
+  * debian/control:
+    Don't allow building against liblua5.1-0-dev on architectures
+    that libluajit is available.
+
+ -- Marc Deslauriers <marc.deslauriers@ubuntu.com>  Tue, 18 Oct 2016 11:18:47 +0200
+
 nginx (1.10.1-0ubuntu1) yakkety; urgency=medium
 
   * New upstream release (1.10.1) - full changelog available at upstream
