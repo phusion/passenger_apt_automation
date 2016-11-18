@@ -6,8 +6,8 @@ when :ubuntu
     lua_dependency = "liblua5.1-dev"
   else
     libgd_dependency = "libgd-dev"
-    lua_dependency = "libluajit-5.1-dev [i386 amd64 kfreebsd-i386 armel armhf powerpc powerpcspe mips mipsel]," +
-    "\n" +
+    lua_dependency = "libluajit-5.1-dev [i386 amd64 kfreebsd-i386 armel armhf powerpc powerpcspe mips mipsel]," \
+    "\n               " \
     "liblua5.1-0-dev [!i386 !amd64 !kfreebsd-i386 !armel !armhf !powerpc !powerpcspe !mips !mipsel],"
   end
 when :debian
@@ -15,8 +15,8 @@ when :debian
   if is_distribution?("<= squeeze")
     lua_dependency = "liblua5.1-dev"
   else
-    lua_dependency = "libluajit-5.1-dev [i386 amd64 kfreebsd-i386 armel armhf powerpc powerpcspe mips mipsel]," +
-    "\n" +
+    lua_dependency = "libluajit-5.1-dev [i386 amd64 kfreebsd-i386 armel armhf powerpc powerpcspe mips mipsel]," \
+    "\n               " \
     "liblua5.1-0-dev [!i386 !amd64 !kfreebsd-i386 !armel !armhf !powerpc !powerpcspe !mips !mipsel],"
   end
 else
