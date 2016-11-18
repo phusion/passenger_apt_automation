@@ -144,6 +144,15 @@ function parse_options()
 
 parse_options "$@"
 
+if [[ `id -u` -lt 1024 ]]; then
+	echo "ERROR: you can only run this script with a user whose UID is at least 1024. Current user: `id`"
+	exit 1
+fi
+if [[ `id -g` -lt 1024 ]]; then
+	echo "ERROR: you can only run this script with a user whose GID is at least 1024. Current user: `id`"
+	exit 1
+fi
+
 if tty -s; then
 	TTY_ARGS="-t -i"
 else
