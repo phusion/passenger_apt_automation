@@ -208,7 +208,7 @@ task :finish do
   end
 
   puts
-  puts "Commiting build products to output directory..."
+  puts "Committing build products to output directory..."
   sh "rm -rf /output/*"
 
   files = Dir["/work/spkg/*/*/*.{gz,xz,dsc}"]
