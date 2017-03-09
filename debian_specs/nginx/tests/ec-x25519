@@ -1,0 +1,21 @@
+#!/bin/bash
+
+set -e
+
+
+rm /etc/nginx/sites-enabled/default
+cat <<EOF > "/etc/nginx/sites-enabled/ssl"
+server {
+	listen 443 default_server ssl;
+	include snippets/snakeoil.conf;
+
+	ssl_ecdh_curve X25519;
+	location / {
+		return 200;
+	}
+}
+EOF
+
+nginx -t
+nginx -s reload
+curl --insecure --silent --fail -o /dev/null -w "response_code: %{http_code}\n" https://127.0.0.1/

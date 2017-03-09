@@ -1,0 +1,58 @@
+# Translation of nginx debconf templates to French
+# Copyright (C) 2016 Christos Trochalakis
+# This file is distributed under the same license as the nginx package.
+# Chrirtos Trochalakis <yatiohi@ideopolis.gr>, 2016.
+# Julien Patriarca <leatherface@debian.org>, 2016.
+msgid ""
+msgstr ""
+"Project-Id-Version: nginx\n"
+"Report-Msgid-Bugs-To: nginx@packages.debian.org\n"
+"POT-Creation-Date: 2016-10-04 20:03+0300\n"
+"PO-Revision-Date: 2016-11-02 09:52+0100\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: Julien Patriarca <leatherface@debian.org>\n"
+"Language-Team: French <debian-l10n-french@lists.debian.org>\n"
+"X-Generator: Poedit 1.8.11\n"
+
+#. Type: note
+#. Description
+#: ../nginx-common.templates:1001
+msgid "Possible insecure nginx log files"
+msgstr "Certains fichiers de journaux semblent non sécurisés"
+
+#. Type: note
+#. Description
+#: ../nginx-common.templates:1001
+msgid ""
+"The following log files under /var/log/nginx directory are symlinks owned by "
+"www-data:"
+msgstr ""
+"Les fichiers de journaux suivants se trouvant dans le dossier /var/log/nginx "
+"sont des liens symboliques qui appartiennent à www-data :"
+
+#. Type: note
+#. Description
+#: ../nginx-common.templates:1001
+msgid "${logfiles}"
+msgstr "${logfiles}"
+
+#. Type: note
+#. Description
+#: ../nginx-common.templates:1001
+msgid ""
+"Since nginx 1.4.4-4 /var/log/nginx was owned by www-data. As a result www-"
+"data could symlink log files to sensitive locations, which in turn could "
+"lead to privilege escalation attacks. Although /var/log/nginx permissions "
+"are now fixed it is possible that such insecure links already exist. So, "
+"please make sure to check the above locations."
+msgstr ""
+"Depuis la version 1.4.4-4 de nginx, /var/log/nginx appartient à www-data. "
+"Par conséquent www-data peut faire des liens symboliques des fichiers de "
+"journaux vers des emplacements sensibles, ce qui pourrait amener à des "
+"attaques par augmentation de droits. Même si désormais les droits de /var/"
+"log/nginx ont été sécurisés, il est possible que de tels liens existent "
+"déjà. Aussi, veuillez vous assurer d'avoir contrôlé les emplacements ci-"
+"dessus."

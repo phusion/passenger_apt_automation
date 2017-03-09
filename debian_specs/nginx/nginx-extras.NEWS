@@ -1,0 +1,6 @@
+nginx-extras (1.10.1-2) unstable; urgency=medium
+
+  Starting with this release the HTTP Push module has been replaced by Nchan.
+  More info for the upgrade can be found at https://nchan.slact.net/upgrade.
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Wed, 31 Aug 2016 15:07:20 +0300
