@@ -12,7 +12,8 @@ UBUNTU_DISTRIBUTIONS = {
   "vivid"    => "15.04",
   "wily"     => "15.10",
   "xenial"   => "16.04",
-  "yakkety"  => "16.10"
+  "yakkety"  => "16.10",
+  "zesty"    => "17.04"
 }
 
 DEBIAN_DISTRIBUTIONS = {
@@ -30,6 +31,7 @@ DEFAULT_DISTROS = %w(
   trusty
   xenial
   yakkety
+  zesty
 
   wheezy
   jessie
