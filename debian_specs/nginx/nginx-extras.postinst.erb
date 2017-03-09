@@ -10,7 +10,17 @@ NGX_PID_FILE=/run/nginx.pid
 case "$1" in
   abort-upgrade|abort-remove|abort-deconfigure|configure)
     ;;
-
+<% if is_distribution?(">= zesty") -%>
+  triggered)
+    if [ -x /etc/init.d/nginx ]; then
+      if [ -s /run/nginx.pid ] && pidof /usr/sbin/nginx >/dev/null; then
+        echo "Triggering nginx reload ..."
+        invoke-rc.d nginx reload || true
+      fi
+    fi
+    exit 0
+    ;;
+<% end -%>
   *)
     echo "postinst called with unknown argument \`$1'" >&2
     exit 1
@@ -19,6 +29,10 @@ esac
 
 if [ -x /etc/init.d/nginx ]; then
   if [ -f $NGX_PID_FILE ] && pidof /usr/sbin/nginx >/dev/null; then
+<% if is_distribution?(">= zesty") -%>
+    invoke-rc.d nginx upgrade || invoke-rc.d nginx restart
+    exit $?
+<% else %>
     NGX_PID=`cat $NGX_PID_FILE`
     if kill -s USR2 $NGX_PID 2>/dev/null; then
       while [ ! -s $NGX_PID_FILE.oldbin ] || [ ! -s $NGX_PID_FILE ]; do
@@ -34,6 +48,7 @@ if [ -x /etc/init.d/nginx ]; then
       NGX_OLD_PID=`cat $NGX_PID_FILE.oldbin`
       kill -s QUIT $NGX_OLD_PID || true
     fi
+<% end -%>
   else
     invoke-rc.d nginx start || exit $?
   fi

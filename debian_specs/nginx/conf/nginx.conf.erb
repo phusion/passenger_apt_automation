@@ -4,6 +4,9 @@ require File.absolute_path(File.dirname(__FILE__)) + '/../helpers'
 user www-data;
 worker_processes auto;
 pid <%= localstatedir %>/nginx.pid;
+<% if is_distribution?(">= zesty") %>
+include /etc/nginx/modules-enabled/*.conf;
+<% end -%>
 
 events {
 	worker_connections 768;

@@ -9,15 +9,26 @@ Workflow for Unstable
 
 We use the standard git-buildpackage workflow.
 
-Workflow for Experimental (not-active)
-======================================
+Dynamic Modules
+===============
 
-Now that nginx 1.6.0 is released there is no plan to package mainline 1.7
-releases to experimental. The following guide is been kept as a reference.
+Since v1.9.11 Nginx added dynamic module support. This will sanitize the
+nginx packaging flow in the long term, but there is a lot work to be done
+in order to get there. We will gradually convert all modules to dynamic
+as they add support for it.
 
---------
+Currently nginx modules need to be build together with nginx, but this
+will be fixed upstream [0]. Since we already ship 3rd party modules under
+debian/modules/ we will start shipping module packages (libnginx-mod) from
+the same source. Once upstream implements separated building we will
+split each module to a separate source.
 
-Nginx mainline releases (1.5.x series) are been packaged for experimental,
+[0] https://www.nginx.com/blog/dynamic-modules-nginx-1-9-11/
+
+Workflow for Experimental
+=========================
+
+Nginx mainline releases (1.11.x series) are been packaged for experimental,
 as they lack security support.
 
 The workflow we use is based on the assumption that packaging work happens on
@@ -25,7 +36,7 @@ origin/master and experimental builds are a trivial patch away from that.
 
 The direct consequense of treating experimental as a patchset for origin/master
 is that the relevant branches are forced-pushed whenever we release a new
-1.5.x version. In other words, **it is not safe to base your work on the
+1.11.x version. In other words, **it is not safe to base your work on the
 experimental branch**.
 
 This is a brief description of our experimental branches and how we are using
@@ -34,27 +45,27 @@ them.
 * experimental-base
   Force-pushed when origin/master changes.
 
-  experimental-base tracks the changes needed for building the 1.5.x branch,
-  such as new configure parameters, etc. On new 1.5.x releases, it is rebased
+  experimental-base tracks the changes needed for building the 1.11.x branch,
+  such as new configure parameters, etc. On new 1.11.x releases, it is rebased
   on origin/master so it is always up-to-date with our latest packaging work.
 
 * experimental
-  Force-pushed on every 1.5.x release.
+  Force-pushed on every 1.11.x release.
 
-  This branch points to the latest 1.5.x release.
+  This branch points to the latest 1.11.x release.
   Before release this branch is reset to experimental-base, and then merged
-  with the new upstream-1.5 branch. Finally all the release specific changes
+  with the new upstream-1.11 branch. Finally all the release specific changes
   are commited (changelog entry etc) and the build is made.
 
-* upstream-1.5
-  Force-pushed on every 1.5.x release.
+* upstream-1.11
+  Pushed on every 1.11.x release.
 
-  Before a new 1.5.x release the branch is reset to origin/upstream.
-  This is a technicallity so we can avoid resolving conflicts when a new 1.4.x
-  release happens between two experimental releases.
+  Before a new 1.11.x release origin/upstream is dummy merged (-s ours) into
+  ustream-1.11.  This is a technicallity so we can avoid resolving conflicts
+  when a new 1.10.x release happens between two experimental releases.
 
-Older 1.5.x releases are not referenced by any branch, but they can be found by
-the relevant debian/* tag.
+Older 1.11.x releases are not referenced by any branch, but they can be found
+by the relevant debian/* tag.
 
 3rd party experimental workflow
 ===============================

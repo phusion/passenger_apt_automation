@@ -30,6 +30,9 @@ Section: httpd
 Priority: optional
 Maintainer: <%= MAINTAINER_NAME %> <<%= MAINTAINER_EMAIL %>>
 Build-Depends: autotools-dev,
+<% if is_distribution?(">= zesty") -%>
+               quilt,
+<% end -%>
 <% if is_distribution?(">= precise") || is_distribution?(">= wheezy") -%>
                debhelper (>= 9),
 <% else -%>

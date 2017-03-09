@@ -1,11 +1,229 @@
-nginx (1.10.1-0ubuntu1.2) yakkety-security; urgency=medium
+nginx (1.10.3-1ubuntu3) zesty; urgency=medium
 
-  * SECURITY REGRESSION: postinst upgrade failure (LP: #1637058)
-    - debian/nginx-common.postinst: fix return code so script doesn't exit.
+  * debian/tests/control: Remove the 'ec-x25519' test stanzas from the
+    declarations of tests to run. This test requires OpenSSL >= 1.1.0
+    to support the X25519 ECDH curve, and we do not have OpenSSL 1.1.0.
+    This delta can be ***dropped*** when we do have OpenSSL >= 1.1.0.
+    - This fixes the autopkgtests, of which the Debian merge introduced
+      a regression due to the ec-x25519 test.
 
- -- Marc Deslauriers <marc.deslauriers@ubuntu.com>  Thu, 27 Oct 2016 10:14:26 -0400
+ -- Thomas Ward <teward@ubuntu.com>  Mon, 27 Feb 2017 19:51:57 -0500
 
-nginx (1.10.1-0ubuntu1.1) yakkety-security; urgency=medium
+nginx (1.10.3-1ubuntu2) zesty; urgency=low
+
+  * debian/*.save: Junk .save left in the packaging, remove these.
+
+ -- Thomas Ward <teward@ubuntu.com>  Thu, 16 Feb 2017 15:39:51 -0500
+
+nginx (1.10.3-1ubuntu1) zesty; urgency=medium
+
+  * Merge from Debian unstable (note: 1.10.3 already was merged, but 1.10.3
+    packaging changes in Debian were not). Remaining changes are as 
+    follows: (LP: #1664652)
+    - debian/patches/ubuntu-branding.patch: add Ubuntu branding (refreshed)
+    - d/{control,rules,nginx-core.*}: add new binary package for main,
+      nginx-core, which contains only source-tarball-included modules
+      and no third-party modules.
+    - debian/tests/control: add nginx-core test.
+    - debian/apport/source_nginx.py: Add apport hooks for additional bug
+      information gathering.
+    - debian/nginx-common.install: Add install rule for apport hooks.
+    - debian/rules: Alter build flags for cflags and ldflags to fix known
+      fPIE / fPIC compilation issues (see nginx PPA bug for more details
+      and information, LP: #1657596)
+
+ -- Thomas Ward <teward@ubuntu.com>  Thu, 16 Feb 2017 15:29:40 -0500
+
+nginx (1.10.3-1) unstable; urgency=medium
+
+  * New upstream release. (Closes: #855113)
+  * Update Vcs fields to the new location.
+    The repo is now moved under the pkg-nginx namespace.
+
+ -- Christos Trochalakis <ctrochalakis@debian.org>  Wed, 15 Feb 2017 09:58:13 +0200
+
+nginx (1.10.3-0ubuntu2) zesty; urgency=low
+
+  * Merge from Debian unstable (nginx version there is 1.10.2-4). Remaining
+    changes: (LP: #1664652)
+    - debian/patches/ubuntu-branding.patch: add Ubuntu branding (refreshed)
+    - d/{control,rules,nginx-core.*}: add new binary package for main,
+      nginx-core, which contains only source-tarball-included modules
+      and no third-party modules.
+    - debian/tests/control: add nginx-core test.
+    - debian/apport/source_nginx.py: Add apport hooks for additional bug
+      information gathering.
+    - debian/nginx-common.install: Add install rule for apport hooks.
+    - debian/rules: Alter build flags for cflags and ldflags to fix known
+      fPIE / fPIC compilation issues (see nginx PPA bug for more details 
+      and information, LP: #1657596)
+
+ -- Thomas Ward <teward@ubuntu.com>  Tue, 14 Feb 2017 17:47:00 -0500
+
+nginx (1.10.2-4) unstable; urgency=medium
+
+  * Switch module reloading logic to dpkg triggers.
+  * Enable modules after a remove -> install cycle.
+  * Move module patches to debian/modules/patches.
+  * Backport curve list support from 1.11.x. (Closes: #846085)
+  * Add a NEWS entry regarding dynamic modules.
+  * Merge de,fr,nl,pt_BR,da translations.
+    Thanks to Chris Leick. (Closes: #843770)
+    Thanks to Julien Patriarca. (Closes: #844712)
+    Thanks to Frans Spiesschaert. (Closes: #845693)
+    Thanks to Adriano Rafael Gomes. (Closes: #846522)
+    Thanks to Joe Dalton. (Closes: #850857)
+
+ -- Christos Trochalakis <ctrochalakis@debian.org>  Sun, 22 Jan 2017 12:19:30 +0200
+
+nginx (1.10.2-3) unstable; urgency=medium
+
+  [ Michael Lustfield ]
+  * debian/conf/sites-enabled/default:
+    + Correcting location of default php-fpm socket. (Closes: #846145)
+
+  [ Christos Trochalakis ]
+  * debian/rules: Correctly clean patched modules.
+    Thanks to Sven-Haegar Koch for the initial patch. (Closes: #844506)
+  * mod: Upgrade nchan to 1.0.8. (Closes: #844473)
+  * mod: Upgrade nginx-lua to 0.10.7.
+  * Update nginx-lua OpenSSL 1.1.0 patch.
+  * Reactivate PIE.
+    Thanks to Markus Waldeck for the suggestion.
+  * mod: Check if nginx binary exists before reloading.
+  * mod: Upgrade headers-mode to 0.32.
+  * mod: Upgrade development kit to 0.3.0.
+
+ -- Christos Trochalakis <ctrochalakis@debian.org>  Sat, 24 Dec 2016 12:11:21 +0200
+
+nginx (1.10.2-2) unstable; urgency=medium
+
+  * Build against OpenSSL 1.1.0. (Closes: #828453)
+    + Patch for nginx-lua by Alessandro Ghedini.
+    + Patch for nginx-upstream-fair by Kurt Roeckx.
+  * debian/modules:
+    + Rethink module patching logic.
+    + Convert dav-ext to a dynamic module package:
+      o libnginx-mod-http-dav-ext
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Sat, 12 Nov 2016 09:18:12 +0200
+
+nginx (1.10.2-1) unstable; urgency=high
+
+  [ Christos Trochalakis ]
+  * New upstream release.
+  * debian/nginx-common.postinst:
+    + CVE-2016-1247: Secure log file handling (owner & permissions)
+      against privilege escalation attacks. /var/log/nginx is now owned
+      by root:adm. Thanks ro Dawid Golunski for the report.
+      Changing /var/log/nginx permissions effectively reopens #701112,
+      since log files can be world-readable. This is a trade-off until
+      a better log opening solution is implemented upstream (trac:376).
+      (Closes: #842295)
+  * debian/control:
+    + Version depend on lsb-base (>= 3.0-6).
+      Fixes lintian init.d-script-needs-depends-on-lsb-base.
+  * debian/nginx-*.lintian-overrides:
+    + Drop unused spelling-error-in-binary override.
+
+  [ Michael Lustfield ]
+  * debian/conf/sites-available/default:
+    + Updated PHP sample configuration block. (Closes: #841230)
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Sat, 29 Oct 2016 08:45:09 +0300
+
+nginx (1.10.2-0ubuntu1) zesty; urgency=medium
+
+  * New upstream release (1.10.2) - full changelog available at upstream
+    website - http://nginx.org/en/CHANGES-1.10 - upstream release date
+    was 18 Oct 2016
+  * All other changes from 1.10.1-0ubuntu1 through 1.10.1-0ubuntu5 remain
+    included
+  * debian/patches/ubuntu-branding.patch:
+    - Refreshed Ubuntu Branding patch.
+
+ -- Thomas Ward <teward@ubuntu.com>  Thu, 15 Dec 2016 11:23:43 -0500
+
+nginx (1.10.1-3) unstable; urgency=medium
+
+  * debian/control:
+    + Drop nginx-*-dbg packages in favor of autogenerated -dbgsym packages.
+    + Remove relic Breaks/Replaces from nginx-common.
+    + Fix lsb-base dependencies.
+    + Switch Maintainer to the Nginx Packaging Team and keep active maintainers
+      as uploaders. Jose, Fabio, Dmitry & Cyril, thanks a lot for all your
+      contributions!
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Thu, 15 Sep 2016 15:20:58 +0300
+
+nginx (1.10.1-2) unstable; urgency=medium
+
+  [ Christos Trochalakis ]
+  * debian/control:
+    + Don't allow building against liblua5.1-0-dev on architectures
+      that libluajit is available.
+    + Enable slice module on all flavors. (Closes: #815080)
+    + Enable SCGI & uWSGI module for nginx-light.
+    + Convert to dynamic module packages:
+      o libnginx-mod-nchan
+      o libnginx-mod-http-echo
+      o libnginx-mod-http-upstream-fair
+      o libnginx-mod-http-headers-more-filter
+      o libnginx-mod-http-cache-purge
+      o libnginx-mod-http-fancyindex
+      o libnginx-mod-http-uploadprogress
+      o libnginx-mod-http-subs-filter
+  * debian/modules:
+    + Replace http-push with nchan v1.0.2 (Closes: #836134)
+    + Upgrade nginx-lua to v0.10.6
+    + Upgrade nginx-echo to v0.60
+    + Upgrade headers-more to v0.31
+    + Upgrade fancyindex to v0.4.1
+    + Upgrade upload-progress to v0.9.2
+
+  [ Michael Lustfield ]
+  * debian/patches/0003-*.patch:
+    + Use _GNU_SOURCE on GNU/kFreeBSD. (Closes: #826061)
+      Thanks Steven Chamberlain for the patch.
+  * debian/nginx-*.postinst:
+    + Make nginx-*.postinst use invoke-rc.d. (Closes: #823435)
+      Thanks Simon Deziel for the patch.
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Tue, 06 Sep 2016 11:06:26 +0300
+
+nginx (1.10.1-1) unstable; urgency=medium
+
+  [ Christos Trochalakis ]
+  * New upstream release (1.10.1)
+    Fixes CVE-2016-4450
+    NULL pointer dereference while writing client request body.
+    (Closes: #825960)
+
+  * debian/control:
+    + Generate dbgsym packages only if dh_strip supports it.
+      Thanks Faidon Liambotis for the hint.
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Tue, 31 May 2016 22:01:25 +0300
+
+nginx (1.10.1-0ubuntu5) zesty; urgency=medium
+
+  * debian/nginx-common.config:
+    - Fix the return code so the script does not exit during version
+      string comparisons.
+    - Also update the version string to compare with (for zesty only)
+
+ -- Thomas Ward <teward@ubuntu.com>  Thu, 27 Oct 2016 10:48:45 -0400
+
+nginx (1.10.1-0ubuntu4) zesty; urgency=medium
+
+  * debian/nginx-common.config:
+    - Fix an issue with the incorrect version numbers being compared
+      during configuration; this was something I missed when reviewing
+      the package for uploading previously. (LP: #1637058)
+
+ -- Thomas Ward <teward@ubuntu.com>  Thu, 27 Oct 2016 08:45:40 -0400
+
+nginx (1.10.1-0ubuntu3) zesty; urgency=medium
 
   [ Christos Trochalakis ]
   * debian/nginx-common.postinst:
@@ -19,7 +237,13 @@ nginx (1.10.1-0ubuntu1.1) yakkety-security; urgency=medium
     Don't allow building against liblua5.1-0-dev on architectures
     that libluajit is available.
 
- -- Marc Deslauriers <marc.deslauriers@ubuntu.com>  Tue, 18 Oct 2016 11:18:47 +0200
+ -- Thomas Ward <teward@ubuntu.com>  Tue, 25 Oct 2016 17:03:54 -0400
+
+nginx (1.10.1-0ubuntu2) zesty; urgency=medium
+
+  * No-change rebuild for perl 5.24 transition
+
+ -- Iain Lane <iain@orangesquash.org.uk>  Mon, 24 Oct 2016 10:36:19 +0100
 
 nginx (1.10.1-0ubuntu1) yakkety; urgency=medium
 
@@ -32,6 +256,13 @@ nginx (1.10.1-0ubuntu1) yakkety; urgency=medium
     * debian/patches/ubuntu-branding.patch: Refreshed Ubuntu Branding patch.
 
  -- Thomas Ward <teward@ubuntu.com>  Tue, 31 May 2016 19:09:33 -0400
+
+nginx (1.10.0-1) unstable; urgency=medium
+
+  [ Christos Trochalakis ]
+  * New upstream release (1.10.0)
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Fri, 29 Apr 2016 10:31:46 +0300
 
 nginx (1.10.0-0ubuntu1) yakkety; urgency=medium
 
@@ -56,6 +287,49 @@ nginx (1.9.15-0ubuntu1) xenial-proposed; urgency=medium
     * debian/patches/ubuntu-branding.patch: Refresh Ubuntu Branding patch.
 
  -- Thomas Ward <teward@ubuntu.com>  Mon, 18 Apr 2016 15:39:08 -0400
+
+nginx (1.9.14-2) unstable; urgency=medium
+
+  [ Christos Trochalakis ]
+  * debian/control:
+    + Fix upgrading nginx-extras from testing. (Closes: #822553)
+    + Bump Standards to 3.9.8, no changes needed.
+  * debian/libnginx-mod-http-perl.lintian-overrides:
+    + Override wrong-section-according-to-package-name warning.
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Wed, 27 Apr 2016 16:43:02 +0300
+
+nginx (1.9.14-1) unstable; urgency=medium
+
+  [ Christos Trochalakis ]
+  * New upstream release (1.9.14) (Closes: #812806)
+  * debian:
+    + Setup dynamic module flow, and implement a simple dh_nginx helper for
+      internal use.
+    + Split modules in libnginx-mod-* packages.
+      Not all modules are ready for dynamic building.
+  * debian/control:
+    + Enable http/2, thread pool & WebDAV on nginx-light.
+      In order for dynamic modules to be loadable in all nginx flavors we need
+      to ensure they share the same build signature. (Closes: #816095)
+    + nginx-common & nginx-doc are now 'Multi-Arch: foreign'. (Closes: #812484)
+      Thanks Elrond for the report and the initial patch.
+    + Use secure VCS uri (lintian).
+    + Bump Standards to 3.9.7.
+  * debian/rules:
+    + Disable PIE for now so we can build dynamic modules.
+  * debian/tests/control:
+    + Test if modules are loadable in nginx-light.
+  * debian/nginx-common.nginx.service:
+    + Documentation points to nginx man page.
+  * debian/modules/nginx-lua:
+    + Update nginx-lua to v0.12 and convert it to a dyn module.
+      Fixes buiding failures with nginx 1.9.11.
+  * debian/modules/nginx-auth-pam:
+    + Update http-auth-pam module to 1.5 and convert it to a dyn module.
+      (Closes: #819062)
+
+ -- Christos Trochalakis <yatiohi@ideopolis.gr>  Tue, 19 Apr 2016 11:05:35 +0300
 
 nginx (1.9.14-0ubuntu1) xenial-proposed; urgency=medium
 

@@ -1,7 +1,7 @@
 # Nginx debconf translations
 # Copyright (C) 2016 Christos Trochalakis
 # This file is distributed under the same license as the nginx package.
-# Chrirtos Trochalakis <yatiohi@ideopolis.gr>, 2016.
+# Christos Trochalakis <ctrochalakis@debian.org>, 2016.
 #
 #, fuzzy
 msgid ""

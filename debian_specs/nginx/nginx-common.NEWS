@@ -1,4 +1,17 @@
-nginx-common (1.10.1-0ubuntu1.1) yakkety-security; urgency=high
+nginx-common (1.10.2-4) unstable; urgency=medium
+
+  Since nginx 1.9.14 Debian has gradually switched to dynamic loadable modules
+  for all third party modules and core modules that support it. For each
+  module a new binary package is introduced under the libnginx-mod-* namespace.
+
+  The modules are loadable from all nginx flavors (light,full,extras) and are
+  automatically registered by installing a symlink under
+  /etc/nginx/modules-enabled/. If you use a modified /etc/nginx/nginx.conf make
+  sure to include that directory.
+
+ -- Christos Trochalakis <ctrochalakis@debian.org>  Sun, 22 Jan 2017 12:19:30 +0200
+
+nginx-common (1.10.2-1) unstable; urgency=high
 
   In order to secure nginx against privilege escalation attacks, we are
   changing the way log file owners & permissions are handled so that www-data
