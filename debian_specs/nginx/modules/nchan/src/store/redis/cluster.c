@@ -209,7 +209,7 @@ static char *redis_scan_cluster_nodes_line(char *line, cluster_nodes_line_t *l) 
   if(cur[0]=='\0')
     return NULL;
   
-  nchan_scan_nearest_chr(&max, &rest_line, 2, '\n', '\0');
+  nchan_scan_split_by_chr(&max, strlen((char *)max), &rest_line, '\n');
   l->line = rest_line;
   
   nchan_scan_until_chr_on_line(&rest_line, &l->id,           ' ');
@@ -887,7 +887,7 @@ static ngx_int_t cluster_set_status(redis_cluster_t *cluster, redis_cluster_stat
     while((ch_cur = cluster->orphan_channels_head) != NULL) {
       redis_chanhead_gc_withdraw(ch_cur);
       
-      ensure_chanhead_pubsub_subscribed(ch_cur);
+      ensure_chanhead_pubsub_subscribed_if_needed(ch_cur);
       
       cluster->orphan_channels_head = ch_cur->rd_next;
       if(cluster->orphan_channels_head) {

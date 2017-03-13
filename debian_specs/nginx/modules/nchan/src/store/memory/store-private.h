@@ -1,10 +1,18 @@
  #ifndef MEMSTORE_PRIVATE_HEADER
 #define MEMSTORE_PRIVATE_HEADER
 #include <util/shmem.h>
-//#define MESTORE_CHANHEAD_RESERVE_DEBUG 0
+#include "ipc.h"
+//#define MEMSTORE_CHANHEAD_RESERVE_DEBUG 1
+
+#if MEMSTORE_CHANHEAD_RESERVE_DEBUG
+#include <util/nchan_list.h>
+#endif
 #include "uthash.h"
 typedef struct memstore_channel_head_s memstore_channel_head_t;
 typedef struct store_message_s store_message_t;
+size_t memstore_msg_memsize(nchan_msg_t *m);
+
+#include "groups.h"
 
 struct store_message_s {
   nchan_msg_t               *msg;
@@ -40,7 +48,7 @@ struct memstore_channel_head_s {
   ngx_int_t                       internal_sub_count;
   time_t                          last_subscribed_local;
 
-#if MESTORE_CHANHEAD_RESERVE_DEBUG
+#if MEMSTORE_CHANHEAD_RESERVE_DEBUG
   nchan_list_t                    reserved;
 #else
   uint16_t                        reserved;
@@ -65,6 +73,10 @@ struct memstore_channel_head_s {
   unsigned                        meta:1;
   
   nchan_loc_conf_t               *cf;
+  
+  group_tree_node_t              *groupnode;
+  memstore_channel_head_t        *groupnode_prev;
+  memstore_channel_head_t        *groupnode_next;
 
   subscriber_t                   *redis_sub;
   ngx_int_t                       delta_fakesubs;
@@ -118,11 +130,13 @@ typedef struct {
 } shm_data_t;
 
 memstore_channel_head_t *nchan_memstore_find_chanhead(ngx_str_t *channel_id);
+ngx_int_t nchan_memstore_find_chanhead_with_backup(ngx_str_t *channel_id, nchan_loc_conf_t *cf, callback_pt cb, void *pd);
 memstore_channel_head_t *nchan_memstore_get_chanhead(ngx_str_t *channel_id, nchan_loc_conf_t *cf);
 memstore_channel_head_t *nchan_memstore_get_chanhead_no_ipc_sub(ngx_str_t *channel_id, nchan_loc_conf_t *cf);
 store_message_t *chanhead_find_next_message(memstore_channel_head_t *ch, nchan_msg_id_t *msgid, nchan_msg_status_t *status);
 shmem_t *nchan_memstore_get_shm(void);
 ipc_t *nchan_memstore_get_ipc(void);
+memstore_groups_t *nchan_memstore_get_groups(void);
 ngx_int_t nchan_memstore_handle_get_message_reply(nchan_msg_t *msg, nchan_msg_status_t findmsg_status, void *d);
 
 ngx_int_t nchan_store_publish_message_generic(ngx_str_t *channel_id, nchan_msg_t *msg, ngx_int_t msg_in_shm, nchan_loc_conf_t *cf, callback_pt callback, void *privdata);
@@ -134,6 +148,7 @@ ngx_int_t memstore_ready_chanhead_unless_stub(memstore_channel_head_t *head);
 void memstore_fakesub_add(memstore_channel_head_t *head, ngx_int_t n);
 ngx_int_t memstore_chanhead_messages_gc(memstore_channel_head_t *ch);
 
+
 #if FAKESHARD
 void memstore_fakeprocess_push(ngx_int_t slot);
 void memstore_fakeprocess_push_random(void);
@@ -141,9 +156,15 @@ ngx_int_t memstore_fakeprocess_pop(void);
 #endif
 
 ngx_int_t memstore_slot(void);
+ngx_int_t memstore_str_owner(ngx_str_t *str);
+
 int memstore_ready(void);
 ngx_int_t chanhead_gc_add(memstore_channel_head_t *head, const char *);
 ngx_int_t chanhead_gc_withdraw(memstore_channel_head_t *chanhead, const char *);
+
+
+void memstore_chanhead_release(memstore_channel_head_t *ch, char *label);
+void memstore_chanhead_reserve(memstore_channel_head_t *ch, const char *label);
 
 uint16_t  memstore_worker_generation; //times nginx has been restarted + 1
 

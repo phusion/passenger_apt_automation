@@ -40,13 +40,26 @@
 
 //Thanks Darren Whitlen ( @prawnsalad ) for your feedback
 
-(function(global, undefined) {
+
+;(function (global, moduleName, factory) { // eslint-disable-line
+  "use strict";
+  /* eslint-disable no-undef */
+  var newModule = factory(global);
+  if (typeof module === "object" && module != null && module.exports) {
+    module.exports = newModule;
+  } else if (typeof define === "function" && define.amd) {
+    define(function () { return newModule; });
+  } else {
+    global[moduleName] = newModule;
+  }
+  /* eslint-enable no-undef */
+})(typeof window !== "undefined" ? window : this, "NchanSubscriber", function factory(global, undefined) { // eslint-disable-line
 
 // https://github.com/yanatan16/nanoajax
-!function(t,e){function n(t){return t&&e.XDomainRequest&&!/MSIE 1/.test(navigator.userAgent)?new XDomainRequest:e.XMLHttpRequest?new XMLHttpRequest:void 0}function o(t,e,n){t[e]=t[e]||n}var r=["responseType","withCredentials","timeout","onprogress"];t.ajax=function(t,a){function s(t,e){return function(){c||(a(void 0===f.status?t:f.status,0===f.status?"Error":f.response||f.responseText||e,f),c=!0)}}var u=t.headers||{},i=t.body,d=t.method||(i?"POST":"GET"),c=!1,f=n(t.cors);f.open(d,t.url,!0);var l=f.onload=s(200);f.onreadystatechange=function(){4===f.readyState&&l()},f.onerror=s(null,"Error"),f.ontimeout=s(null,"Timeout"),f.onabort=s(null,"Abort"),i&&(o(u,"X-Requested-With","XMLHttpRequest"),e.FormData&&i instanceof e.FormData||o(u,"Content-Type","application/x-www-form-urlencoded"));for(var p,m=0,v=r.length;v>m;m++)p=r[m],void 0!==t[p]&&(f[p]=t[p]);for(var p in u)f.setRequestHeader(p,u[p]);return f.send(i),f},e.nanoajax=t}({},function(){return this}());
+!function(t,e){function n(t){return t&&e.XDomainRequest&&!/MSIE 1/.test(navigator.userAgent)?new XDomainRequest:e.XMLHttpRequest?new XMLHttpRequest:void 0}function o(t,e,n){t[e]=t[e]||n}var r=["responseType","withCredentials","timeout","onprogress"];t.ajax=function(t,a){function s(t,e){return function(){c||(a(void 0===f.status?t:f.status,0===f.status?"Error":f.response||f.responseText||e,f),c=!0)}}var u=t.headers||{},i=t.body,d=t.method||(i?"POST":"GET"),c=!1,f=n(t.cors);f.open(d,t.url,!0);var l=f.onload=s(200);f.onreadystatechange=function(){4===f.readyState&&l()},f.onerror=s(null,"Error"),f.ontimeout=s(null,"Timeout"),f.onabort=s(null,"Abort"),i&&(o(u,"X-Requested-With","XMLHttpRequest"),e.FormData&&i instanceof e.FormData||o(u,"Content-Type","application/x-www-form-urlencoded"));for(var p,m=0,v=r.length;v>m;m++)p=r[m],void 0!==t[p]&&(f[p]=t[p]);for(var p in u)f.setRequestHeader(p,u[p]);return f.send(i),f},e.nanoajax=t}({},function(){return this}());// eslint-disable-line
 
-// https://github.com/component/emitter
-function Emitter(t){return t?mixin(t):void 0}function mixin(t){for(var e in Emitter.prototype)t[e]=Emitter.prototype[e];return t}Emitter.prototype.on=Emitter.prototype.addEventListener=function(t,e){return this._callbacks=this._callbacks||{},(this._callbacks["$"+t]=this._callbacks["$"+t]||[]).push(e),this},Emitter.prototype.once=function(t,e){function i(){this.off(t,i),e.apply(this,arguments)}return i.fn=e,this.on(t,i),this},Emitter.prototype.off=Emitter.prototype.removeListener=Emitter.prototype.removeAllListeners=Emitter.prototype.removeEventListener=function(t,e){if(this._callbacks=this._callbacks||{},0==arguments.length)return this._callbacks={},this;var i=this._callbacks["$"+t];if(!i)return this;if(1==arguments.length)return delete this._callbacks["$"+t],this;for(var r,s=0;s<i.length;s++)if(r=i[s],r===e||r.fn===e){i.splice(s,1);break}return this},Emitter.prototype.emit=function(t){this._callbacks=this._callbacks||{};var e=[].slice.call(arguments,1),i=this._callbacks["$"+t];if(i){i=i.slice(0);for(var r=0,s=i.length;s>r;++r)i[r].apply(this,e)}return this},Emitter.prototype.listeners=function(t){return this._callbacks=this._callbacks||{},this._callbacks["$"+t]||[]},Emitter.prototype.hasListeners=function(t){return!!this.listeners(t).length};
+ // https://github.com/component/emitter
+function Emitter(t){return t?mixin(t):void 0}function mixin(t){for(var e in Emitter.prototype)t[e]=Emitter.prototype[e];return t}Emitter.prototype.on=Emitter.prototype.addEventListener=function(t,e){return this._callbacks=this._callbacks||{},(this._callbacks["$"+t]=this._callbacks["$"+t]||[]).push(e),this},Emitter.prototype.once=function(t,e){function i(){this.off(t,i),e.apply(this,arguments)}return i.fn=e,this.on(t,i),this},Emitter.prototype.off=Emitter.prototype.removeListener=Emitter.prototype.removeAllListeners=Emitter.prototype.removeEventListener=function(t,e){if(this._callbacks=this._callbacks||{},0==arguments.length)return this._callbacks={},this;var i=this._callbacks["$"+t];if(!i)return this;if(1==arguments.length)return delete this._callbacks["$"+t],this;for(var r,s=0;s<i.length;s++)if(r=i[s],r===e||r.fn===e){i.splice(s,1);break}return this},Emitter.prototype.emit=function(t){this._callbacks=this._callbacks||{};var e=[].slice.call(arguments,1),i=this._callbacks["$"+t];if(i){i=i.slice(0);for(var r=0,s=i.length;s>r;++r)i[r].apply(this,e)}return this},Emitter.prototype.listeners=function(t){return this._callbacks=this._callbacks||{},this._callbacks["$"+t]||[]},Emitter.prototype.hasListeners=function(t){return!!this.listeners(t).length};// eslint-disable-line
 
 var ughbind = (Function.prototype.bind
   ? function ughbind(fn, thisObj) {
@@ -145,7 +158,7 @@ function NchanSubscriber(url, opt) {
     this.lastMessageId = storage.getItem(index);
   }
   
-  var onUnloadEvent = ughbind(function(ev) {
+  var onUnloadEvent = ughbind(function() {
     if(this.running) {
       this.stop();
     }
@@ -199,7 +212,7 @@ function NchanSubscriber(url, opt) {
     if(!restartTimeoutIndex && this.running && this.reconnect && !this.transport.reconnecting && !this.transport.doNotReconnect) {
       //console.log("stopHAndler reconnect plz", this.running, this.reconnect);
       notifySharedSubscribers("reconnect");
-      restartTimeoutIndex = setTimeout(ughbind(function() {
+      restartTimeoutIndex = global.setTimeout(ughbind(function() {
         restartTimeoutIndex = null;
         this.stop();
         this.start();
@@ -265,7 +278,7 @@ NchanSubscriber.prototype.initializeTransport = function(possibleTransports) {
     }
     else {
       for(i in this.SubscriberClass) {
-        if (this.SubscriberClass.hasOwnProperty(key) && tryInitializeTransport(i)) {
+        if (this.SubscriberClass.hasOwnProperty(i) && i[0] != "_" && tryInitializeTransport(i)) {
           break;
         }
       }
@@ -284,7 +297,7 @@ NchanSubscriber.prototype.setSharedRole = function(role) {
   }
   this.sharedRole = role;
   return this;
-}
+};
 
 var maybePromotingToMaster;
 
@@ -379,8 +392,8 @@ NchanSubscriber.prototype.maybePromoteToMaster = function() {
       finish();
     }
     else if(roll >= bestRoll) {
-      var lotteryTime = parseFloat(this.sharedStorage.getItem(this.sharedKeys.masterLotteryTime));
-      var now = new Date().getTime() / 1000;
+      //var now = new Date().getTime() / 1000;
+      //var lotteryTime = parseFloat(this.sharedStorage.getItem(this.sharedKeys.masterLotteryTime));
       //console.log(lotteryTime, now - lotteryRoundDuration/1000);
       if(currentContenders == 0) {
         //console.log("winner, no more contenders!");
@@ -394,7 +407,7 @@ NchanSubscriber.prototype.maybePromoteToMaster = function() {
     }
   }, this);
   
-  checkRollInterval = setInterval(checkRoll, lotteryRoundDuration);
+  checkRollInterval = global.setInterval(checkRoll, lotteryRoundDuration);
 };
 
 NchanSubscriber.prototype.demoteToSlave = function() {
@@ -461,7 +474,7 @@ NchanSubscriber.prototype.start = function() {
       delete this.starting;
       
       //master checkin interval
-      this.masterIntervalCheckID = setInterval(ughbind(function() {
+      this.masterIntervalCheckID = global.setInterval(ughbind(function() {
         this.sharedStorage.setItem(this.sharedKeys.masterLastSeen, new Date().getTime() / 1000);
       }, this), this.masterCheckInterval * 0.8);
     }
@@ -471,7 +484,7 @@ NchanSubscriber.prototype.start = function() {
       delete this.starting;
       
       //slave check if master is around
-      this.masterIntervalCheckID = setInterval(ughbind(function() {
+      this.masterIntervalCheckID = global.setInterval(ughbind(function() {
         var lastCheckin = parseFloat(this.sharedStorage.getItem(this.sharedKeys.masterLastSeen));
         if(!lastCheckin || lastCheckin < (new Date().getTime() / 1000) - this.masterCheckInterval / 1000) {
           //master hasn't checked in for too long. assume it's gone.
@@ -516,6 +529,142 @@ function addLastMsgIdToQueryString(url, msgid) {
 }
 
 NchanSubscriber.prototype.SubscriberClass = {
+  'websocket': (function() {
+    function WSWrapper(emit) {
+      WebSocket;
+      this.emit = emit;
+    }
+    
+    WSWrapper.prototype.websocketizeURL = function(url) {
+      var m = url.match(/^((\w+:)?\/\/([^\/]+))?(\/)?(.*)/);
+      var protocol = m[2];
+      var host = m[3];
+      var absolute = m[4];
+      var path = m[5];
+      
+      var loc;
+      if(typeof window == "object") {
+        loc = window.location;
+      }
+      
+      if(!protocol && loc) {
+        protocol = loc.protocol;
+      }
+      if(protocol == "https:") {
+        protocol = "wss:";
+      }
+      else if(protocol == "http:") {
+        protocol = "ws:";
+      }
+      else {
+        protocol = "wss:"; //default setting: secure
+      }
+      
+      if(!host && loc) {
+        host = loc.host;
+      }
+      
+      if(!absolute) {
+        path = loc ? loc.pathname.match(/(.*\/)[^/]*/)[1] + path : "/" + path;
+      }
+      else {
+        path = "/" + path;
+      }
+      
+      return protocol + "//" + host + path;
+    };
+    
+    WSWrapper.prototype.listen = function(url, msgid) {
+      url = this.websocketizeURL(url);
+      url = addLastMsgIdToQueryString(url, msgid);
+      //console.log(url);
+      if(this.listener) {
+        throw "websocket already listening";
+      }
+      this.listener = new WebSocket(url, 'ws+meta.nchan');
+      var l = this.listener;
+      l.onmessage = ughbind(function(evt) {
+        var m = evt.data.match(/^id: (.*)\n(content-type: (.*)\n)?\n/m);
+        this.emit('message', evt.data.substr(m[0].length), {'id': m[1], 'content-type': m[3]});
+      }, this);
+      
+      l.onopen = ughbind(function(evt) {
+        this.emit('connect', evt);
+        //console.log("connect", evt);
+      }, this);
+      
+      l.onerror = ughbind(function(evt) {
+        //console.log("error", evt);
+        this.emit('error', evt, l);
+        delete this.listener;
+      }, this);
+      
+      l.onclose = ughbind(function(evt) {
+        this.emit('__disconnect', evt);
+        delete this.listener;
+      }, this);
+    };
+    
+    WSWrapper.prototype.cancel = function() {
+      if(this.listener) {
+        this.listener.close();
+        delete this.listener;
+      }
+    };
+    
+    return WSWrapper;
+  })(),
+ 
+  'eventsource': (function() {
+    function ESWrapper(emit) {
+      EventSource;
+      this.emit = emit;
+    }
+    
+    ESWrapper.prototype.listen= function(url, msgid) {
+      url = addLastMsgIdToQueryString(url, msgid);
+      if(this.listener) {
+        throw "there's a ES listener running already";
+      }
+      this.listener = new EventSource(url);
+      var l = this.listener;
+      l.onmessage = ughbind(function(evt){
+        //console.log("message", evt);
+        this.emit('message', evt.data, {id: evt.lastEventId});
+      }, this);
+      
+      l.onopen = ughbind(function(evt) {
+        this.reconnecting = false;
+        //console.log("connect", evt);
+        this.emit('connect', evt);
+      }, this);
+      
+      l.onerror = ughbind(function(evt) {
+        //EventSource will try to reconnect by itself
+        //console.log("onerror", this.listener.readyState, evt);
+        if(this.listener.readyState == EventSource.CONNECTING && !this.reconnecting) {
+          if(!this.reconnecting) {
+            this.reconnecting = true;
+            this.emit('__disconnect', evt);
+          }
+        }
+        else {
+          this.emit('__disconnect', evt);
+          //console.log('other __disconnect', evt);
+        }
+      }, this);
+    };
+    
+    ESWrapper.prototype.cancel= function() {
+      if(this.listener) {
+        this.listener.close();
+        delete this.listener;
+      }
+    };
+    
+    return ESWrapper;
+  })(),
+  
   'longpoll': (function () {
     function Longpoll(emit) {
       this.headers = {};
@@ -636,142 +785,6 @@ NchanSubscriber.prototype.SubscriberClass = {
     return Longpoll;
   })(),
   
-  'eventsource': (function() {
-    function ESWrapper(emit) {
-      EventSource;
-      this.emit = emit;
-    }
-    
-    ESWrapper.prototype.listen= function(url, msgid) {
-      url = addLastMsgIdToQueryString(url, msgid);
-      if(this.listener) {
-        throw "there's a ES listener running already";
-      }
-      this.listener = new EventSource(url);
-      var l = this.listener;
-      l.onmessage = ughbind(function(evt){
-        //console.log("message", evt);
-        this.emit('message', evt.data, {id: evt.lastEventId});
-      }, this);
-      
-      l.onopen = ughbind(function(evt) {
-        this.reconnecting = false;
-        //console.log("connect", evt);
-        this.emit('connect', evt);
-      }, this);
-      
-      l.onerror = ughbind(function(evt) {
-        //EventSource will try to reconnect by itself
-        //console.log("onerror", this.listener.readyState, evt);
-        if(this.listener.readyState == EventSource.CONNECTING && !this.reconnecting) {
-          if(!this.reconnecting) {
-            this.reconnecting = true;
-            this.emit('__disconnect', evt);
-          }
-        }
-        else {
-          this.emit('__disconnect', evt);
-          //console.log('other __disconnect', evt);
-        }
-      }, this);
-    };
-    
-    ESWrapper.prototype.cancel= function() {
-      if(this.listener) {
-        this.listener.close();
-        delete this.listener;
-      }
-    };
-    
-    return ESWrapper;
-  })(),
-  
-  'websocket': (function() {
-    function WSWrapper(emit) {
-      WebSocket;
-      this.emit = emit;
-    }
-    
-    WSWrapper.prototype.websocketizeURL = function(url) {
-      var m = url.match(/^((\w+:)?\/\/([^\/]+))?(\/)?(.*)/);
-      var protocol = m[2];
-      var host = m[3];
-      var absolute = m[4];
-      var path = m[5];
-      
-      var loc;
-      if(typeof window == "object") {
-        loc = window.location;
-      }
-      
-      if(!protocol && loc) {
-        protocol = loc.protocol;
-      }
-      if(protocol == "https:") {
-        protocol = "wss:";
-      }
-      else if(protocol == "http:") {
-        protocol = "ws:";
-      }
-      else {
-        protocol = "wss:"; //default setting: secure
-      }
-      
-      if(!host && loc) {
-        host = loc.host;
-      }
-      
-      if(!absolute) {
-        path = loc ? loc.pathname.match(/(.*\/)[^/]*/)[1] + path : "/" + path;
-      }
-      else {
-        path = "/" + path;
-      }
-      
-      return protocol + "//" + host + path;
-    };
-    
-    WSWrapper.prototype.listen = function(url, msgid) {
-      url = this.websocketizeURL(url);
-      url = addLastMsgIdToQueryString(url, msgid);
-      //console.log(url);
-      if(this.listener) {
-        throw "websocket already listening";
-      }
-      this.listener = new WebSocket(url, 'ws+meta.nchan');
-      var l = this.listener;
-      l.onmessage = ughbind(function(evt) {
-        var m = evt.data.match(/^id: (.*)\n(content-type: (.*)\n)?\n/m);
-        this.emit('message', evt.data.substr(m[0].length), {'id': m[1], 'content-type': m[3]});
-      }, this);
-      
-      l.onopen = ughbind(function(evt) {
-        this.emit('connect', evt);
-        //console.log("connect", evt);
-      }, this);
-      
-      l.onerror = ughbind(function(evt) {
-        //console.log("error", evt);
-        this.emit('error', evt, l);
-        delete this.listener;
-      }, this);
-      
-      l.onclose = ughbind(function(evt) {
-        this.emit('__disconnect', evt);
-        delete this.listener;
-      }, this);
-    };
-    
-    WSWrapper.prototype.cancel = function() {
-      if(this.listener) {
-        this.listener.close();
-        delete this.listener;
-      }
-    };
-    
-    return WSWrapper;
-  })(),
-  
   '__slave': (function() {
     function LocalStoreSlaveTransport(emit) {
       this.emit = emit;
@@ -779,7 +792,6 @@ NchanSubscriber.prototype.SubscriberClass = {
     }
     
     LocalStoreSlaveTransport.prototype.listen = function(url, keys) {
-      var pre = "NchanSubscriber:" + url + ":shared:";
       this.keys = keys;
       
       var storage = global.localStorage;
@@ -803,6 +815,6 @@ NchanSubscriber.prototype.SubscriberClass = {
 
 };
 
-global.NchanSubscriber = NchanSubscriber;
-})(window);
+return NchanSubscriber;
+});
 

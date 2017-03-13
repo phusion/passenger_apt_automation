@@ -30,6 +30,34 @@ int nchan_ngx_str_match(ngx_str_t *str1, ngx_str_t *str2) {
   return memcmp(str1->data, str2->data, str1->len) == 0;
 }
 
+
+ngx_int_t nchan_strscanstr(u_char **cur, ngx_str_t *find, u_char *last) {
+  //inspired by ngx_strnstr
+  char   *s2 = (char *)find->data;
+  u_char *s1 = *cur;
+  size_t  len = last - s1;
+  u_char  c1, c2;
+  size_t  n;
+  c2 = *(u_char *) s2++;
+  n = find->len - 1;
+  do {
+    do {
+      if (len-- == 0) {
+        return 0;
+      }
+      c1 = *s1++;
+      if (c1 == 0) {
+        return 0;
+      }
+    } while (c1 != c2);
+    if (n > len) {
+      return 0;
+    }
+  } while (ngx_strncmp(s1, (u_char *) s2, n) != 0);
+  *cur = s1 + n;
+  return 1;
+}
+
 ngx_int_t ngx_http_complex_value_noalloc(ngx_http_request_t *r, ngx_http_complex_value_t *val, ngx_str_t *value, size_t maxlen) {
   size_t                        len;
   ngx_http_script_code_pt       code;
@@ -121,6 +149,39 @@ ngx_str_t *nchan_get_header_value(ngx_http_request_t * r, ngx_str_t header_name)
   return NULL;
 }
 
+ngx_str_t *nchan_get_header_value_origin(ngx_http_request_t *r, nchan_request_ctx_t *ctx) {
+  ngx_str_t         *origin_header;
+  static ngx_str_t   empty_str = ngx_string("");
+  if(!ctx) {
+    ctx = ngx_http_get_module_ctx(r, ngx_nchan_module);
+  }
+  
+  if(!ctx->request_origin_header) {
+    if((origin_header = nchan_get_header_value(r, NCHAN_HEADER_ORIGIN)) != NULL) {
+      ctx->request_origin_header = origin_header;
+    }
+    else {
+      ctx->request_origin_header = &empty_str;
+    }
+  }
+  
+  return ctx->request_origin_header == &empty_str ? NULL : ctx->request_origin_header;
+}
+
+ngx_str_t *nchan_get_accept_header_value(ngx_http_request_t *r) {
+#if (NGX_HTTP_HEADERS)  
+  if(r->headers_in.accept == NULL) {
+    return NULL;
+  }
+  else {
+    return &r->headers_in.accept->value;
+  }
+#else
+  ngx_str_t             accept_header_name = ngx_string("Accept");
+  return nchan_get_header_value(r, accept_header_name);
+#endif
+}
+
 static int nchan_strmatch_va_list(ngx_str_t *val, ngx_int_t n, va_list args) {
   u_char   *match;
   ngx_int_t i;
@@ -162,29 +223,25 @@ int nchan_cstr_startswith(char *cstr, char *match) {
   return 1;
 }
 
-void nchan_scan_nearest_chr(u_char **cur, ngx_str_t *str, ngx_int_t n, ...) {
-  u_char    chr;
-  va_list   args;
+void nchan_scan_split_by_chr(u_char **cur, size_t max_len, ngx_str_t *str, u_char chr) {
   u_char   *shortest = NULL;
+  u_char   *start = *cur;
+  u_char   *tmp_cur;
   
-  u_char *tmp_cur;
-  
-  ngx_int_t i;
-  
-  for(tmp_cur = *cur; shortest == NULL && (tmp_cur == *cur || tmp_cur[-1] != '\0'); tmp_cur++) {
-    va_start(args, n);
-    for(i=0; shortest == NULL && i<n; i++) {
-      chr = (u_char )va_arg(args, int);
-      if(*tmp_cur == chr) {
-        shortest = tmp_cur;
-      }
+  for(tmp_cur = *cur; shortest == NULL && (tmp_cur == *cur || tmp_cur - start < (ssize_t )max_len); tmp_cur++) {
+    if(*tmp_cur == chr) {
+      shortest = tmp_cur;
     }
-    va_end(args);
   }
   if(shortest) {
     str->data = (u_char *)*cur;
     str->len = shortest - *cur;
     *cur = shortest + 1;
+  }
+  else if(tmp_cur - start == (ssize_t )max_len) {
+    str->data = start;
+    str->len = max_len;
+    *cur = start + max_len;
   }
   else {
     str->data = NULL;
@@ -227,6 +284,50 @@ static ngx_buf_t *ensure_last_buf(ngx_pool_t *pool, ngx_buf_t *buf) {
     cbuf->last_buf = 1;
     return cbuf;
   }
+}
+
+ngx_str_t *nchan_get_allow_origin_value(ngx_http_request_t *r, nchan_loc_conf_t *cf, nchan_request_ctx_t *ctx) {
+  if(!ctx) ctx = ngx_http_get_module_ctx(r, ngx_nchan_module);
+  if(!cf)  cf  = ngx_http_get_module_loc_conf(r, ngx_nchan_module);
+  if(!ctx->allow_origin && cf->allow_origin) {
+    ngx_str_t                 *allow_origin = ngx_palloc(r->pool, sizeof(*allow_origin));
+    ngx_http_complex_value(r, cf->allow_origin, allow_origin);
+    ctx->allow_origin = allow_origin;
+  }
+  
+  return ctx->allow_origin;
+}
+
+int nchan_match_origin_header(ngx_http_request_t *r, nchan_loc_conf_t *cf, nchan_request_ctx_t *ctx) {
+  ngx_str_t                 *origin_header;
+  ngx_str_t                 *allow_origin;
+  ngx_str_t                  curstr;
+  u_char                    *cur, *end;
+  
+  if(cf->allow_origin == NULL) { //default is to always match
+    return 1;
+  }
+  
+  if((origin_header = nchan_get_header_value_origin(r, ctx)) == NULL) {
+    return 1;
+  }
+
+  allow_origin = nchan_get_allow_origin_value(r, cf, ctx);
+  
+  cur = allow_origin->data;
+  end = cur + allow_origin->len;
+  
+  while(cur < end) {
+    nchan_scan_split_by_chr(&cur, end - cur, &curstr, ' ');
+    if(curstr.len == 1 && curstr.data[0] == '*') {
+      return 1;
+    }
+    if(nchan_ngx_str_match(&curstr, origin_header)) {
+      return 1;
+    }
+  }
+  
+  return 0;
 }
 
 // this function adapted from push stream module. thanks Wandenberg Peixoto <wandenberg@gmail.com> and Rogério Carvalho Schneider <stockrt@gmail.com>
@@ -311,6 +412,35 @@ ngx_int_t nchan_add_oneshot_timer(void (*cb)(void *), void *pd, ngx_msec_t delay
   return NGX_OK;
 }
 
+
+typedef struct {
+  ngx_event_t    ev;
+  ngx_msec_t     wait;
+  int          (*cb)(void *pd);
+} interval_timer_t;
+
+void interval_timer_callback(ngx_event_t *ev) {
+  interval_timer_t  *timer = container_of(ev, interval_timer_t, ev);
+  int again = timer->cb(ev->data);
+  if(again && ev->timedout) {
+    ev->timedout=0;
+    ngx_add_timer(&timer->ev, timer->wait);
+  }
+  else {
+    ngx_free(timer);
+  }
+}
+
+ngx_int_t nchan_add_interval_timer(int (*cb)(void *), void *pd, ngx_msec_t interval) {
+  interval_timer_t *timer = ngx_alloc(sizeof(*timer), ngx_cycle->log);
+  ngx_memzero(&timer->ev, sizeof(timer->ev));
+  timer->cb = cb;
+  timer->wait = interval;
+  nchan_init_timer(&timer->ev, interval_timer_callback, pd);
+  ngx_add_timer(&timer->ev, interval);
+  return NGX_OK;
+}
+
 int nchan_ngx_str_char_substr(ngx_str_t *str, char *substr, size_t sz) {
   //naive non-null-terminated string matcher. don't use it in tight loops!
   char *cur;
@@ -323,6 +453,129 @@ int nchan_ngx_str_char_substr(ngx_str_t *str, char *substr, size_t sz) {
   }
   return 0;
 }
+
+//converts string to positive double float
+static double nchan_atof(u_char *line, ssize_t n) {
+  ssize_t cutoff, cutlim;
+  double  value = 0;
+  
+  u_char *decimal, *cur, *last = line + n;
+  
+  if (n == 0) {
+    return NGX_ERROR;
+  }
+
+  cutoff = NGX_MAX_SIZE_T_VALUE / 10;
+  cutlim = NGX_MAX_SIZE_T_VALUE % 10;
+  
+  decimal = memchr(line, '.', n);
+  
+  if(decimal == NULL) {
+    decimal = line + n;
+  }
+  
+  for (n = decimal - line; n-- > 0; line++) {
+    if (*line < '0' || *line > '9') {
+      return NGX_ERROR;
+    }
+
+    if (value >= cutoff && (value > cutoff || (*line - '0') > cutlim)) {
+      return NGX_ERROR;
+    }
+
+    value = value * 10 + (*line - '0');
+  }
+  
+  double decval = 0;
+  
+  
+  
+  for(cur = (decimal - last) > 10 ? decimal + 10 : last-1; cur > decimal && cur < last; cur--) {
+    if (*cur < '0' || *cur > '9') {
+      return NGX_ERROR;
+    }
+    decval = decval / 10 + (*cur - '0');
+  }
+  value = value + decval/10;
+  
+  return value;
+}
+
+ssize_t nchan_parse_size(ngx_str_t *line) {
+  u_char   unit;
+  size_t   len;
+  ssize_t  size, scale, max;
+  double   floaty;
+  
+  len = line->len;
+  unit = line->data[len - 1];
+
+  switch (unit) {
+  case 'K':
+  case 'k':
+      len--;
+      max = NGX_MAX_SIZE_T_VALUE / 1024;
+      scale = 1024;
+      break;
+
+  case 'M':
+  case 'm':
+      len--;
+      max = NGX_MAX_SIZE_T_VALUE / (1024 * 1024);
+      scale = 1024 * 1024;
+      break;
+  
+  case 'G':
+  case 'g':
+      len--;
+      max = NGX_MAX_SIZE_T_VALUE / (1024 * 1024 * 1024);
+      scale = 1024 * 1024 * 1024;
+      break;
+
+  default:
+      max = NGX_MAX_SIZE_T_VALUE;
+      scale = 1;
+  }
+
+  floaty = nchan_atof(line->data, len);
+  
+  if (floaty == NGX_ERROR || floaty > max) {
+      return NGX_ERROR;
+  }
+
+  size = floaty * scale;
+
+  return size;
+}
+
+char *nchan_conf_set_size_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+  char  *p = conf;
+
+  size_t           *sp;
+  ngx_str_t        *value;
+  ngx_conf_post_t  *post;
+
+
+  sp = (size_t *) (p + cmd->offset);
+  if (*sp != NGX_CONF_UNSET_SIZE) {
+      return "is duplicate";
+  }
+
+  value = cf->args->elts;
+
+  *sp = nchan_parse_size(&value[1]);
+  if (*sp == (size_t) NGX_ERROR) {
+    return "invalid value";
+  }
+
+  if (cmd->post) {
+    post = cmd->post;
+    return post->post_handler(cf, post, sp);
+  }
+
+  return NGX_CONF_OK;
+}
+
 
 #if (NGX_DEBUG_POOL)
 //Copyright (C) 2015 Alibaba Group Holding Limited

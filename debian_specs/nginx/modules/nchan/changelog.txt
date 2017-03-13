@@ -1,3 +1,56 @@
+1.1.2 (Mar. 1 2017)
+ change: "interprocess alert X delayed by Y sec" log messages downgraded 
+      from ERROR to NOTICE
+ fix: "group info string too short" error
+ fix: Incorrect handling of connections to Redis cluster nodes with round-robin
+      DNS hostnames (Thanks to ring.com for sponsoring this fix!)
+1.1.1 (Feb. 8 2017)
+ fix: incorrect stats for nchan_stub_status after reload.
+      (Stats are no longer reset after reload)
+ fix: websocket subscriber may receive two CLOSE frames
+ fix: websocket with ws+meta.nchan subprotocol did not receive empty messages
+ feature: websocket client heartbeats with nchan_websocket_client_heartbeat
+ fix: websocket now echoes code and reason when connection close initiated from client
+1.1.0 (Jan. 4 2017)
+ feature: websocket subscribers now receive "application/octet-stream" messages
+      in binary frame rather than text
+ fix: publisher request variables not always passed to nchan_publisher_upstream_request
+ feature: Redis storage 'backup' mode strictly for data persistence
+ fix: possible lingering subscriber if connection is closed just before subscribing
+ fix: possible memory leak when using multiplexed channels
+ security fix: subscribing with If-Modified-Since and without If-None-Match headers
+      crashed the Nginx worker (thanks @supertong)
+ security fix: sending an empty message to multipart/mixed subscriber crashed Nginx worker
+ fix: publisher & subscriber response codes were logged incorrectly
+ fix: websocket subscriber memory leak on upstream authentication failure
+ fix: possible crash after reloading when using several instances of Nchan with Redis
+ feature: nchan_access_control_allow_origin can accept nginx variables
+ feature: Redis key namespaces
+ feature: all size configurations can now parse decimal values
+ fix: off-by-one subscriber count when using multiplexed channels
+ feature: accounting and dynamic limits for channel groups
+1.0.8 (Nov. 28 2016)
+ fix: possible crash under severely heavy load, introduced in 1.0.7 with stack-overflow fix
+1.0.7 (Nov. 27 2016)
+ fix: memory leak after websocket publisher uncleanly aborts connection
+ fix: misbehaving websocket publisher with nchan_publisher_upstream_request
+ fix: potential stack overflow with very large message buffers
+ fix: invalid memory access with empty nchan_publisher_upstream_request for websocket publisher
+ fix: incorrect handling of chunked response from nchan_publisher_upstream_request
+ fix: publishing through websocket too fast may result in buffered messages that never arrive
+ fix: DELETE to multiplexed channel should delete all listed channels
+ fix: abort if publishing to multiple channels while using redis
+1.0.6 (Nov. 15 2016)
+ fix: large messages were sometimes incorrectly cleaned up, leaving behind temp files
+ fix: file descriptor leak when listening on a unix socket and suddenly 
+      aborting client connections
+ fix: invalid memory access after reloading twice with redis enabled
+ fix: crash after shutting down nginx when 'master_process' set to 'off'
+ change: nchan_max_channel_subscribers now always refers to subscribers on this instance of
+      Nchan, even when using Redis.
+ feature: subscribe/unsubscribe callbacks with nchan_subscribe_request and nchan_unsubscribe_request
+1.0.4 (Oct. 28 2016)
+ security: fix crash when receiving large messages over websocket with ws+nchan subprotocol
 1.0.3 (Sept. 3 2016)
  feature: nchan_message_timeout and nchan_message_buffer_length 
       can now use nginx variables for dynamic values

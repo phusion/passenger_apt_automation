@@ -30,9 +30,10 @@
 #include <nchan_defs.h>
 #include <util/nchan_util.h>
 #include <util/nchan_channel_id.h>
-#include <util/nchan_channel_info.h>
+#include <util/nchan_output_info.h>
 #include <util/nchan_msgid.h>
 #include <util/nchan_output.h>
+#include <util/nchan_debug.h>
 
 extern ngx_pool_t *nchan_pool;
 extern ngx_int_t nchan_worker_processes;
@@ -43,7 +44,7 @@ extern int nchan_stub_status_enabled;
 
 ngx_int_t nchan_stub_status_handler(ngx_http_request_t *r);
 ngx_int_t nchan_pubsub_handler(ngx_http_request_t *r);
-ngx_buf_t *nchan_channel_info_buf(ngx_str_t *accept_header, ngx_uint_t messages, ngx_uint_t subscribers, time_t last_seen, nchan_msg_id_t *last_msgid, ngx_str_t **generated_content_type);
+ngx_int_t nchan_group_handler(ngx_http_request_t *r);
 
 time_t nchan_loc_conf_message_timeout(nchan_loc_conf_t *cf);
 ngx_int_t nchan_loc_conf_max_messages(nchan_loc_conf_t *cf);
@@ -54,12 +55,6 @@ ngx_int_t nchan_maybe_send_channel_event_message(ngx_http_request_t *, channel_e
 void __memstore_update_stub_status(off_t offset, int count);
 nchan_stub_status_t *nchan_get_stub_status_stats(void);
 size_t nchan_get_used_shmem(void);
-
-#if NCHAN_SUBSCRIBER_LEAK_DEBUG
-void subscriber_debug_add(subscriber_t *);
-void subscriber_debug_remove(subscriber_t *);
-void subscriber_debug_assert_isempty(void);
-#endif
 
 #if NCHAN_BENCHMARK
 int nchan_timeval_subtract(struct timeval *result, struct timeval *x, struct timeval *y);

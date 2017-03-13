@@ -19,6 +19,9 @@ static const subscriber_t new_longpoll_sub;
 static void empty_handler() { }
 
 static void sudden_abort_handler(subscriber_t *sub) {
+  if(sub->request && sub->status != DEAD) {
+    sub->request->headers_out.status = NGX_HTTP_CLIENT_CLOSED_REQUEST;
+  }
 #if FAKESHARD
   full_subscriber_t  *fsub = (full_subscriber_t  *)sub;
   memstore_fakeprocess_push(fsub->sub.owner);
@@ -70,9 +73,6 @@ subscriber_t *longpoll_subscriber_create(ngx_http_request_t *r, nchan_msg_id_t *
   
 #if NCHAN_SUBSCRIBER_LEAK_DEBUG
   subscriber_debug_add(&fsub->sub);
-  //set debug label
-  fsub->sub.lbl = ngx_calloc(r->uri.len+1, ngx_cycle->log);
-  ngx_memcpy(fsub->sub.lbl, r->uri.data, r->uri.len);
 #endif
   
   //http request sudden close cleanup
@@ -102,7 +102,6 @@ ngx_int_t longpoll_subscriber_destroy(subscriber_t *sub) {
     assert(sub->status == DEAD);
 #if NCHAN_SUBSCRIBER_LEAK_DEBUG
     subscriber_debug_remove(sub);
-    ngx_free(sub->lbl);
     ngx_memset(fsub, 0xB9, sizeof(*fsub)); //debug
 #endif
     ngx_free(fsub);
@@ -154,25 +153,53 @@ ngx_int_t longpoll_enqueue(subscriber_t *self) {
     //add timeout timer
     ngx_add_timer(&fsub->data.timeout_ev, self->cf->subscriber_timeout * 1000);
   }
+
+  
+#if nginx_version >= 1003015
+  if(self->cf->unsubscribe_request_url) {
+    self->request->read_event_handler = nchan_subscriber_unsubscribe_callback_http_test_reading;
+  }
+#endif
   
   return NGX_OK;
 }
 
 static ngx_int_t longpoll_dequeue(subscriber_t *self) {
   full_subscriber_t    *fsub = (full_subscriber_t  *)self;
-  nchan_request_ctx_t  *ctx = ngx_http_get_module_ctx(fsub->sub.request, ngx_nchan_module);
+  ngx_http_request_t   *r = fsub->sub.request;
+  nchan_request_ctx_t  *ctx = ngx_http_get_module_ctx(r, ngx_nchan_module);
+  int                   finalize_now = fsub->data.finalize_request;
   if(fsub->data.timeout_ev.timer_set) {
     ngx_del_timer(&fsub->data.timeout_ev);
   }
   DBG("%p dequeue", self);
   fsub->data.dequeue_handler(self, fsub->data.dequeue_handler_data);
+  
+  if(self->enqueued 
+   && (self->type != LONGPOLL && self->type != INTERVALPOLL) //disabled for longpoll & intervalpoll for now
+   && self->cf->unsubscribe_request_url 
+   && ctx->unsubscribe_request_callback_finalize_code != NGX_HTTP_CLIENT_CLOSED_REQUEST) {
+    r->main->blocked = 1;
+    if(fsub->data.finalize_request) {
+      nchan_subscriber_unsubscribe_request(self, NGX_OK);
+      self->status = DEAD;
+    }
+    else {
+      nchan_subscriber_unsubscribe_request(self, NGX_DONE);
+    }
+    if(ctx->request_ran_content_handler) {
+      ngx_http_run_posted_requests(r->connection);
+    }
+    finalize_now = 0;
+  }
+  
   self->enqueued = 0;
   
   ctx->sub = NULL;
   
-  if(fsub->data.finalize_request) {
-    DBG("finalize request %p", fsub->sub.request);
-    ngx_http_finalize_request(fsub->sub.request, NGX_OK);
+  if(finalize_now) {
+    DBG("finalize request %p", r);
+    nchan_http_finalize_request(r, NGX_OK);
     self->status = DEAD;
   }
   
@@ -309,7 +336,6 @@ static ngx_int_t longpoll_multipart_respond(full_subscriber_t *fsub) {
   u_char                *char_boundary_last;
   
   ngx_buf_t              boundary[3]; //first, mid, and last boundary
-  ngx_buf_t              newline_buf;
   ngx_chain_t           *chain, *first_chain = NULL, *last_chain = NULL;
   ngx_buf_t             *buf;
   ngx_buf_t              double_newline_buf;
@@ -318,6 +344,8 @@ static ngx_int_t longpoll_multipart_respond(full_subscriber_t *fsub) {
   nchan_loc_conf_t      *cf = fsub->sub.cf;
   int                    use_raw_stream_separator = cf->longpoll_multimsg_use_raw_stream_separator;
   nchan_buf_and_chain_t *bc;
+  
+  ngx_init_set_membuf_char(&double_newline_buf, "\r\n\r\n");
   
   nchan_longpoll_multimsg_t *first, *cur;
   
@@ -347,14 +375,10 @@ static ngx_int_t longpoll_multipart_respond(full_subscriber_t *fsub) {
     char_boundary = ngx_palloc(r->pool, 50);
     char_boundary_last = ngx_snprintf(char_boundary, 50, ("\r\n--%V--\r\n"), nchan_request_multipart_boundary(r, ctx));
     
-    ngx_init_set_membuf_char(&double_newline_buf, "\r\n\r\n");
-    
     //set up the boundaries
     ngx_init_set_membuf(&boundary[0], &char_boundary[2], &char_boundary_last[-4]);
     ngx_init_set_membuf(&boundary[1], &char_boundary[0], &char_boundary_last[-4]);
     ngx_init_set_membuf(&boundary[2], &char_boundary[0], char_boundary_last);
-    
-    ngx_init_set_membuf_char(&newline_buf, "\n");
   }
   
   int n=0;
@@ -377,9 +401,9 @@ static ngx_int_t longpoll_multipart_respond(full_subscriber_t *fsub) {
       size += ngx_buf_size((chain->buf));
       chain = chain->next;
       
-      content_type = &cur->msg->content_type;
+      content_type = cur->msg->content_type;
       buf = chain->buf;
-      if (content_type->data != NULL) {
+      if (content_type) {
         u_char    *char_cur = ngx_pcalloc(r->pool, content_type->len + 25);
         ngx_init_set_membuf(buf, char_cur, ngx_snprintf(char_cur, content_type->len + 25, "\r\nContent-Type: %V\r\n\r\n", content_type));
       }
@@ -390,9 +414,9 @@ static ngx_int_t longpoll_multipart_respond(full_subscriber_t *fsub) {
       chain = chain->next;
     }
       
-    if(ngx_buf_size(cur->msg->buf) > 0) {
+    if(ngx_buf_size((&cur->msg->buf)) > 0) {
       buf = chain->buf;
-      *buf = *cur->msg->buf;
+      *buf = cur->msg->buf;
       
       if(buf->file) {
         ngx_file_t  *file_copy = nchan_bufchain_pool_reserve_file(ctx->bcp);
@@ -490,6 +514,7 @@ void subscriber_maybe_dequeue_after_status_response(full_subscriber_t *fsub, ngx
     fsub->data.cln->handler = (ngx_http_cleanup_pt )empty_handler;
     fsub->sub.request->keepalive=0;
     fsub->data.finalize_request=1;
+    fsub->sub.request->headers_out.status = status_code;
     fsub->sub.fn->dequeue(&fsub->sub);
   }
 }
@@ -520,7 +545,7 @@ static const subscriber_fn_t longpoll_fn = {
   &longpoll_reserve,
   &longpoll_release,
   &nchan_subscriber_empty_notify,
-  &nchan_subscriber_authorize_subscribe
+  &nchan_subscriber_authorize_subscribe_request
 };
 
 static ngx_str_t  sub_name = ngx_string("longpoll");
@@ -537,4 +562,8 @@ static const subscriber_t new_longpoll_sub = {
   1, //deque after response
   1, //destroy after dequeue
   0, //enqueued
+  
+#if NCHAN_SUBSCRIBER_LEAK_DEBUG
+  NULL, NULL, NULL
+#endif
 };

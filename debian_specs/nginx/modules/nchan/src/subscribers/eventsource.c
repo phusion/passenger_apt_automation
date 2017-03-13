@@ -103,7 +103,7 @@ static ngx_int_t es_respond_message(subscriber_t *sub,  nchan_msg_t *msg) {
   static ngx_str_t        terminal_newlines=ngx_string("\n\n");
   full_subscriber_t      *fsub = (full_subscriber_t  *)sub;
   u_char                 *cur = NULL, *last = NULL;
-  ngx_buf_t              *msg_buf = msg->buf;
+  ngx_buf_t              *msg_buf = &msg->buf;
   ngx_buf_t               databuf;
   nchan_buf_and_chain_t  *bc;
   ngx_chain_t            *first_link = NULL, *last_link = NULL;
@@ -233,8 +233,8 @@ static ngx_int_t es_respond_message(subscriber_t *sub,  nchan_msg_t *msg) {
   if(sub->cf->eventsource_event.len > 0) {
     prepend_es_response_line(fsub, &event_line, &first_link, &sub->cf->eventsource_event);
   }
-  else if(msg->eventsource_event.len > 0) {
-    prepend_es_response_line(fsub, &event_line, &first_link, &msg->eventsource_event);
+  else if(msg->eventsource_event) {
+    prepend_es_response_line(fsub, &event_line, &first_link, msg->eventsource_event);
   }
   
   return nchan_output_msg_filter(fsub->sub.request, msg, first_link);
@@ -273,6 +273,7 @@ static ngx_int_t es_respond_status(subscriber_t *sub, ngx_int_t status_code, con
   if((status_code >=400 && status_code <599) || status_code == NGX_HTTP_NOT_MODIFIED) {
     fsub->data.cln->handler = (ngx_http_cleanup_pt )empty_handler;
     fsub->sub.request->keepalive=0;
+    sub->request->headers_out.status = status_code;
     fsub->data.finalize_request=1;
     sub->fn->dequeue(sub);
   }
@@ -323,13 +324,9 @@ subscriber_t *eventsource_subscriber_create(ngx_http_request_t *r, nchan_msg_id_
 }
 
 ngx_int_t nchan_detect_eventsource_request(ngx_http_request_t *r) {
-  ngx_str_t       *accept_header;
-  if(r->headers_in.accept == NULL) {
-    return 0;
-  }
-  accept_header = &r->headers_in.accept->value;
+  ngx_str_t       *accept_header = nchan_get_accept_header_value(r);
 
-  if(ngx_strnstr(accept_header->data, "text/event-stream", accept_header->len)) {
+  if(accept_header && ngx_strnstr(accept_header->data, "text/event-stream", accept_header->len)) {
     return 1;
   }
   
