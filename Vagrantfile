@@ -5,8 +5,7 @@
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  config.vm.box = "phusion-open-ubuntu-12.04-amd64"
-  config.vm.box_url = "https://oss-binaries.phusionpassenger.com/vagrant/boxes/latest/ubuntu-12.04-amd64-vbox.box"
+  config.vm.box = "boxcutter/ubuntu1604"
 
   if File.exist?("../../bin/passenger")
     passenger_path = File.absolute_path("../../")
@@ -17,9 +16,15 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.synced_folder passenger_path, "/passenger"
   end
 
-  config.vm.provider :vmware_fusion do |f, override|
-    override.vm.box_url = "https://oss-binaries.phusionpassenger.com/vagrant/boxes/latest/ubuntu-12.04-amd64-vmwarefusion.box"
+  config.vm.provision :shell, :path => "internal/scripts/setup-vagrant.sh"
+
+  config.vm.provider "virtualbox" do |v|
+    v.memory = 2048
+    v.cpus = 2
   end
 
-  config.vm.provision :shell, :path => "internal/scripts/setup-vagrant.sh"
+  config.vm.provider "vmware_fusion" do |v|
+    v.vmx["memsize"] = "2048"
+    v.vmx["numvcpus"] = "2"
+  end
 end

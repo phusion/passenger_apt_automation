@@ -130,6 +130,8 @@ Once packages have been built, you can test them with the test script. Here is a
 
 When using Vagrant, the directory referred to by `-c` must be a native filesystem directory. That is, it may not be located inside /vagrant, because /vagrant is a remote filesystem. I typically use `-c ~/cache` when developing with Vagrant.
 
+The Vagrant VM uses 2 GB of RAM, so make sure your host has at least 4 GB.
+
 ### The publish script
 
 Once packages have been built, you can publish them to PackageCloud. The `publish` script publishes all packages inside a build script output directory. Example invocation:
