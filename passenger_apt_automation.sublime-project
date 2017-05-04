@@ -5,6 +5,7 @@
 			"path": ".",
 			"folder_exclude_patterns":
 			[
+				".vagrant",
 				"cache",
 				"output",
 				"work"
