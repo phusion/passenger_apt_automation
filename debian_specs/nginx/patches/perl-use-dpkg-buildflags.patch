@@ -22,4 +22,4 @@ Index: b/src/http/modules/perl/Makefile.PL
 +    LDDLFLAGS         => "$Config{lddlflags} $ENV{DEBIAN_NGINX_PERL_LDFLAGS}",
      OPTIMIZE          => '-O',
  
-     LDDLFLAGS         => "$ENV{NGX_PM_LDFLAGS}",
+     INC               => join(" ", map {
