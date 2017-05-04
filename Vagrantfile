@@ -11,7 +11,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   if File.exist?("../../bin/passenger")
     passenger_path = File.absolute_path("../../")
   elsif File.directory?("../passenger")
-    passenger_path = File.absolute_path("../")
+    passenger_path = File.absolute_path("../passenger")
   end
   if passenger_path
     config.vm.synced_folder passenger_path, "/passenger"
