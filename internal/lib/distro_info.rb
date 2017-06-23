@@ -33,10 +33,24 @@ DEFAULT_DISTROS = %w(
 
   wheezy
   jessie
+  stretch
 )
 
 
 ###### Helper methods ######
+
+def ubuntu_gte(codename, compare)
+  generic_gte(UBUNTU_DISTRIBUTIONS, codename, compare)
+end
+
+def debian_gte(codename, compare)
+  generic_gte(DEBIAN_DISTRIBUTIONS, codename, compare)
+end
+
+def generic_gte(hash, codename, compare)
+  return nil if !hash.key?(codename)
+  hash[codename] >= hash[compare]
+end
 
 def to_distro_codename(input)
   UBUNTU_DISTRIBUTIONS.each_pair do |codename, version|
@@ -80,4 +94,48 @@ end
 
 def valid_distro_name?(name)
   UBUNTU_DISTRIBUTIONS.key?(name) || DEBIAN_DISTRIBUTIONS.key?(name)
+end
+
+def extract_nginx_version(os, distro, uri, sanitize)
+  cache_file = "/tmp/#{distro}_nginx_version.txt"
+  if !File.exists?(cache_file) || ((Time.now - 60*60*24) > File.mtime(cache_file))
+    version = get_and_unzip(uri).split("\n\n").map{|e|e.gsub(/\n /," ").split("\n").map{|x|x.split(": ",2)}.to_h}.select{|e|e["Package"] == "nginx"}[0]["Version"]
+    File.write(cache_file,version)
+  else
+    version = File.read(cache_file)
+  end
+  version.gsub!(/(-[0-9]+|{os}).*/,"") if sanitize
+  version
+end
+
+def get_and_unzip(uri)
+  require 'open-uri'
+  require 'zlib'
+  Zlib::GzipReader.new(open(uri)).read
+end
+
+def dynamic_module_supported?(distro)
+  ubuntu_gte(distro, "zesty") || debian_gte(distro, "stretch")
+end
+
+def latest_nginx_sanitized?(distro, sanitized)
+  if UBUNTU_DISTRIBUTIONS.key?(distro)
+    os = 'ubuntu'
+    uri = "http://archive.ubuntu.com/ubuntu/dists/#{distro}/main/binary-amd64/Packages.gz"
+  elsif DEBIAN_DISTRIBUTIONS.key?(distro)
+    os = 'debian'
+    uri = "http://ftp.debian.org/debian/dists/#{distro}/main/binary-amd64/Packages.gz"
+  else
+    # unknown distro
+    return ""
+  end
+  return extract_nginx_version(os, distro, uri, sanitized)
+end
+
+def latest_nginx_unsanitized(distro)
+  return latest_nginx_sanitized?(distro, false)
+end
+
+def latest_nginx_available(distro)
+  latest_nginx_sanitized?(distro, true)
 end

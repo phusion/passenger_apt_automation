@@ -8,7 +8,7 @@
 # then regenerate distro_info.sh by running
 # internal/scripts/regen_distro_info_script.sh.
 
-DEFAULT_DISTROS="precise trusty xenial zesty wheezy jessie"
+DEFAULT_DISTROS="precise trusty xenial zesty wheezy jessie stretch"
 
 function to_distro_codename()
 {

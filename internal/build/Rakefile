@@ -12,15 +12,33 @@ SOURCE_TASKS = ['source:passenger', 'source:nginx']
 register_tracking_category(:preparation, 'Preparation')
 
 namespace :source do
-  register_tracking_task(:preparation, 'passenger')
-  desc "Create Passenger orig tarball"
-  task :passenger => :nginx do
-    track_task(:preparation, 'passenger') do |task|
-      if FETCH_PASSENGER_TARBALL_FROM_CACHE && File.exist?("/cache/#{PASSENGER_TARBALL}")
-        task.sh "cp /cache/#{PASSENGER_TARBALL} /work/#{PASSENGER_TARBALL}"
-      else
-        task.sh "./build-passenger-orig-tarball.sh /work/#{PASSENGER_TARBALL}"
-        task.sh "cp /work/#{PASSENGER_TARBALL} /cache/#{PASSENGER_TARBALL}"
+  DISTROS.each do |distro|
+    if dynamic_module_supported?(distro)
+      register_tracking_task(:preparation, "passenger:#{distro}")
+      desc "Create Passenger orig tarball"
+      task("passenger:#{distro}" => :nginx) do
+        track_task(:preparation, "passenger:#{distro}") do |task|
+          if FETCH_PASSENGER_TARBALL_FROM_CACHE && File.exist?("/cache/#{distro}_#{PASSENGER_TARBALL}")
+            task.sh "cp /cache/#{distro}_#{PASSENGER_TARBALL} /work/#{PASSENGER_TARBALL}"
+          else
+            task.sh "./download-nginx-orig-tarball.sh #{latest_nginx_available(distro)} /work/#{latest_nginx_available(distro)}.orig.tar.gz"
+            task.sh "./build-passenger-orig-tarball.sh /work/#{PASSENGER_TARBALL} #{latest_nginx_available(distro)}"
+            task.sh "cp /work/#{PASSENGER_TARBALL} /cache/#{distro}_#{PASSENGER_TARBALL}"
+          end
+        end
+      end
+    else
+      register_tracking_task(:preparation, "passenger:#{distro}")
+      desc "Create Passenger orig tarball"
+      task("passenger:#{distro}" => :nginx) do
+        track_task(:preparation, "passenger:#{distro}") do |task|
+          if FETCH_PASSENGER_TARBALL_FROM_CACHE && File.exist?("/cache/#{PASSENGER_TARBALL}")
+            task.sh "cp /cache/#{PASSENGER_TARBALL} /work/#{PASSENGER_TARBALL}"
+          else
+            task.sh "./build-passenger-orig-tarball.sh /work/#{PASSENGER_TARBALL} #{NGINX_VERSION}"
+            task.sh "cp /work/#{PASSENGER_TARBALL} /cache/#{PASSENGER_TARBALL}"
+          end
+        end
       end
     end
   end
@@ -32,7 +50,7 @@ namespace :source do
       if File.exist?("/cache/#{NGINX_TARBALL}")
         task.sh "cp /cache/#{NGINX_TARBALL} /work/#{NGINX_TARBALL}"
       else
-        task.sh "./download-nginx-orig-tarball.sh /work/#{NGINX_TARBALL}"
+        task.sh "./download-nginx-orig-tarball.sh #{NGINX_VERSION} /work/#{NGINX_TARBALL}"
         task.sh "cp /work/#{NGINX_TARBALL} /cache/#{NGINX_TARBALL}"
       end
     end
@@ -59,21 +77,21 @@ namespace :spkg do
 
     register_tracking_task(:spkg, "passenger:#{distro}")
     desc "Build Passenger source package for #{distro}"
-    task("passenger:#{distro}" => ["source:passenger"]) do
+    task("passenger:#{distro}" => ["source:passenger:#{distro}"]) do
       track_task(:spkg, "passenger:#{distro}") do |task|
         task.sh "mkdir -p /work/spkg/passenger"
         task.sh "mkdir /work/spkg/passenger/#{distro}"
         task.sh "./build-source-package.rb",
-          :SPECDIR      => "/system/debian_specs/#{PASSENGER_SPECDIR}",
-          :DISTRIBUTION => distro,
-          :TARBALL      => PASSENGER_TARBALL,
-          :SOURCENAME   => "#{PASSENGER_PACKAGE_NAME}-#{PASSENGER_VERSION}",
-          :SPKG_DIR     => "/work/spkg/passenger/#{distro}",
-          :PACKAGE_VERSION  => PASSENGER_VERSION,
-          :DEBIAN_NAME      => PASSENGER_DEBIAN_NAME,
-          :DEBIAN_EPOCH     => PASSENGER_DEBIAN_EPOCH,
-          :DEBIAN_VENDOR_VERSION => PASSENGER_DEBIAN_VENDOR_VERSION,
-          :DEBIAN_HOTFIX_VERSION => PASSENGER_DEBIAN_HOTFIX_VERSION
+                :SPECDIR      => "/system/debian_specs/#{PASSENGER_SPECDIR}",
+                :DISTRIBUTION => distro,
+                :TARBALL      => "#{PASSENGER_TARBALL}",
+                :SOURCENAME   => "#{PASSENGER_PACKAGE_NAME}-#{PASSENGER_VERSION}",
+                :SPKG_DIR     => "/work/spkg/passenger/#{distro}",
+                :PACKAGE_VERSION  => PASSENGER_VERSION,
+                :DEBIAN_NAME      => PASSENGER_DEBIAN_NAME,
+                :DEBIAN_EPOCH     => PASSENGER_DEBIAN_EPOCH,
+                :DEBIAN_VENDOR_VERSION => PASSENGER_DEBIAN_VENDOR_VERSION,
+                :DEBIAN_HOTFIX_VERSION => PASSENGER_DEBIAN_HOTFIX_VERSION
       end
     end
   end
@@ -85,26 +103,27 @@ namespace :spkg do
   task "nginx:all"
 
   DISTROS.each do |distro|
+    next if dynamic_module_supported?(distro)
     task "nginx:all" => "nginx:#{distro}"
     task "all" => "nginx:#{distro}"
 
     register_tracking_task(:spkg, "nginx:#{distro}")
     desc "Build Nginx source package for #{distro}"
-    task("nginx:#{distro}" => ["source:passenger", "source:nginx"]) do
+    task("nginx:#{distro}" => ["source:passenger:#{distro}", "source:nginx"]) do
       track_task(:spkg, "nginx:#{distro}") do |task|
         task.sh "mkdir -p /work/spkg/nginx"
         task.sh "mkdir /work/spkg/nginx/#{distro}"
         task.sh "./build-source-package.rb",
-          :SPECDIR      => "/system/debian_specs/nginx",
-          :DISTRIBUTION => distro,
-          :TARBALL      => NGINX_TARBALL,
-          :SOURCENAME   => "#{NGINX_PACKAGE_NAME}-#{NGINX_VERSION}",
-          :SPKG_DIR     => "/work/spkg/nginx/#{distro}",
-          :PACKAGE_VERSION  => NGINX_VERSION,
-          :DEBIAN_NAME      => NGINX_DEBIAN_NAME,
-          :DEBIAN_EPOCH     => NGINX_DEBIAN_EPOCH,
-          :DEBIAN_VENDOR_VERSION => NGINX_DEBIAN_VENDOR_VERSION,
-          :DEBIAN_HOTFIX_VERSION => NGINX_DEBIAN_HOTFIX_VERSION
+                :SPECDIR      => "/system/debian_specs/nginx",
+                :DISTRIBUTION => distro,
+                :TARBALL      => NGINX_TARBALL,
+                :SOURCENAME   => "#{NGINX_PACKAGE_NAME}-#{NGINX_VERSION}",
+                :SPKG_DIR     => "/work/spkg/nginx/#{distro}",
+                :PACKAGE_VERSION  => NGINX_VERSION,
+                :DEBIAN_NAME      => NGINX_DEBIAN_NAME,
+                :DEBIAN_EPOCH     => NGINX_DEBIAN_EPOCH,
+                :DEBIAN_VENDOR_VERSION => NGINX_DEBIAN_VENDOR_VERSION,
+                :DEBIAN_HOTFIX_VERSION => NGINX_DEBIAN_HOTFIX_VERSION
       end
     end
   end
@@ -174,6 +193,10 @@ namespace :pkg do
 
   DISTROS.each do |distro|
     ARCHITECTURES.each do |arch|
+      # Nginx dynamic module is built in pkg:passenger for use with distro standard Nginx, so
+      # no need for our own separate Nginx package.
+      next if dynamic_module_supported?(distro)
+      
       task "nginx:all" => "nginx:#{distro}:#{arch}"
       task "all" => "nginx:#{distro}:#{arch}"
 

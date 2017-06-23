@@ -12,9 +12,11 @@ def ruby_package_dependencies
   when :debian
     if is_distribution?("<= wheezy")
       "ruby1.8, ruby1.8-dev, rubygems1.8, ruby1.9.1, ruby1.9.1-dev"
-    else
-      # Jessie
+    elsif is_distribution?("<= jessie")
       "ruby2.1, ruby2.1-dev"
+    else
+      # Stretch
+      "ruby2.3, ruby2.3-dev"
     end
   else
     raise "Unknown distribution class"
@@ -37,8 +39,11 @@ def distro_ruby_versions
   when :debian
     if is_distribution?("<= wheezy")
       ["1.8", "1.9.1"]
-    else
+    elsif is_distribution?("<= jessie")
       ["2.1"]
+    else
+      # Stretch
+      ["2.3"]
     end
   else
     raise "Unknown distribution class"

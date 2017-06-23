@@ -1,5 +1,5 @@
 #!/bin/bash
-# Usage: build-passenger-orig-tarball.sh <OUTPUT>
+# Usage: build-passenger-orig-tarball.sh <OUTPUT> <NGINX_MODULE_TARBALL>
 # Builds the Passenger orig tarball from a Passenger source directory.
 #
 # Required environment variables:
@@ -15,7 +15,7 @@ ROOTDIR=`dirname "$0"`
 ROOTDIR=`cd "$ROOTDIR/../.." && pwd`
 source "$ROOTDIR/internal/lib/library.sh"
 
-require_args_exact 1 "$@"
+require_args_exact 2 "$@"
 require_envvar PASSENGER_VERSION "$PASSENGER_VERSION"
 require_envvar PASSENGER_PACKAGE_NAME "$PASSENGER_PACKAGE_NAME"
 require_envvar PASSENGER_DEBIAN_NAME "$PASSENGER_DEBIAN_NAME"
@@ -66,6 +66,9 @@ header "Extracting Nginx into Passenger directory"
 echo "+ cd $PASSENGER_PACKAGE_NAME-$PASSENGER_VERSION"
 cd $PASSENGER_PACKAGE_NAME-$PASSENGER_VERSION
 run tar xzf /work/${NGINX_DEBIAN_NAME}_$NGINX_VERSION.orig.tar.gz
+
+header "Extracting Nginx into Passenger directory for Module"
+run tar xzf "/work/${NGINX_DEBIAN_NAME}_${2}.orig.tar.gz"
 
 header "Packaging up"
 cd ..
