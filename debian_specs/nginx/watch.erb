@@ -1,7 +1,3 @@
 version=3
 opts=pgpsigurlmangle=s/$/.asc/ \
-<% if is_distribution?(">= zesty") -%>
-http://nginx.org/download/nginx-(1.10\.\d+)\.tar\.gz
-<% else -%>
 http://nginx.org/download/nginx-(\d\.\d+\.\d+)\.tar\.gz
-<% end -%>

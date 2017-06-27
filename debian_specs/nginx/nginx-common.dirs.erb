@@ -3,10 +3,6 @@ require File.absolute_path(File.dirname(__FILE__)) + '/helpers'
 -%>
 etc/nginx
 etc/nginx/conf.d
-<% if is_distribution?(">= zesty") -%>
-etc/nginx/modules-enabled
-etc/nginx/modules-available
-<% end -%>
 etc/nginx/sites-available
 etc/nginx/sites-enabled
 etc/ufw/applications.d

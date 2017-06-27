@@ -19,9 +19,6 @@ end
 #
 [Unit]
 Description=A high performance web server and a reverse proxy server
-<% if is_distribution?(">= zesty") -%>
-Documentation=man:nginx(8)
-<% end -%>
 After=network.target
 
 [Service]
