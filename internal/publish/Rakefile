@@ -52,7 +52,7 @@ PACKAGECLOUD_YANK_ALL_TASKS.each_with_index do |task_name, i|
 end
 
 
-##### Tasks for the 'yank all' feature #####
+##### Publishing tasks #####
 
 register_tracking_category(:publish, "Packages")
 
