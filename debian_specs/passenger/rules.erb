@@ -59,6 +59,7 @@ override_dh_auto_build:
 		--with-http_realip_module --with-http_geoip_module=dynamic \
 		--with-http_ssl_module --http-proxy-temp-path=/var/lib/nginx/proxy \
 		--add-dynamic-module=`pwd`/../src/nginx_module && \
+		echo '#define NGX_HTTP_HEADERS 1' >> objs/ngx_auto_config.h && \
 		make -f objs/Makefile modules && \
 		mv objs/ngx_http_passenger_module.so ../debian/ || \
 		mv modules/ngx_http_passenger_module.so ../debian/
