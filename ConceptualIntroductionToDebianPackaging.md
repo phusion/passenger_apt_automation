@@ -37,7 +37,7 @@ Building a Debian package involves:
 
  1. Writing a specification of the packaging.
  2. Putting the specification in the same directory as the software's source code.
- 3. Running a Debian package building. This turns that specification, plus the software's source code, into one or more package files.
+ 3. Running a Debian package building tool. This turns that specification, plus the software's source code, into one or more package files.
 
 ### Compilation is an integral part of package building
 
@@ -62,8 +62,8 @@ This package is supposed to contain everything related to packaging the software
 
  * Man pages
  * Init scripts
- * Pre- and post-install scripts.
- * Patches.
+ * Pre- and post-install scripts
+ * Patches
 
 ## Package building tools
 
@@ -88,7 +88,7 @@ debuild builds on top of dpkg-buildpackage and provides a few more additional fe
 
 ### pbuilder: ensuring that the packaging specification is correct
 
-Pbuilder is a tool for building packages in an isolated environment so that you can more easily test a package's correctness.
+Pbuilder is a tool for building packages in an isolated environment (a chroot) so that you can more easily test a package's correctness.
 
 Dpkg-buildpackage and debuild operate directly on the current operating system environment. This is fairly straightforward, but it has a drawback: it depends implicitly on your system's state. What does this mean?
 
@@ -102,7 +102,7 @@ The pbuilder tool was invented to solve this problem. Pbuilder creates a clean, 
 
 A drawback of dpkg-buildpackage, debuild and pbuilder is that they can only build packages for the Debian/Ubuntu version that you are currently running. What if you need to publish packages for multiple distribution versions?
 
-The pbuilder-dist tool addresses this problem. Pbuilder-dist builds on top of pbuilder and allows you to choose which Debian/Ubuntu version to put in the chroot. This way you can build packages for multiple distribution versions without having to install each distribution version manually.
+The pbuilder-dist tool addresses this problem. Pbuilder-dist builds on top of pbuilder and manages multiple chroot environments, each running a Debian/Ubuntu version of your choosing. This way you can build packages for multiple distribution versions without having to install each distribution version manually.
 
 ## Binary vs source packages
 

@@ -49,8 +49,8 @@ Debian package definitions are located in the `debian_specs` directory:
 
 Other noteworthy tools:
 
- * `shell` -- Open a shell in the buildbox container for debugging purposes.
- * `jenkins` -- Scripts to be run by our Jenkins continuous integration jobs, either after every commit or during release time.
+ * `shell` -- Open a shell in a new buildbox container for debugging purposes.
+ * `jenkins/` -- Scripts to be run by our Jenkins continuous integration jobs, either after every commit or during release time.
 
 This project utilizes Docker for isolation. Because of the usage of Docker, these tools can be run on any 64-bit Linux system, including non-Debian-based systems. Though in practice, we've only tested on Ubuntu.
 
@@ -309,7 +309,7 @@ If you are following this tutorial on a Linux system, then you must [install Doc
 
 If you are following this tutorial on any other OS, then you must install [Vagrant](https://www.vagrantup.com/) and [VirtualBox](https://www.virtualbox.org/).
 
-NOTE: If you are on OS X, installing boot2docker is NOT enough. You MUST use Vagrant+VirtualBox.
+NOTE: If you are on macOS, installing Docker for Mac is NOT enough. You MUST use Vagrant+VirtualBox.
 
 ### Step 1: Checkout out the desired source code
 
@@ -319,15 +319,15 @@ First, clone the Passenger git repository and its submodules:
     cd passenger
     git submodule update --init --recursive
 
-Checkout the branch you want. At the time of writing (2015 May 13), you will most likely be interested in the `stable-5.0` branch because that's the branch that is slated to become the next release version.
+Checkout the branch you want. At the time of writing (2017 July 6), you will most likely be interested in the `stable-5.1` branch because that's the branch that is slated to become the next release version.
 
-    git checkout stable-5.0
+    git checkout stable-5.1
 
 Then go to the directory `packaging/debian`:
 
     cd packaging/debian
 
-### Step 2 (non-Linux): spin up Vagrant VM
+### Step 2 (non-Linux only): spin up Vagrant VM
 
 If you are on a Linux system, then you can skip to step 3.
 
