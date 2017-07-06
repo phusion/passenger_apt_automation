@@ -39,6 +39,9 @@ export LC_ALL=C.UTF-8
 export DEBIAN_FRONTEND=noninteractive
 export HOME=/root
 
+run apt-get update -q
+run apt-get install -y -q sudo
+
 header "Creating users and directories"
 run create_user app "Passenger APT Automation" 2446
 run cp /paa_build/sudoers.conf /etc/sudoers.d/app
@@ -48,11 +51,10 @@ run cp /paa_build/pbuilderrc ~app/.pbuilderrc
 run chown app: ~app/.pbuilderrc
 
 header "Installing dependencies"
-run apt-get update -q
 run apt-get install -y -q ubuntu-dev-tools debhelper source-highlight \
-	ruby ruby-dev libsqlite3-dev runit git gawk rake realpath debian-keyring \
+	ruby ruby-dev libsqlite3-dev runit git gawk realpath debian-keyring \
 	zlib1g-dev libxml2-dev libxslt1-dev gdebi-core gnupg dh-systemd
-run gem1.9.1 install bundler --no-rdoc --no-ri
+run gem install rake bundler --no-rdoc --no-ri
 run env BUNDLE_GEMFILE=/paa_build/Gemfile bundle install
 
 header "Importing public keys"
@@ -74,7 +76,7 @@ run rm -rf *.deb *.gz *.dsc *.changes pam-*
 header "Finishing up"
 run cp /paa_build/CONTAINER_VERSION.txt /
 # Undo 'apt-get build-dep pam'
-run apt-get remove -y autoconf automake autopoint autotools-dev dh-autoreconf docbook-xml \
+run apt-get remove -y autoconf automake autopoint dh-autoreconf docbook-xml \
 	docbook-xsl flex libaudit-dev libcrack2 libcrack2-dev libdb-dev libdb5.3-dev \
 	libfl-dev libgc1c2 libpcre3-dev libpcrecpp0 libselinux1-dev libsepol1-dev \
 	libtool libxml2-utils m4 pkg-config sgml-data w3m xsltproc
