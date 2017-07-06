@@ -9,12 +9,19 @@ Uploaders: <%= MAINTAINER_NAME %> <<%= MAINTAINER_EMAIL %>>
 Build-Depends: debhelper (>= 7.0.50~), rake,
  <%= ruby_package_dependencies %>,
 <% if is_distribution?(">= trusty") || is_distribution?(">= jessie") -%>
-  apache2 (>= 2.4), apache2-dev (>= 2.4),
+ apache2 (>= 2.4), apache2-dev (>= 2.4),
 <% else -%>
  apache2-mpm-worker | apache2-mpm, apache2-threaded-dev,
 <% end -%>
+<% if dynamic_module_supported?(@distribution) -%>
+ libxslt-dev, libgd2-xpm-dev, libgeoip-dev,
+<% end -%>
  libapr1-dev, libcurl4-openssl-dev, zlib1g-dev, libpcre3-dev,
+<% if @distribution == "stretch" -%>
+ libssl1.0-dev
+<% else -%>
  libssl-dev
+<% end -%>
 Standards-Version: 3.9.3
 Homepage: https://www.phusionpassenger.com/
 Vcs-Git: git://github.com/phusion/passenger.git
@@ -25,7 +32,7 @@ Package: passenger-enterprise
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends},
  procps,
- ruby2.4 | ruby2.3 | ruby2.2 | ruby2.1 | ruby2.0 | ruby1.9.1 | ruby1.8 | ruby-interpreter,
+ ruby2.5 | ruby2.4 | ruby2.3 | ruby2.2 | ruby2.1 | ruby2.0 | ruby1.9.1 | ruby1.8 | ruby-interpreter,
  rubygems-integration (>= 1.8) | rubygems1.9.1 | rubygems1.9 | rubygems (>= 1.2),
 <% if is_distribution?('<= lucid') || is_distribution?('<= squeeze') -%>
  librack-ruby
@@ -34,24 +41,26 @@ Depends: ${shlibs:Depends}, ${misc:Depends},
 <% end -%>
 Recommends: passenger-enterprise-doc (= ${binary:Version}), passenger-enterprise-dev (= ${binary:Version})
 Breaks: libapache2-mod-passenger (<< <%= DEBIAN_EPOCH %>:<%= PACKAGE_VERSION %>), passenger-common,
+ libnginx-mod-http-passenger (<< <%= DEBIAN_EPOCH %>:<%= PACKAGE_VERSION %>),
  passenger-common1.8, passenger-common1.9.1, ruby-passenger, passenger
 Replaces: libapache2-mod-passenger (<< <%= DEBIAN_EPOCH %>:<%= PACKAGE_VERSION %>), passenger-common,
+ libnginx-mod-http-passenger (<< <%= DEBIAN_EPOCH %>:<%= PACKAGE_VERSION %>),
  passenger-common1.8, passenger-common1.9.1, ruby-passenger, passenger
-Conflicts: ruby-passenger, ruby-passenger-dev, passenger, passenger-dev, libapache2-mod-passenger
-Description: Rails and Rack support for Apache2 and Nginx
- Phusion Passenger — a.k.a. mod_rails or mod_rack — makes
- deployment of Ruby web applications, such as those built on the
- revolutionary Ruby on Rails web framework, a breeze.
+Conflicts: ruby-passenger, ruby-passenger-dev, passenger, passenger-dev, libapache2-mod-passenger, libnginx-mod-http-passenger
+Description: Application server for Ruby, Node.js, Python, Meteor 
+ Passenger makes deployment of web apps very easy and robust. 
+ It can be used standalone or integrated with Nginx or Apache.
+ Passenger is a Phusion product.
 
 Package: passenger-enterprise-dbg
 Architecture: any
 Section: debug
 Priority: extra
 Depends: passenger-enterprise (= ${binary:Version}), ${misc:Depends},
-Description: Rails and Rack support for Apache2 and Nginx
- Phusion Passenger — a.k.a. mod_rails or mod_rack — makes
- deployment of Ruby web applications, such as those built on the
- revolutionary Ruby on Rails web framework, a breeze.
+Description: Debugging symbols for Passenger application server 
+ Passenger makes deployment of web apps very easy and robust. 
+ It can be used standalone or integrated with Nginx or Apache.
+ Passenger is a Phusion product.
  .
  This package contains the debugging symbols for passenger-enterprise.
 
@@ -62,12 +71,13 @@ Depends: ${shlibs:Depends}, ${misc:Depends},
  passenger-enterprise (= ${binary:Version})
 Replaces: ruby-passenger-dev, passenger-dev
 Conflicts: ruby-passenger-dev, passenger-dev
-Description: Rails and Rack support for Apache2 and Nginx
- Phusion Passenger — a.k.a. mod_rails or mod_rack — makes
- deployment of Ruby web applications, such as those built on the
- revolutionary Ruby on Rails web framework, a breeze.
+Description: Dependencies for compiling an Nginx module 
+ Convenience package that helps users to easily create 
+ a custom compilation of Nginx and the Passenger
+ application server. Passenger is a Phusion product that 
+ makes deployment of web apps very easy and robust.
  .
- This package provides the development dependencies, for building the NGINX module
+ This convenience package provides the development dependencies for compiling an Nginx module.
 
 Package: libapache2-mod-passenger-enterprise
 Architecture: any
@@ -81,12 +91,28 @@ Depends: ${shlibs:Depends}, ${misc:Depends},
  passenger-enterprise (= ${binary:Version})
 Replaces: libapache2-mod-passenger
 Conflicts: libapache2-mod-passenger
-Description: Rails and Rack support for Apache2
- Phusion Passenger — a.k.a. mod_rails or mod_rack — makes
- deployment of Ruby web applications, such as those built on the
- revolutionary Ruby on Rails web framework, a breeze.
+Description: Apache integration for Passenger application server
+ Passenger is an application server for Ruby, Node.js, Python, Meteor. 
+ It makes deployment of web apps very easy and robust. Passenger is 
+ a Phusion product.
  .
- This package contains the Apache 2 module required by Phusion Passenger.
+ This package contains the Apache 2 module for integration with Passenger.
+
+<% if dynamic_module_supported?(@distribution) %>
+Package: libnginx-mod-http-passenger-enterprise
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends},
+ nginx-common (= <%= latest_nginx_unsanitized(@distribution) %>),
+ passenger-enterprise (= ${binary:Version})
+Replaces: libnginx-mod-http-passenger
+Conflicts: libnginx-mod-http-passenger
+Description: Nginx integration for Passenger application server 
+ Passenger is an application server for Ruby, Node.js, Python, Meteor. 
+ It makes deployment of web apps very easy and robust. Passenger is a 
+ Phusion product.
+ .
+ This package contains the Nginx module for integration with Passenger.
+<% end %>
 
 Package: passenger-enterprise-doc
 Section: doc
@@ -95,10 +121,10 @@ Depends: ${misc:Depends}
 Suggests: www-browser
 Conflicts: ruby-passenger-doc, passenger-doc
 Replaces: ruby-passenger-doc, passenger-doc
-Description: Rails and Rack support for Apache2 - Documentation
- Phusion Passenger — a.k.a. mod_rails or mod_rack — makes
- deployment of Ruby web applications, such as those built on the
- revolutionary Ruby on Rails web framework, a breeze.
+Description: Documentation for Passenger application server 
+ Passenger makes deployment of web apps very easy and robust. 
+ It can be used standalone or integrated with Nginx or Apache.
+ Passenger is a Phusion product.
  .
- This package provides the documentation for Phusion Passenger.
+ This package provides the documentation for Passenger.
 

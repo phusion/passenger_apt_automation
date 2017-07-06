@@ -29,6 +29,7 @@ override_dh_auto_build:
 		sed -i "s|@RUBYLIBDIR@|$$vendordir|g" \
 			debian/locations.ini \
 			debian/passenger-enterprise.install \
+			debian/mod-http-passenger.conf \
 			debian/passenger.conf
 <% distro_ruby_versions.each do |ruby_version| -%>
 	vendordir=`/usr/bin/ruby<%= ruby_version %> -rrbconfig -e 'puts RbConfig::CONFIG["vendordir"]'` && \
@@ -49,6 +50,22 @@ override_dh_auto_build:
 		--add-module=`pwd`/../src/nginx_module && \
 		make && \
 		mv objs/nginx objs/nginx-<%= PhusionPassenger::PREFERRED_NGINX_VERSION %>
+<% if dynamic_module_supported?(@distribution) %>
+	/usr/bin/rake nginx:as_dynamic_module && \
+		cd nginx-<%= latest_nginx_available(@distribution) %> && \
+		./configure --with-pcre-jit --with-threads --with-ipv6 \
+		--with-http_gzip_static_module --with-http_gunzip_module \
+		--with-http_v2_module --with-http_dav_module \
+		--with-http_realip_module --with-http_geoip_module=dynamic \
+		--with-http_ssl_module --http-proxy-temp-path=/var/lib/nginx/proxy \
+		--add-dynamic-module=`pwd`/../src/nginx_module && \
+		echo '#define NGX_HTTP_HEADERS 1' >> objs/ngx_auto_config.h && \
+		make -f objs/Makefile modules && \
+		mv objs/ngx_http_passenger_module.so ../debian/ || \
+		mv modules/ngx_http_passenger_module.so ../debian/
+<% else %>
+	rm debian/libnginx-mod-http-passenger-enterprise.*
+<% end %>
 
 override_dh_auto_install:
 	mkdir debian/tmp/
@@ -61,10 +78,15 @@ override_dh_auto_install:
 		debian/tmp/usr/bin/* \
 		debian/tmp/usr/sbin/* \
 		`find debian/tmp/usr -name rack_handler.rb`
+<% if !dynamic_module_supported?(@distribution) %>
 	./dev/install_scripts_bootstrap_code.rb --nginx-module-config /usr/bin debian/tmp/usr/share/<%= PhusionPassenger::GLOBAL_NAMESPACE_DIRNAME %>/ngx_http_passenger_module/config
+<% end %>
 	touch debian/tmp/usr/share/<%= PhusionPassenger::GLOBAL_NAMESPACE_DIRNAME %>/release.txt
 	cp debian/passenger_free_ruby debian/tmp/usr/bin/
 	cp debian/passenger_system_ruby debian/tmp/usr/bin/
+<% if dynamic_module_supported?(@distribution) %>
+	mkdir -p debian/tmp/usr/lib/nginx/modules/ && cp debian/ngx_http_passenger_module.so debian/tmp/usr/lib/nginx/modules/
+<% end %>
 
 override_dh_auto_clean:
 	/usr/bin/rake clean CLEAN_DOCS=false

@@ -1,0 +1,3 @@
+usr/lib/nginx/modules/
+../mod-http-passenger.conf etc/nginx/conf.d/
+../mod-http-passenger.load usr/share/nginx/modules-available/
