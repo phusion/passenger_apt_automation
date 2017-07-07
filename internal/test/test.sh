@@ -17,6 +17,7 @@ if [[ "$DISTRIBUTION" = debian7 ]]; then
 	APACHE2_DEV_PACKAGES="apache2 apache2-threaded-dev"
 else
 	APACHE2_DEV_PACKAGES="apache2 apache2-dev"
+	NGINX_DEV_PACKAGES="nginx"
 fi
 
 if ls /output/*enterprise* >/dev/null 2>/dev/null; then
@@ -42,8 +43,16 @@ else
 	run gdebi -n -q /output/passenger-doc_*_all.deb
 	run gdebi -n -q /output/libapache2-mod-passenger_*_amd64.deb
 fi
-run gdebi -n -q /output/nginx-common_*_all.deb
-run gdebi -n -q /output/nginx-extras_*_amd64.deb
+if ! ls /output/libnginx-mod-http-passenger* >/dev/null 2>/dev/null; then
+	run gdebi -n -q /output/nginx-common_*_all.deb
+	run gdebi -n -q /output/nginx-extras_*_amd64.deb
+elif ls /output/*enterprise* >/dev/null 2>/dev/null; then
+	run gdebi -n -q /output/libnginx-mod-http-passenger-enterprise_*_amd64.deb
+	run apt-get install -y -q $NGINX_DEV_PACKAGES
+else
+	run gdebi -n -q /output/libnginx-mod-http-passenger_*_amd64.deb
+	run apt-get install -y -q $NGINX_DEV_PACKAGES
+fi
 run apt-get install -y -q $APACHE2_DEV_PACKAGES
 
 echo
@@ -106,7 +115,11 @@ run setuser app mkdir -p /cache/test-$DISTRIBUTION/bundle
 run setuser app mkdir -p /cache/test-$DISTRIBUTION/node_modules
 run setuser app ln -s /cache/test-$DISTRIBUTION/node_modules node_modules
 run setuser app rake test:install_deps DOCTOOLS=no DEPS_TARGET=/cache/test-$DISTRIBUTION/bundle BUNDLE_ARGS="-j 4"
-run setuser app cp /system/internal/test/misc/config.json test/config.json
+if ! ls /output/*enterprise* >/dev/null 2>/dev/null; then
+	run setuser app cp /system/internal/test/misc/config-oss.json test/config.json
+else
+	run setuser app cp /system/internal/test/misc/config-enterprise.json test/config.json
+fi
 find /var/{log,lib}/nginx -type d | xargs --no-run-if-empty chmod o+rwx
 find /var/{log,lib}/nginx -type f | xargs --no-run-if-empty chmod o+rw
 
