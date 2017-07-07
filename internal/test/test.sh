@@ -6,13 +6,8 @@ source "$ROOTDIR/internal/lib/library.sh"
 
 COMPILE_CONCURRENCY=${COMPILE_CONCURRENCY:-2}
 export DEBIAN_FRONTEND=noninteractive
-if [[ "$DISTRIBUTION" = debian6 ]]; then
-	export LC_ALL=POSIX
-	export LC_CTYPE=POSIX
-else
-	export LC_ALL=C.UTF-8
-	export LC_CTYPE=C.UTF-8
-fi
+export LC_ALL=C.UTF-8
+export LC_CTYPE=C.UTF-8
 if [[ "$DISTRIBUTION" = debian7 ]]; then
 	APACHE2_DEV_PACKAGES="apache2 apache2-threaded-dev"
 else
