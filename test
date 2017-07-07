@@ -88,6 +88,7 @@ function parse_options()
 		exit 1
 	else
 		IMAGE=`to_testbox_image "$DISTRIBUTION"`
+		DISTRIBUTION=`to_distro_codename "$DISTRIBUTION"`
 	fi
 	if [[ "$OUTPUT_DIR" = "" ]]; then
 		echo "ERROR: please specify a build products directory with -d."
