@@ -17,7 +17,7 @@ Build-Depends: debhelper (>= 7.0.50~), rake,
  libxslt-dev, libgd2-xpm-dev, libgeoip-dev,
 <% end -%>
  libapr1-dev, libcurl4-openssl-dev, zlib1g-dev, libpcre3-dev,
-<% if @distribution == "stretch" -%>
+<% if is_distribution?("== stretch") -%>
  libssl1.0-dev
 <% else -%>
  libssl-dev
@@ -97,7 +97,7 @@ Description: Apache integration for Passenger application server
  .
  This package contains the Apache 2 module for integration with Passenger.
 
-<% if dynamic_module_supported?(@distribution) %>
+<% if dynamic_module_supported?(@distribution) -%>
 Package: libnginx-mod-http-passenger
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends},
@@ -108,7 +108,7 @@ Description: Nginx integration for Passenger application server
  Phusion product.
  .
  This package contains the Nginx module for integration with Passenger.
-<% end %>
+<% end -%>
 
 Package: passenger-doc
 Section: doc

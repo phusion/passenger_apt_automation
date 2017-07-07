@@ -1,3 +1,1 @@
-### Begin automatically installed Phusion Passenger load snippet ###
 load_module /usr/lib/nginx/modules/ngx_http_passenger_module.so;
-### End automatically installed Phusion Passenger load snippet ###
