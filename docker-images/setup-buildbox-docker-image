@@ -1,7 +1,12 @@
 #!/bin/bash
 set -e
+if [ $# -ne 1 ]; then
+	echo "Please specify 1 argument: image:version, for example:"
+	echo "phusion/passenger_apt_automation_buildbox:1.0.0"
+	exit 1
+fi
 SELFDIR=`dirname "$0"`
 SELFDIR=`cd "$SELFDIR" && pwd`
 set -x
 cd "$SELFDIR/buildbox"
-exec docker build --force-rm -t phusion/passenger_apt_automation_buildbox .
+exec docker build --force-rm -t $1 .

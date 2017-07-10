@@ -19,6 +19,7 @@ The goal of this project is twofold:
    - [The test script](#the-test-script)
    - [The publish script](#the-publish-script)
  * [Maintenance](#maintenance)
+   - [Updating build and/or testboxes](#updating-build-and-or-testboxes)
    - [Adding support for a new distribution](#adding-support-for-a-new-distribution)
    - [Removing support for a distribution](#removing-support-for-a-distribution)
    - [Updating the build box's APT cache](#updating-the-build-boxs-apt-cache)
@@ -145,6 +146,10 @@ Once packages have been built, you can publish them to PackageCloud. The `publis
 
 ## Maintenance
 
+### Updating build and/or testboxes
+
+If you change the buildbox or testbox, create a new version by updating the respective clause in `internal/lib/docker_image_info.sh`.
+
 ### Adding support for a new distribution
 
 In these instructions, we assume that the new distribution is Ubuntu 16.04 "Xenial". Update the actual parameters accordingly.
@@ -168,10 +173,9 @@ In these instructions, we assume that the new distribution is Ubuntu 16.04 "Xeni
 
  6. Create a test box for this new distribution.
 
-     1. Create `docker-images/setup-testbox-docker-image-ubuntu-16.04`
-     2. Create `docker-images/testbox-ubuntu-16.04/`
-     3. Edit `docker-images/Makefile` and add entries for this new testbox.
-     4. Run `./docker-images/setup-testbox-docker-image-ubuntu-16.04`
+     1. Create `docker-images/testbox-ubuntu-16.04/`
+     2. Edit `docker-images/Makefile` and add entries for this new testbox.
+     3. Run `cd docker-images && make testbox-ubuntu-16.04`
 
     When done, test Passenger under the new testbox:
 
@@ -207,9 +211,8 @@ In these instructions, we assume that the distribution to be removed is Ubuntu 1
  3. Update the package definitions in `debian_specs/`. Remove `<% if %>` statements that target only this distribution.
  4. Remove the test box for this distribution.
 
-     1. Remove `docker-images/setup-testbox-docker-image-ubuntu-16.04`
-     2. Remove `docker-images/testbox-ubuntu-16.04/`
-     3. Edit `docker-images/Makefile` and remove entries for this distribution's testbox.
+     1. Remove `docker-images/testbox-ubuntu-16.04/`
+     2. Edit `docker-images/Makefile` and remove entries for this distribution's testbox.
 
  5. Commit and push all changes:
 

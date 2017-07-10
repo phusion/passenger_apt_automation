@@ -1,3 +1,9 @@
+BUILDBOX_NAME = `internal/lib/docker_image_info.sh buildbox_name`
+BUILDBOX_VERSION = `internal/lib/docker_image_info.sh buildbox_version`
+
+TESTBOX_BASE_NAME = `internal/lib/docker_image_info.sh testbox_base_name`
+TESTBOX_VERSION = `internal/lib/docker_image_info.sh testbox_version`
+
 UBUNTU_DISTRIBUTIONS = {
   "lucid"    => "10.04",
   "maverick" => "10.10",
@@ -66,26 +72,6 @@ def to_distro_codename(input)
         || input == "debian-#{version}" \
         || input == "debian#{version}"
       return codename
-    end
-  end
-
-  nil
-end
-
-def to_testbox_image(input)
-  UBUNTU_DISTRIBUTIONS.each_pair do |codename, version|
-    if input == codename \
-        || input == "ubuntu-#{version}" \
-        || input == "ubuntu#{version}"
-      return "phusion/passenger_apt_automation_testbox_ubuntu_#{version.gsub('.', '_')}"
-    end
-  end
-
-  DEBIAN_DISTRIBUTIONS.each_pair do |codename, version|
-    if input == codename \
-        || input == "ubuntu-#{version}" \
-        || input == "ubuntu#{version}"
-      return "phusion/passenger_apt_automation_testbox_debian_#{vesion}"
     end
   end
 

@@ -38,6 +38,11 @@ function to_distro_codename()
 	return 1
 }
 
+function get_buildbox_image()
+{
+	echo "<%= BUILDBOX_NAME %>:<%= BUILDBOX_VERSION %>"
+}
+
 function to_testbox_image()
 {
 	local INPUT="$1"
@@ -47,7 +52,7 @@ function to_testbox_image()
 			|| "$INPUT" = "ubuntu<%= version %>"
 			|| "$INPUT" = "ubuntu-<%= version %>" ]]
 		then
-			echo phusion/passenger_apt_automation_testbox_ubuntu_<%= version.gsub('.', '_') %>
+			echo <%= TESTBOX_BASE_NAME %>_ubuntu_<%= version.gsub('.', '_') %>:<%= TESTBOX_VERSION %>
 			return
 		fi
 	<% end %>
@@ -56,7 +61,7 @@ function to_testbox_image()
 			|| "$INPUT" = "debian<%= version %>"
 			|| "$INPUT" = "debian-<%= version %>" ]]
 		then
-			echo phusion/passenger_apt_automation_testbox_debian_<%= version %>
+			echo <%= TESTBOX_BASE_NAME %>_debian_<%= version %>:<%= TESTBOX_VERSION %>
 			return
 		fi
 	<% end %>

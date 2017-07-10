@@ -105,6 +105,8 @@ function parse_options()
 	shift $OPTIND || true
 	ORIG_ARGV=("$@")
 
+	BUILDBOX_IMAGE=`get_buildbox_image`
+
 	if [[ ${#ORIG_ARGV[@]} = 0 ]]; then
 		SHOW_TASKS=true
 	else
@@ -158,7 +160,7 @@ if $SHOW_TASKS; then
 		-e "ARCHITECTURES=$ARCHITECTURES" \
 		-e "SHOW_TASKS=true" \
 		-e "LC_CTYPE=C.UTF-8" \
-		phusion/passenger_apt_automation_buildbox \
+		$BUILDBOX_IMAGE \
 		/sbin/my_init --quiet --skip-runit --skip-startup-files -- \
 		drake -f /system/internal/build/Rakefile -T --trace
 else
@@ -181,7 +183,7 @@ else
 		-e "ARCHITECTURES=$ARCHITECTURES" \
 		-e "APP_UID=`/usr/bin/id -u`" \
 		-e "APP_GID=`/usr/bin/id -g`" \
-		phusion/passenger_apt_automation_buildbox \
+		$BUILDBOX_IMAGE \
 		/system/internal/scripts/inituidgid.sh \
 		/system/internal/scripts/initccache.sh
 
@@ -202,7 +204,7 @@ else
 		-e "APP_UID=`/usr/bin/id -u`" \
 		-e "APP_GID=`/usr/bin/id -g`" \
 		-e "LC_CTYPE=C.UTF-8" \
-		phusion/passenger_apt_automation_buildbox \
+		$BUILDBOX_IMAGE \
 		/sbin/my_init --quiet --skip-runit --skip-startup-files -- \
 		/system/internal/scripts/inituidgid.sh \
 		/sbin/setuser app \
