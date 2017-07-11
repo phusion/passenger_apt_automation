@@ -89,6 +89,7 @@ function parse_options()
 	else
 		TESTBOX_IMAGE=`to_testbox_image "$DISTRIBUTION"`
 		DISTRIBUTION=`to_distro_codename "$DISTRIBUTION"`
+		DYNAMIC_MODULE_SUPPORTED=`dynamic_module_supported "$DISTRIBUTION"`
 	fi
 	if [[ "$OUTPUT_DIR" = "" ]]; then
 		echo "ERROR: please specify a build products directory with -d."
@@ -131,6 +132,7 @@ exec docker run \
 	-v "$CACHE_DIR/test-$DISTRIBUTION/aptlist:/var/lib/apt/lists" \
 	"${EXTRA_ARGS[@]}" \
 	-e "DISTRIBUTION=$DISTRIBUTION" \
+	-e "DYNAMIC_MODULE_SUPPORTED=$DYNAMIC_MODULE_SUPPORTED" \
 	-e "DEBUG_CONSOLE=$DEBUG_CONSOLE" \
 	-e "DEBUG_CONSOLE_ON_FAIL=$DEBUG_CONSOLE_ON_FAIL" \
 	-e "JENKINS=$JENKINS" \

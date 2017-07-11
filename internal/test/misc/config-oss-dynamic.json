@@ -11,5 +11,6 @@
   "nonexistant_uid": 9999,
   "nonexistant_gid": 9999,
 
-  "nginx": "/usr/sbin/nginx"
+  "nginx": "/usr/sbin/nginx",
+  "nginx_passenger_dynamic_module_conf_file": "/etc/nginx/modules-enabled/50-mod-http-passenger.conf"
 }

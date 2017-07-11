@@ -339,3 +339,28 @@ function to_testbox_image()
 
 	return 1
 }
+
+function dynamic_module_supported()
+{
+	local CODENAME="$1"
+
+	
+		if [[ "$CODENAME" = "zesty" ]]; then
+			echo true
+			return
+		fi
+	
+	
+		if [[ "$CODENAME" = "stretch" ]]; then
+			echo true
+			return
+		fi
+	
+		if [[ "$CODENAME" = "buster" ]]; then
+			echo true
+			return
+		fi
+	
+
+	echo false
+}

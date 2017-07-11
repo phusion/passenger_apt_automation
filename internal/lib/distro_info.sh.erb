@@ -73,3 +73,29 @@ function to_testbox_image()
 
 	return 1
 }
+
+function dynamic_module_supported()
+{
+	local CODENAME="$1"
+
+	<% UBUNTU_DISTRIBUTIONS.each_pair do |codename, version| 
+		if dynamic_module_supported?(codename)
+	%>
+		if [[ "$CODENAME" = <%= codename.inspect %> ]]; then
+			echo true
+			return
+		fi
+	<% 	end
+	   end %>
+	<% DEBIAN_DISTRIBUTIONS.each_pair do |codename, version| 
+		if dynamic_module_supported?(codename)
+	%>
+		if [[ "$CODENAME" = <%= codename.inspect %> ]]; then
+			echo true
+			return
+		fi
+	<% 	end
+	   end %>
+
+	echo false
+}
