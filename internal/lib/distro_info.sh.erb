@@ -11,6 +11,11 @@ require File.absolute_path(File.dirname(__FILE__)) + '/distro_info'
 # internal/scripts/regen_distro_info_script.sh.
 
 DEFAULT_DISTROS="<%= DEFAULT_DISTROS.join(' ') %>"
+<% BUILDBOX_NAME=`internal/lib/docker_image_info.sh buildbox_name`
+   BUILDBOX_VERSION=`internal/lib/docker_image_info.sh buildbox_version`
+
+   TESTBOX_BASE_NAME=`internal/lib/docker_image_info.sh testbox_base_name`
+   TESTBOX_VERSION=`internal/lib/docker_image_info.sh testbox_version` %>
 
 function to_distro_codename()
 {

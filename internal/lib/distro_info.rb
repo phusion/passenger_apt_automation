@@ -1,9 +1,3 @@
-BUILDBOX_NAME = `internal/lib/docker_image_info.sh buildbox_name`
-BUILDBOX_VERSION = `internal/lib/docker_image_info.sh buildbox_version`
-
-TESTBOX_BASE_NAME = `internal/lib/docker_image_info.sh testbox_base_name`
-TESTBOX_VERSION = `internal/lib/docker_image_info.sh testbox_version`
-
 UBUNTU_DISTRIBUTIONS = {
   "lucid"    => "10.04",
   "maverick" => "10.10",

@@ -10,6 +10,7 @@
 
 DEFAULT_DISTROS="precise trusty xenial zesty wheezy jessie stretch"
 
+
 function to_distro_codename()
 {
 	local INPUT="$1"
