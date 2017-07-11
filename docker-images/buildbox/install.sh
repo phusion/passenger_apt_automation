@@ -74,7 +74,6 @@ run gdebi -n libpam-doc*.deb libpam-modules*.deb libpam-runtime*.deb libpam0g*.d
 run rm -rf *.deb *.gz *.dsc *.changes pam-*
 
 header "Finishing up"
-run cp /paa_build/CONTAINER_VERSION.txt /
 # Undo 'apt-get build-dep pam'
 run apt-get remove -y autoconf automake autopoint dh-autoreconf docbook-xml \
 	docbook-xsl flex libaudit-dev libcrack2 libcrack2-dev libdb-dev libdb5.3-dev \
