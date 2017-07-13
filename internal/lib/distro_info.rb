@@ -77,22 +77,16 @@ def valid_distro_name?(name)
   UBUNTU_DISTRIBUTIONS.key?(name) || DEBIAN_DISTRIBUTIONS.key?(name)
 end
 
-def extract_nginx_version(os, distro, uri, sanitize)
+def extract_nginx_version(os, distro, sanitize)
   cache_file = "/tmp/#{distro}_nginx_version.txt"
   if !File.exists?(cache_file) || ((Time.now - 60*60*24) > File.mtime(cache_file))
-    version = get_and_unzip(uri).split("\n\n").map{|e|e.gsub(/\n /," ").split("\n").map{|x|x.split(": ",2)}.to_h}.select{|e|e["Package"] == "nginx"}[0]["Version"]
+    version = `docker run -it #{os}:#{distro} bash -c "apt-get -qq update && apt-cache policy nginx"`.split("\n").select{|e|e.include? "Candidate"}.first.strip.split(" ")[1]
     File.write(cache_file,version)
   else
     version = File.read(cache_file)
   end
   version.gsub!(/(-[0-9]+|{os}).*/,"") if sanitize
   version
-end
-
-def get_and_unzip(uri)
-  require 'open-uri'
-  require 'zlib'
-  Zlib::GzipReader.new(open(uri)).read
 end
 
 def dynamic_module_supported?(distro)
@@ -102,15 +96,13 @@ end
 def latest_nginx_sanitized?(distro, sanitized)
   if UBUNTU_DISTRIBUTIONS.key?(distro)
     os = 'ubuntu'
-    uri = "http://archive.ubuntu.com/ubuntu/dists/#{distro}/main/binary-amd64/Packages.gz"
   elsif DEBIAN_DISTRIBUTIONS.key?(distro)
     os = 'debian'
-    uri = "http://ftp.debian.org/debian/dists/#{distro}/main/binary-amd64/Packages.gz"
   else
     # unknown distro
     return ""
   end
-  return extract_nginx_version(os, distro, uri, sanitized)
+  return extract_nginx_version(os, distro, sanitized)
 end
 
 def latest_nginx_unsanitized(distro)
