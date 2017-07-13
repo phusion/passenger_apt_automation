@@ -1,1 +1,2 @@
 perl-use-dpkg-buildflags.patch
+CVE-2017-7529.patch
