@@ -80,7 +80,15 @@ end
 def extract_nginx_version(os, distro, sanitize)
   cache_file = "/tmp/#{distro}_nginx_version.txt"
   if !File.exists?(cache_file) || ((Time.now - 60*60*24) > File.mtime(cache_file))
-    version = `docker run -it #{os}:#{distro} bash -c "apt-get -qq update && apt-cache policy nginx"`.split("\n").select{|e|e.include? "Candidate"}.first.strip.split(" ")[1]
+    require 'open-uri'
+    if UBUNTU_DISTRIBUTIONS.key?(distro)
+      require 'json'
+      uri = "https://api.launchpad.net/1.0/ubuntu/+archive/primary?ws.op=getPublishedBinaries&binary_name=nginx&exact_match=true&distro_arch_series=https://api.launchpad.net/1.0/ubuntu/#{distro}/amd64&status=Published"
+      version = JSON.parse(open(uri).read)["entries"][0]["binary_package_version"]
+    elsif DEBIAN_DISTRIBUTIONS.key?(distro)
+      require 'nokogiri'
+      version = Nokogiri::XML(open("https://packages.debian.org/search?suite=#{distro}&exact=1&searchon=names&keywords=nginx")).at_css('#psearchres ul li').text.lines.select{|s|s.include? ": all"}.first.strip.split.first
+    end
     File.write(cache_file,version)
   else
     version = File.read(cache_file)
