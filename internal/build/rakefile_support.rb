@@ -74,7 +74,7 @@ def set_constants_and_envvars
   set_constant_and_envvar :NGINX_DEBIAN_EPOCH, 1
   set_constant_and_envvar :NGINX_DEBIAN_VENDOR_VERSION, "#{8 + enterprise_version_bonus}.#{PASSENGER_VERSION}"
   set_constant_and_envvar :NGINX_DEBIAN_HOTFIX_VERSION, 1
-  set_constant_and_envvar :NGINX_VERSION, PhusionPassenger::PREFERRED_NGINX_VERSION
+  set_constant_and_envvar :NGINX_VERSION, PhusionPassenger::PACKAGING_PREFERRED_NGINX_VERSION
   set_constant_and_envvar :NGINX_TARBALL, "nginx_#{NGINX_VERSION}.orig.tar.gz"
 end
 
@@ -99,6 +99,6 @@ def nginx_version_for_distro(distro)
   if dynamic_module_supported?(distro)
     latest_nginx_available(distro)
   else
-    PhusionPassenger::PREFERRED_NGINX_VERSION
+    PhusionPassenger::PACKAGING_PREFERRED_NGINX_VERSION
   end
 end

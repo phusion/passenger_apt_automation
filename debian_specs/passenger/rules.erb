@@ -44,12 +44,12 @@ override_dh_auto_build:
 <% end -%>
 	cc -Wall -Os debian/passenger_free_ruby.c -o debian/passenger_free_ruby
 	cc -Wall -Os debian/passenger_system_ruby.c -o debian/passenger_system_ruby
-	cd nginx-<%= PhusionPassenger::PREFERRED_NGINX_VERSION %> && \
+	cd nginx-<%= PhusionPassenger::PACKAGING_PREFERRED_NGINX_VERSION %> && \
 		env $(NGINX_CONFIGURE_OPTIONS) ./configure --prefix=/tmp \
 		<%= PhusionPassenger::Config::NginxEngineCompiler.configure_script_options %> \
 		--add-module=`pwd`/../src/nginx_module && \
 		make && \
-		mv objs/nginx objs/nginx-<%= PhusionPassenger::PREFERRED_NGINX_VERSION %>
+		mv objs/nginx objs/nginx-<%= PhusionPassenger::PACKAGING_PREFERRED_NGINX_VERSION %>
 <% if dynamic_module_supported?(@distribution) -%>
 	/usr/bin/rake nginx:as_dynamic_module && \
 		cd nginx-<%= latest_nginx_available(@distribution) %> && \
@@ -93,7 +93,7 @@ override_dh_auto_clean:
 <% distro_ruby_versions.each do |ruby_version| -%>
 	rm -rf pkg/fakeroot<%= ruby_version %>
 <% end -%>
-	cd nginx-<%= PhusionPassenger::PREFERRED_NGINX_VERSION %> && if test -f Makefile; then make clean; fi
+	cd nginx-<%= PhusionPassenger::PACKAGING_PREFERRED_NGINX_VERSION %> && if test -f Makefile; then make clean; fi
 	# Hack to prevent HTML files from being renegerated
 	touch doc/*.html
 
