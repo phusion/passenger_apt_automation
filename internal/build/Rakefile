@@ -53,6 +53,14 @@ namespace :source do
         task.sh "./download-nginx-orig-tarball.sh #{NGINX_VERSION} /work/#{NGINX_TARBALL}"
         task.sh "cp /work/#{NGINX_TARBALL} /cache/#{NGINX_TARBALL}"
       end
+      # This second Nginx is specifically for when we're stuck at a lower version (e.g. due to distro module
+      # list containing modules that are incompatible with the above Nginx version).
+      if File.exist?("/cache/#{PACKAGING_NGINX_TARBALL}")
+        task.sh "cp /cache/#{PACKAGING_NGINX_TARBALL} /work/#{PACKAGING_NGINX_TARBALL}"
+      else
+        task.sh "./download-nginx-orig-tarball.sh #{PACKAGING_NGINX_VERSION} /work/#{PACKAGING_NGINX_TARBALL}"
+        task.sh "cp /work/#{PACKAGING_NGINX_TARBALL} /cache/#{PACKAGING_NGINX_TARBALL}"
+      end
     end
   end
 end
@@ -116,10 +124,10 @@ namespace :spkg do
         task.sh "./build-source-package.rb",
                 :SPECDIR      => "/system/debian_specs/nginx",
                 :DISTRIBUTION => distro,
-                :TARBALL      => NGINX_TARBALL,
-                :SOURCENAME   => "#{NGINX_PACKAGE_NAME}-#{NGINX_VERSION}",
+                :TARBALL      => PACKAGING_NGINX_TARBALL,
+                :SOURCENAME   => "#{NGINX_PACKAGE_NAME}-#{PACKAGING_NGINX_VERSION}",
                 :SPKG_DIR     => "/work/spkg/nginx/#{distro}",
-                :PACKAGE_VERSION  => NGINX_VERSION,
+                :PACKAGE_VERSION  => PACKAGING_NGINX_VERSION,
                 :DEBIAN_NAME      => NGINX_DEBIAN_NAME,
                 :DEBIAN_EPOCH     => NGINX_DEBIAN_EPOCH,
                 :DEBIAN_VENDOR_VERSION => NGINX_DEBIAN_VENDOR_VERSION,
