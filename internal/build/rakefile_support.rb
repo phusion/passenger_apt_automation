@@ -97,10 +97,3 @@ def infer_next_passenger_version(passenger_version)
   components.join(".")
 end
 
-def nginx_version_for_distro(distro)
-  if dynamic_module_supported?(distro)
-    latest_nginx_available(distro)
-  else
-    PhusionPassenger::PACKAGING_PREFERRED_NGINX_VERSION
-  end
-end
