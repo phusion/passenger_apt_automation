@@ -15,4 +15,4 @@ require_args_exact 2 "$@"
 NGINX_VERSION="$1"
 NGINX_TARBALL="$2"
 
-run curl --fail -L -o "$NGINX_TARBALL" "http://nginx.org/download/nginx-$NGINX_VERSION.tar.gz"
+run curl --fail -L -o "$NGINX_TARBALL" "https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz"

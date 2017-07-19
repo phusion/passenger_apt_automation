@@ -21,8 +21,14 @@ namespace :source do
           if FETCH_PASSENGER_TARBALL_FROM_CACHE && File.exist?("/cache/#{distro}_#{PASSENGER_TARBALL}")
             task.sh "cp /cache/#{distro}_#{PASSENGER_TARBALL} /work/#{PASSENGER_TARBALL}"
           else
-            task.sh "./download-nginx-orig-tarball.sh #{latest_nginx_available(distro)} /work/#{latest_nginx_available(distro)}.orig.tar.gz"
-            task.sh "./build-passenger-orig-tarball.sh /work/#{PASSENGER_TARBALL} #{latest_nginx_available(distro)}"
+            available_nginx_version = latest_nginx_available(distro)
+            if File.exist?("/cache/nginx_#{available_nginx_version}.orig.tar.gz")
+               task.sh "cp /cache/nginx_#{available_nginx_version}.orig.tar.gz /work/"
+             else
+               task.sh "./download-nginx-orig-tarball.sh #{available_nginx_version} /work/nginx_#{available_nginx_version}.orig.tar.gz"
+               task.sh "cp /work/nginx_#{available_nginx_version}.orig.tar.gz /cache/"
+             end
+            task.sh "./build-passenger-orig-tarball.sh /work/#{PASSENGER_TARBALL} #{available_nginx_version}"
             task.sh "cp /work/#{PASSENGER_TARBALL} /cache/#{distro}_#{PASSENGER_TARBALL}"
           end
         end
