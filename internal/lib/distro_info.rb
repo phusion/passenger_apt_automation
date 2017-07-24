@@ -87,7 +87,7 @@ def extract_nginx_version(os, distro, sanitize)
       version = JSON.parse(open(uri).read)["entries"][0]["binary_package_version"]
     elsif DEBIAN_DISTRIBUTIONS.key?(distro)
       require 'nokogiri'
-      version = Nokogiri::XML(open("https://packages.debian.org/search?suite=#{distro}&exact=1&searchon=names&keywords=nginx")).at_css('#psearchres ul li').text.lines.select{|s|s.include? ": all"}.first.strip.split.first
+      version = Nokogiri::XML(open("https://packages.debian.org/search?suite=#{distro}&exact=1&searchon=names&keywords=nginx")).at_css('#psearchres ul li').text.lines.select{|s|s.include? ": all"}.first.strip.split.first.chomp(':')
     end
     File.write(cache_file,version)
   else
