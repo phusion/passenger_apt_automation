@@ -34,6 +34,7 @@ README for Modules versions
   Version: a18b409
   Patch: dynamic-module.patch
   Patch: openssl-1.1.0.patch
+  Patch: drop-default-port.patch
 
  nchan
   Homepage: https://github.com/slact/nchan
