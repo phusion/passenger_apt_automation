@@ -58,8 +58,8 @@ README for Modules versions
 
  ngx-fancyindex
   Homepage: https://github.com/aperezdc/ngx-fancyindex
-    rm -r ngx-fancyindex/t ngx-fancyindex/.gitignore
-  Version: v0.4.1
+    rm -r ngx-fancyindex/t ngx-fancyindex/.gitignore ngx-fancyindex/.travis.yml
+  Version: v0.4.2
 
  ngx_http_substitutions_filter_module
   Homepage: https://github.com/yaoweibin/ngx_http_substitutions_filter_module
