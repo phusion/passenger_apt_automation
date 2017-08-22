@@ -62,6 +62,9 @@ ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
 	MAKEFLAGS += -j$(NUMJOBS)
 endif
 
+MODULESPATCHDIR = $(CURDIR)/debian/modules/patches
+modules_with_patches := $(notdir $(wildcard $(CURDIR)/debian/modules/patches/*))
+
 # configure flags
 common_configure_flags := \
 			--with-cc-opt="$(debian_cflags)" \
@@ -138,7 +141,7 @@ extras_configure_flags := \
 	dh $@
 <% end -%>
 
-override_dh_auto_configure: $(foreach flavour,$(FLAVOURS),config.arch.$(flavour))
+override_dh_auto_configure: config_patch_modules $(foreach flavour,$(FLAVOURS),config.arch.$(flavour))
 
 override_dh_auto_build:     $(foreach flavour,$(FLAVOURS),build.arch.$(flavour))
 	vendordir=`/usr/bin/ruby -rrbconfig -e 'puts RbConfig::CONFIG["vendordir"]'` && \
@@ -148,7 +151,7 @@ override_dh_auto_build:     $(foreach flavour,$(FLAVOURS),build.arch.$(flavour))
 <% end -%>
 
 override_dh_strip:          $(foreach flavour,$(FLAVOURS),strip.arch.$(flavour))
-override_dh_clean:          $(foreach flavour,$(FLAVOURS),clean.$(flavour))
+override_dh_clean:          clean_patch_modules $(foreach flavour,$(FLAVOURS),clean.$(flavour))
 	dh_clean
 
 override_dh_installinit:
@@ -174,6 +177,17 @@ passenger_nginx_libs:
 		OPTIMIZE=yes \
 		rake nginx
 
+config_patch_modules: $(foreach mod,$(modules_with_patches),config.patch.$(mod))
+config.patch.%:
+	cd $(MODULESDIR)/$* && QUILT_PATCHES=$(MODULESPATCHDIR)/$* quilt push -a
+
+clean_patch_modules: $(foreach mod,$(modules_with_patches),clean.patch.$(mod))
+clean.patch.%:
+	if [ -s $(MODULESDIR)/$*/.pc/applied-patches ]; then \
+		cd $(MODULESDIR)/$* && QUILT_PATCHES=$(MODULESPATCHDIR)/$* quilt pop -q -a; \
+		rm -rf $(MODULESDIR)/$*/.pc; \
+	fi
+
 <%
 # For some reason, html copy was not specified in the xenial packaging rules (needed
 # because of reference in nginx-common.install).
@@ -193,3 +207,4 @@ config.arch.%: passenger_nginx_libs
 clean.%:
 	rm -rf $(BUILDDIR_$*)
 
+.PHONY: config_patch_modules clean_patch_modules
