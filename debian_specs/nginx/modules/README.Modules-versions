@@ -21,7 +21,7 @@ README for Modules versions
  nginx-echo
   Homepage: https://github.com/agentzh/echo-nginx-module
     rm -r nginx-echo/t nginx-echo/.gitignore
-  Version: v0.60
+  Version: v0.61
 
  nginx-lua
   Homepage: https://github.com/openresty/lua-nginx-module
