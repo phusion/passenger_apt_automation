@@ -25,8 +25,8 @@ README for Modules versions
 
  nginx-lua
   Homepage: https://github.com/openresty/lua-nginx-module
-    rm -r nginx-lua/t nginx-lua/misc/recv-until-pm/t nginx-lua/.gitignore nginx-lua/.gitattributes
-  Version: v0.10.7
+    rm -r nginx-lua/t nginx-lua/misc/recv-until-pm/t nginx-lua/.gitignore nginx-lua/.gitattributes nginx-lua/.travis.yml nginx-lua/.github
+  Version: v0.10.10
   Patch: openssl-1.1.0.patch
 
  nginx-upstream-fair
