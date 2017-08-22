@@ -14,10 +14,11 @@
 #define ERR(fmt, arg...) ngx_log_error(NGX_LOG_ERR, ngx_cycle->log, 0, "SUB:COMMON:" fmt, ##arg)
 
 typedef struct {
-  subscriber_t    *sub;
-  ngx_str_t       *ch_id;
-  ngx_int_t        rc;
-  ngx_int_t        http_response_code;
+  subscriber_t       *sub;
+  ngx_str_t          *ch_id;
+  ngx_int_t           rc;
+  ngx_int_t           http_response_code;
+  ngx_http_cleanup_t *timer_cleanup;
 } nchan_subrequest_data_t;
 
 
@@ -151,6 +152,8 @@ static ngx_int_t generic_subscriber_subrequest_old(subscriber_t *sub, ngx_http_c
 static void subscriber_authorize_timer_callback_handler(ngx_event_t *ev) {
   nchan_subrequest_data_t *d = ev->data;
   
+  d->timer_cleanup->data = NULL;
+  
   d->sub->fn->release(d->sub, 1);
   
   if(d->rc == NGX_OK) {
@@ -169,6 +172,12 @@ static void subscriber_authorize_timer_callback_handler(ngx_event_t *ev) {
 
 }
 
+static void subscriber_authorize_timer_callback_cleanup(ngx_event_t *timer) {
+  if(timer) {
+    ngx_del_timer(timer);
+  }
+}
+
 static ngx_int_t subscriber_authorize_callback(ngx_http_request_t *r, void *data, ngx_int_t rc) {
   nchan_subrequest_data_t       *d = data;
   ngx_event_t                   *timer;
@@ -179,14 +188,24 @@ static ngx_int_t subscriber_authorize_callback(ngx_http_request_t *r, void *data
     //subscriber's sudden_abort_handler is called
   }
   else {
+    ngx_http_cleanup_t           *cln = ngx_http_cleanup_add(r, 0);
+    if(!cln) {
+      return NGX_ERROR;
+    }
+    
     d->rc = rc;
     d->http_response_code = r->headers_out.status;
+    d->timer_cleanup = cln;
+    
     if((timer = ngx_pcalloc(r->pool, sizeof(*timer))) == NULL) {
       return NGX_ERROR;
     }
     timer->handler = subscriber_authorize_timer_callback_handler;
     timer->log = d->sub->request->connection->log;
     timer->data = data;
+    
+    cln->data = timer;
+    cln->handler = (ngx_http_cleanup_pt )subscriber_authorize_timer_callback_cleanup;
     
     ngx_add_timer(timer, 0); //not sure if this needs to be done like this, but i'm just playing it safe here.
   }
@@ -235,9 +254,14 @@ ngx_int_t nchan_subscriber_unsubscribe_request(subscriber_t *sub, ngx_int_t fina
   
   nchan_request_ctx_t         *ctx = ngx_http_get_module_ctx(sub->request, ngx_nchan_module);
   ngx_http_request_t          *subrequest;
-  ctx->unsubscribe_request_callback_finalize_code = finalize_code;
-  ret = generic_subscriber_subrequest_old(sub, sub->cf->unsubscribe_request_url, subscriber_unsubscribe_request_callback, &subrequest, NULL);
-  ctx->sent_unsubscribe_request = 1;
+  if(!ctx->sent_unsubscribe_request) {
+    ctx->unsubscribe_request_callback_finalize_code = finalize_code;
+    ret = generic_subscriber_subrequest_old(sub, sub->cf->unsubscribe_request_url, subscriber_unsubscribe_request_callback, &subrequest, NULL);
+    ctx->sent_unsubscribe_request = 1;
+  }
+  else {
+    ret = NGX_OK;
+  }
   
   //ucf = ngx_http_get_module_loc_conf(subrequest, ngx_http_upstream_module);
   //ucf->ignore_client_abort = 1;
@@ -266,13 +290,13 @@ ngx_int_t nchan_subscriber_subscribe_request(subscriber_t *sub) {
 
 ngx_int_t nchan_subscriber_subscribe(subscriber_t *sub, ngx_str_t *ch_id) {
   ngx_int_t             ret;
-  //nchan_request_ctx_t  *ctx = ngx_http_get_module_ctx(sub->request, ngx_nchan_module);
+  nchan_request_ctx_t  *ctx = ngx_http_get_module_ctx(sub->request, ngx_nchan_module);
   subscriber_type_t     sub_type = sub->type;
   nchan_loc_conf_t     *cf = sub->cf;
   
   ret = sub->cf->storage_engine->subscribe(ch_id, sub);
   //don't access sub directly, it might have already been freed
-  if(ret == NGX_OK && sub_type != LONGPOLL && sub_type != INTERVALPOLL && cf->subscribe_request_url) {
+  if(ret == NGX_OK && sub_type != LONGPOLL && sub_type != INTERVALPOLL && cf->subscribe_request_url && ctx->sub == sub) {
     nchan_subscriber_subscribe_request(sub);
   }
   return ret;

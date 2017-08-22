@@ -1,3 +1,31 @@
+1.1.7 (Jul. 3 2017)
+ fix: possible read-after-free after redis disconnect
+ fix: publishing to redis cluster before it is connected results in worker crash
+ fix: possible use-after-free for suddenly disconnected longpoll-multipart subscriber
+ fix: possible use-after-free when using nchan_authorize_request for slow subscribers and slow upstream
+ fix: nchan_stub_status "stored messages" value could be incorrect when using Redis
+1.1.6 (May 9 2017)
+ fix: messages published through Redis may crash worker (introduced in 1.1.5)
+ fix (security): urlencoded message id in url parsed incorrectly can result in worker crash
+1.1.5 (May 3 2017)
+ feature: get current Nchan version through $nchan_version variable 
+      and nchan_stub_status
+ fix (security): invalid memory access for multiplexed channel subscribers 
+      with buffered output (Thanks Casey Forbes (@caseyf) for debugging.)
+ fix: "redis pending commands" nchan_stub_status stat could be wrong after 
+      deleting channels
+ fix: invalid memory access when using Redis under high load
+ fix: possible "message from the past" errors under high publishing load
+ fix: graceful publisher/subscriber notifications when out of shared memory
+      (via HTTP 507 Insufficient Storage status code)
+ fix: compatibility with limit_except directive
+1.1.4 (Apr. 25 2017)
+ fix (security): possible memory corruption using multiplexed channels 
+      at high load (Thanks Giovanni Caporaletti (@TrustNoOne) for debugging.)
+ fix: possible crash when reconnecting to Redis cluster (introduced in 1.1.3)
+1.1.3 (Mar. 25 2017)
+ fix (security): incorrect handling of WS optimization could trigger SIGABRT
+ fix: Redis cluster reconnect readiness verification
 1.1.2 (Mar. 1 2017)
  change: "interprocess alert X delayed by Y sec" log messages downgraded 
       from ERROR to NOTICE

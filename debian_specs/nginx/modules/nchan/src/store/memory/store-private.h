@@ -28,9 +28,10 @@ typedef struct {
   ngx_atomic_t                total_message_count;
   ngx_atomic_t                stored_message_count;
   ngx_atomic_t                last_seen;
+  struct {
+    ngx_atomic_t                outside_refcount;
+  }                           gc;
 } store_channel_head_shm_t;
-
-#define MSG_REFCOUNT_INVALID -9000
 
 typedef struct {
   ngx_str_t            id;
@@ -121,8 +122,9 @@ typedef struct {
   nchan_loc_conf_shared_data_t      *conf_data;
   
   nchan_stub_status_t                stats;
-  
+#if nginx_version <= 1011006
   ngx_atomic_uint_t                  shmem_pages_used;
+#endif
 
 #if NCHAN_MSG_LEAK_DEBUG
   nchan_msg_t                       *msgdebug_head;
@@ -134,7 +136,6 @@ ngx_int_t nchan_memstore_find_chanhead_with_backup(ngx_str_t *channel_id, nchan_
 memstore_channel_head_t *nchan_memstore_get_chanhead(ngx_str_t *channel_id, nchan_loc_conf_t *cf);
 memstore_channel_head_t *nchan_memstore_get_chanhead_no_ipc_sub(ngx_str_t *channel_id, nchan_loc_conf_t *cf);
 store_message_t *chanhead_find_next_message(memstore_channel_head_t *ch, nchan_msg_id_t *msgid, nchan_msg_status_t *status);
-shmem_t *nchan_memstore_get_shm(void);
 ipc_t *nchan_memstore_get_ipc(void);
 memstore_groups_t *nchan_memstore_get_groups(void);
 ngx_int_t nchan_memstore_handle_get_message_reply(nchan_msg_t *msg, nchan_msg_status_t findmsg_status, void *d);

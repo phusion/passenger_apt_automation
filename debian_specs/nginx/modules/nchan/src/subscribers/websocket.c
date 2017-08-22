@@ -15,7 +15,11 @@
 #define ERR(fmt, arg...) ngx_log_error(NGX_LOG_ERR, ngx_cycle->log, 0, "SUB:WEBSOCKET:" fmt, ##arg)
 #include <assert.h>
 
-#if __AVX2__
+#if 0 //debug WS optimized xor
+  #define WEBSOCKET_OPTIMIZED_UNMASK 1
+  #define WEBSOCKET_FAKEOPTIMIZED_UNMASK 1
+  #define __vector_size_bytes 32
+#elif __AVX2__
   #include <immintrin.h>                     // AVX2 intrinsics
   #define WEBSOCKET_OPTIMIZED_UNMASK 1
   
@@ -247,6 +251,8 @@ static void aborted_ws_close_request_rev_handler(ngx_http_request_t *r) {
 }
 
 static void sudden_abort_handler(subscriber_t *sub) {
+  if(!sub)
+    return; //websocket subscriber already freed
   DBG("sudden abort handler for sub %p request %p", sub, sub->request);
 #if FAKESHARD
   full_subscriber_t  *fsub = (full_subscriber_t  *)sub;
@@ -287,10 +293,9 @@ static void websocket_unmask_frame(ws_frame_t *frame) {
   u_char    *mask_key = frame->mask_key;
   uint64_t   preamble_len = payload_len <= __vector_size_bytes ? payload_len : (uintptr_t )payload % __vector_size_bytes;
   uint64_t   fastlen;
-  __vector_type    w, w_mask;
   u_char     extended_mask[__vector_size_bytes];  
   
-  //preamble
+  //preamble -- for alignment or msglen < __vector_size_bytes
   for (i = 0; i < preamble_len && i < payload_len; i++) {
     payload[i] ^= mask_key[i % 4];
   }
@@ -299,22 +304,32 @@ static void websocket_unmask_frame(ws_frame_t *frame) {
     return;
   }
   
-  assert((uintptr_t )(&payload[i]) % __vector_size_bytes == 0);
-  
-  for(j=0; j<__vector_size_bytes; j+=4) {
-    ngx_memcpy(&extended_mask[j], mask_key, 4);
+  if((uintptr_t )(&payload[i]) % __vector_size_bytes != 0) { //didn't get alignment right for some reason
+    fastlen = 0;
   }
-  
-  w_mask = __vector_load_intrinsic((__vector_type *)extended_mask);
-  fastlen = payload_len - ((payload_len - i) % __vector_size_bytes);
-  
-  assert(fastlen % __vector_size_bytes == 0);
-  
-  for (/*void*/; i < fastlen; i += __vector_size_bytes) {           // note that i must be multiple of [__vector_size_bytes]
-    w = __vector_load_intrinsic((__vector_type *)&payload[i]);       // load [__vector_size_bytes] bytes
-    w = __vector_xor_intrinsic(w, w_mask);           // XOR with mask
-    __vector_store_intrinsic((__vector_type *)&payload[i], w);   // store [__vector_size_bytes] masked bytes
+  else {
+    fastlen = ((payload_len - i) / __vector_size_bytes) * __vector_size_bytes;
   }
+    
+#if WEBSOCKET_FAKEOPTIMIZED_UNMASK
+  for (/*void*/; i < fastlen + preamble_len; i++) {
+    payload[i] ^= mask_key[i % 4];
+  }
+#else
+  __vector_type    w, w_mask;
+  
+  if (fastlen > 0) {
+    for(j=0; j<__vector_size_bytes; j+=4) {
+      ngx_memcpy(&extended_mask[j], mask_key, 4);
+    }
+    w_mask = __vector_load_intrinsic((__vector_type *)extended_mask);
+    for (/*void*/; i < fastlen + preamble_len; i += __vector_size_bytes) {
+      w = __vector_load_intrinsic((__vector_type *)&payload[i]);       // load [__vector_size_bytes] bytes
+      w = __vector_xor_intrinsic(w, w_mask);           // XOR with mask
+      __vector_store_intrinsic((__vector_type *)&payload[i], w);   // store [__vector_size_bytes] masked bytes
+    }
+  }
+#endif
   
   //leftovers
   for (/*void*/; i < payload_len; i++) {
@@ -398,6 +413,9 @@ static ngx_int_t websocket_publish_callback(ngx_int_t status, nchan_channel_t *c
       bc->buf.last_buf=1;
       
       ws_output_filter(fsub, websocket_frame_header_chain(fsub, WEBSOCKET_TEXT_LAST_FRAME_BYTE, ngx_buf_size((&bc->buf)), &bc->chain));
+      break;
+    case NGX_HTTP_INSUFFICIENT_STORAGE:
+      websocket_respond_status(&fsub->sub, NGX_HTTP_INSUFFICIENT_STORAGE, NULL);
       break;
     case NGX_ERROR:
     case NGX_HTTP_INTERNAL_SERVER_ERROR:
@@ -771,6 +789,8 @@ subscriber_t *websocket_subscriber_create(ngx_http_request_t *r, nchan_msg_id_t 
   
 fail: 
   if(fsub) {
+    if(fsub->cln) 
+      fsub->cln->data = NULL;
     ngx_free(fsub);
   }
   ERR("%s", (u_char *)err);
@@ -799,7 +819,9 @@ ngx_int_t websocket_subscriber_destroy(subscriber_t *sub) {
     nchan_free_msg_id(&sub->last_msgid);
     //debug 
     DBG("Begone, websocket %p", fsub);
-    ngx_memset(fsub, 0x13, sizeof(*fsub));
+    if(fsub->cln)
+      fsub->cln->data = NULL;
+    //ngx_memset(fsub, 0x13, sizeof(*fsub));
     ngx_free(fsub);
   }
   return NGX_OK;
@@ -1088,13 +1110,20 @@ static void websocket_reading(ngx_http_request_t *r) {
   //ngx_str_t                   msg_in_str;
   int                         close_code;
   ngx_str_t                   close_reason;
+
+  c = r->connection;
+  rev = c->read;
+  
+  if(!fsub) {
+    nchan_http_finalize_request(r, NGX_OK);
+    return;
+  }
   
   set_buffer(&buf, frame->header, frame->last, 8);
 
   //DBG("websocket_reading fsub: %p, frame: %p", fsub, frame);
   
-  c = r->connection;
-  rev = c->read;
+
 
   for (;;) {
     if (c->error || c->timedout || c->close || c->destroyed || rev->closed || rev->eof || rev->pending_eof) {
@@ -1300,7 +1329,7 @@ static ngx_flag_t is_utf8(u_char *p, size_t n) {
       continue;
     }
     
-    if (ngx_utf8_decode(&p, n) > 0x10ffff) {
+    if (ngx_utf8_decode(&p, last - p) > 0x10ffff) {
       /* invalid UTF-8 */
       return 0;
     }
@@ -1569,6 +1598,7 @@ static ngx_int_t websocket_respond_status(subscriber_t *self, ngx_int_t status_c
   static const ngx_str_t    STATUS_410=ngx_string("410 Channel Deleted");
   static const ngx_str_t    STATUS_403=ngx_string("403 Forbidden");
   static const ngx_str_t    STATUS_500=ngx_string("500 Internal Server Error");
+  static const ngx_str_t    STATUS_507=ngx_string("507 Insufficient Storage");
   static const ngx_str_t    empty=ngx_string("");
   u_char                    msgbuf[50];
   ngx_str_t                 custom_close_msg;
@@ -1602,13 +1632,18 @@ static ngx_int_t websocket_respond_status(subscriber_t *self, ngx_int_t status_c
       fsub->sub.request->headers_out.status = NGX_HTTP_INTERNAL_SERVER_ERROR;
       close_msg = (ngx_str_t *)(status_line ? status_line : &STATUS_500);
       break;
+    case 507: 
+      close_code = CLOSE_INTERNAL_SERVER_ERROR;
+      fsub->sub.request->headers_out.status = NGX_HTTP_INSUFFICIENT_STORAGE;
+      close_msg = (ngx_str_t *)(status_line ? status_line : &STATUS_507);
+      break;
     default:
       if((status_code >= 400 && status_code < 600) || status_code == NGX_HTTP_NOT_MODIFIED) {
         custom_close_msg.data=msgbuf;
         fsub->sub.request->headers_out.status = status_code;
         custom_close_msg.len = ngx_sprintf(msgbuf,"%i %v", status_code, (status_line ? status_line : &empty)) - msgbuf;
         close_msg = &custom_close_msg;
-        close_code = CLOSE_NORMAL;
+        close_code = status_code >=500 && status_code <= 599 ? CLOSE_INTERNAL_SERVER_ERROR : CLOSE_NORMAL;
       }
       else {
         ERR("unhandled code %i, %v", status_code, (status_line ? status_line : &empty));

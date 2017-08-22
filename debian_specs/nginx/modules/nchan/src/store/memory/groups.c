@@ -42,7 +42,7 @@ ngx_int_t memstore_groups_init(memstore_groups_t *gp) {
 
 ngx_int_t shutdown_walker(rbtree_seed_t *seed, void *node_data, void *privdata) {
   group_tree_node_t *gtn = (group_tree_node_t *)node_data;
-  shmem_t *          shm = nchan_memstore_get_shm();
+  shmem_t *          shm = nchan_store_memory_shmem;
   ngx_int_t          myslot = memstore_slot();
   DBG("shutdown_walker %V group %p", &gtn->name, gtn->group);
   if(memstore_str_owner(&gtn->name) == myslot) {
@@ -89,9 +89,9 @@ static group_tree_node_t *group_owner_create_node(memstore_groups_t *gp, ngx_str
   //ASSUMES group name is owned by current worker, AND node does not yet exist
   group_tree_node_t      *gtn;
   nchan_group_t          *group;
-  group = shm_calloc(nchan_memstore_get_shm(), sizeof(*group) + name->len, "group");
+  group = shm_calloc(nchan_store_memory_shmem, sizeof(*group) + name->len, "group");
   if(group == NULL) {
-    ERR("couldn't alloc shmem for group %V", name);
+    nchan_log_ooshm_error("creating group %V", name);
     return NULL;
   }
   
@@ -102,7 +102,7 @@ static group_tree_node_t *group_owner_create_node(memstore_groups_t *gp, ngx_str
   DBG("created group %p %V", group, &group->name);
   
   if((gtn = group_create_node(gp, name, group)) == NULL) {
-    shm_free(nchan_memstore_get_shm(), group);
+    shm_free(nchan_store_memory_shmem, group);
     return NULL;
   }
   
@@ -440,10 +440,10 @@ void memstore_group_dissociate_own_channel(memstore_channel_head_t *ch) {
 static ngx_int_t group_add_channel_internal(nchan_group_t *shm_group, int multi, int self_owned, int n) {
   if(shm_group) {
     if(multi) {
-      ngx_atomic_fetch_add(&shm_group->multiplexed_channels, n);
+      ngx_atomic_fetch_add((ngx_atomic_uint_t *)&shm_group->multiplexed_channels, n);
     }
     else if (self_owned) {
-      ngx_atomic_fetch_add(&shm_group->channels, n);
+      ngx_atomic_fetch_add((ngx_atomic_uint_t *)&shm_group->channels, n);
     }
   }
   return NGX_OK;
@@ -493,10 +493,10 @@ ngx_int_t memstore_group_remove_channel(memstore_channel_head_t *ch) {
 static ngx_int_t group_add_message_internal(nchan_group_t *shm_group, size_t mem_sz, size_t file_sz, int n) {
   
   if(shm_group) {
-    ngx_atomic_fetch_add(&shm_group->messages, n);
-    ngx_atomic_fetch_add(&shm_group->messages_shmem_bytes, n * mem_sz);
+    ngx_atomic_fetch_add((ngx_atomic_uint_t *)&shm_group->messages, n);
+    ngx_atomic_fetch_add((ngx_atomic_uint_t *)&shm_group->messages_shmem_bytes, n * mem_sz);
     if(file_sz > 0) {
-      ngx_atomic_fetch_add(&shm_group->messages_file_bytes, n * file_sz);
+      ngx_atomic_fetch_add((ngx_atomic_uint_t *)&shm_group->messages_file_bytes, n * file_sz);
     }
   }
   return NGX_OK;
@@ -548,7 +548,7 @@ ngx_int_t memstore_group_remove_message(group_tree_node_t *gtn, nchan_msg_t *msg
 
 static ngx_int_t group_add_subscribers_internal(nchan_group_t *shm_group, int n) {
   if(shm_group) {
-    ngx_atomic_fetch_add(&shm_group->subscribers, n);
+    ngx_atomic_fetch_add((ngx_atomic_uint_t *)&shm_group->subscribers, n);
   }
   return NGX_OK;
 }

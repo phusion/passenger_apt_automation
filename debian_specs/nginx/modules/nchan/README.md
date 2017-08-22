@@ -22,7 +22,7 @@ In a web browser, you can use Websocket or EventSource natively, or the [NchanSu
 
 ## Status and History
 
-The latest Nchan release is 1.1.2 (March 1, 2017) ([changelog](https://nchan.io/changelog)).
+The latest Nchan release is 1.1.7 (July 3, 2017) ([changelog](https://nchan.io/changelog)).
 
 The first iteration of Nchan was written in 2009-2010 as the [Nginx HTTP Push Module](https://pushmodule.slact.net), and was vastly refactored into its present state in 2014-2016.
 
@@ -43,12 +43,13 @@ With a well-tuned OS and network stack on commodity server hardware, expect to h
 ## Install
 
 #### Download Packages
- - [Arch Linux](https://archlinux.org): [nginx-nchan](https://aur.archlinux.org/packages/nginx-nchan/) and [nginx-nchan-git](https://aur.archlinux.org/packages/nginx-nchan-git/) are available in the Arch User Repository.  
+ - [Arch Linux](https://archlinux.org): [nginx-mainline-addon-nchan](https://aur.archlinux.org/packages/nginx-mainline-addon-nchan/) (dynamic module build), [nginx-nchan](https://aur.archlinux.org/packages/nginx-nchan/) and [nginx-nchan-git](https://aur.archlinux.org/packages/nginx-nchan-git/) are available in the Arch User Repository.
  - Mac OS X: a [homebrew](http://brew.sh) package is available. `brew tap homebrew/nginx; brew install nginx-full --with-nchan-module`
  - [Debian](https://www.debian.org/): A dynamic module build is available in the Debian package repository: [libnginx-mod-nchan](https://packages.debian.org/sid/libnginx-mod-nchan).  
  Additionally, you can use the pre-built static module packages [nginx-common.deb](https://nchan.io/download/nginx-common.deb) and [nginx-extras.deb](https://nchan.io/download/nginx-extras.deb). Download both and install them with `dpkg -i`, followed by `sudo apt-get -f install`.
- - [Ubuntu](http://www.ubuntu.com/):  [nginx-common.ubuntu.deb](https://nchan.io/download/nginx-common.ubuntu.deb) and [nginx-extras.ubuntu.deb](https://nchan.io/download/nginx-extras.ubuntu.deb). Download both and install them with `dpkg -i`, followed by `sudo apt-get -f install`. Who knows when Ubuntu will Nchan to their repository?...
+ - [Ubuntu](http://www.ubuntu.com/):  [nginx-common.ubuntu.deb](https://nchan.io/download/nginx-common.ubuntu.deb) and [nginx-extras.ubuntu.deb](https://nchan.io/download/nginx-extras.ubuntu.deb). Download both and install them with `dpkg -i`, followed by `sudo apt-get -f install`. Who knows when Ubuntu will add Nchan to their repository?...
  - [Fedora](https://fedoraproject.org): Dynamic module builds for Nginx > 1.10.0 are available: [nginx-mod-nchan.x86_64.rpm](https://nchan.io/download/nginx-mod-nchan.x86-64.rpm), [nginx-mod-nchan.src.rpm](https://nchan.io/download/nginx-mod-nchan.src.rpm). 
+ - [Heroku](https://heroku.com): A buildpack for compiling Nchan into Nginx is available: [nchan-buildpack](https://github.com/andjosh/nchan-buildpack). A one-click, readily-deployable app is also available: [nchan-heroku](https://github.com/andjosh/nchan-heroku).
  - A statically compiled binary and associated linux nginx installation files are also [available as a tarball](https://nchan.io/download/nginx-nchan-latest.tar.gz).
 
 
@@ -85,7 +86,7 @@ http {
 }
 ```
 
-You can now publish messages to channels by `POST`ing data to `/sub?id=channel_id` , and subscribe by pointing Websocket, EventSource, or [NchanSubscriber.js](https://github.com/slact/nchan/blob/master/NchanSubscriber.js) to `sub/?id=channel_id`. It's that simple.
+You can now publish messages to channels by `POST`ing data to `/pub?id=channel_id` , and subscribe by pointing Websocket, EventSource, or [NchanSubscriber.js](https://github.com/slact/nchan.js) to `sub/?id=channel_id`. It's that simple.
 
 But Nchan is very flexible and highly configurable. So, of course, it can get a lot more complicated...
 
@@ -609,7 +610,7 @@ Nchan can stores messages in memory, on disk, or via Redis. Memory storage is mu
 
 ### Memory Storage
 
-This default storage method uses a segment of shared memory to store messages and channel data. Large messages as determined by Nginx's caching layer are stored on-disk. The size of the memory segment is configured with `nchan_max_reserved_memory`. Data stored here is not persistent, and is lost if Nginx is restarted or reloaded.
+This default storage method uses a segment of shared memory to store messages and channel data. Large messages as determined by Nginx's caching layer are stored on-disk. The size of the memory segment is configured with `nchan_shared_memory_size`. Data stored here is not persistent, and is lost if Nginx is restarted or reloaded.
 
 <!-- tag:memstore -->
 
@@ -692,7 +693,7 @@ There are several ways to see what's happening inside Nchan. These are useful fo
 
 ### Channel Events
 
-Channel events are messages automatically published by Nchan when certain events occur in a channel. These are very useful for debugging the use of channels. However, they carry a significant performance overhead and should be used during development, and not inproduction.
+Channel events are messages automatically published by Nchan when certain events occur in a channel. These are very useful for debugging the use of channels. However, they carry a significant performance overhead and should be used during development, and not in production.
 
 Channel events are published to special 'meta' channels associated with normal channels. Here's how to configure them:
 
@@ -760,19 +761,20 @@ stored messages: 1249
 shared memory used: 1824K
 channels: 80
 subscribers: 90
-redis pending commands: 0f
+redis pending commands: 0
 redis connected servers: 0
 total interprocess alerts received: 1059634
 interprocess alerts in transit: 0
 interprocess queued alerts: 0
 total interprocess send delay: 0
 total interprocess receive delay: 0
+nchan version: 1.1.5
 ```
 
 Here's what each line means, and how to interpret it:
   - `total published messages`: Number of messages published to all channels through this Nchan server.
   - `stored messages`: Number of messages currently buffered in memory
-  - `shared memory used`: Total shared memory used for buffering messages, storing channel information, and other purposes. This value should be comfortably below `nchan_max_reserved_memory`W.
+  - `shared memory used`: Total shared memory used for buffering messages, storing channel information, and other purposes. This value should be comfortably below `nchan_shared_memory_size`.
   - `channels`: Number of channels present on this Nchan server.
   - `subscribers`: Number of subscribers to all channels on this Nchan server.
   - `redis pending commands`: Number of commands sent to Redis that are awaiting a reply. May spike during high load, especially if the Redis server is overloaded. Should tend towards 0.
@@ -782,6 +784,7 @@ Here's what each line means, and how to interpret it:
   - `interprocess queued alerts`: Number of interprocess communication packets waiting to be sent. May be nonzero during high load, but should always tend toward 0 over time.
   - `total interprocess send delay`: Total amount of time interprocess communication packets spend being queued if delayed. May increase during high load.
   - `total interprocess receive delay`: Total amount of time interprocess communication packets spend in transit if delayed. May increase during high load.
+  - `nchan_version`: current version of Nchan. Available for version 1.1.5 and above.
 
 Additionally, when there is at least one `nchan_stub_status` location, the following Nginx variables are available:
   - `$nchan_stub_status_total_published_messages`  
@@ -806,7 +809,7 @@ Consider the use case of an application where authenticated users each use a pri
 http {
   server {
     #available only on localhost
-    listen  127.0.0.1  8080;
+    listen  127.0.0.1:8080;
     location ~ /pub/(\w+)$ {
       nchan_publisher;
       nchan_channel_group my_app_group;
@@ -817,6 +820,7 @@ http {
   server {
     #available to the world
     listen 80;
+    
     location ~ /sub/(\w+)$ {
       nchan_subscriber;
       nchan_channel_group my_app_group;
@@ -827,7 +831,23 @@ http {
 
 ```
 
-Here, the subscriber endpoint is available on a public-facing port 80, and the publisher endpoint is only available on localhost, so can be accessed only by applications residing on that machine.
+Here, the subscriber endpoint is available on a public-facing port 80, and the publisher endpoint is only available on localhost, so can be accessed only by applications residing on that machine. Another way to limit access to the publisher endpoint is by using the allow/deny settings:
+
+```nginx
+
+  server {
+    #available to the world
+    listen 80; 
+    location ~ /pub/(\w+)$ {
+      allow 127.0.0.1;
+      deny all;
+      nchan_publisher;
+      nchan_channel_group my_app_group;
+      nchan_channel_id $1;
+    }
+```
+
+Here, only the local IP 127.0.0.1 is allowed to use the publisher location, even though it is defined in a non-localhost server block.
 
 ### Keeping a Channel Private
 
@@ -839,7 +859,7 @@ First, if you intend on securing the channel contents, you must use TLS/SSL:
 http {
   server {
     #available only on localhost
-    listen  127.0.0.1  8080;
+    listen  127.0.0.1:8080;
     #...publisher endpoint config
   }
   server {
@@ -858,16 +878,16 @@ http {
 Now that you have a secure connection between the subscriber client and the server, you don't need to worry about the channel ID or messages being passively intercepted. This is a minimum requirement for secure message delivery, but it is not sufficient. 
 
 You must also take care to do at least one of the following:
-  - [Generate good, high-entropy Channel IDs](#generate-good-channel-ids).
-  - [Authorize all subscribers with the `nchan_authorize_request` config directive](#authenticate-with-nchan_authorize_request).
-  - [Authorize subscribers and hide channel IDs with the "`X-Accel-Redirect`" mechanism](#authenticate-and-hide-the-channel-id-with-x-accel-redirect).
+  - [Generate good, high-entropy Channel IDs](#good-ids).
+  - [Authorize all subscribers with the `nchan_authorize_request` config directive](#request-authorization).
+  - [Authorize subscribers and hide channel IDs with the "`X-Accel-Redirect`" mechanism](##x-accel-redirect).
   
 #### Good IDs
 
 An ID that can be guessed is an ID that can be hijacked. If you are not authenticating subscribers (as described below), a channel ID should be impossible to guess. Use at least 128 bits of entropy to generate a random token, associate it with the authenticated user, and share it only with the user's client. Do not reuse tokens, just as you would not reuse session IDs.
 
 #### X-Accel-Redirect
-
+z
 This feature uses the [X-Accel feature](https://www.nginx.com/resources/wiki/start/topics/examples/x-accel) of Nginx upstream proxies to perform an internal request to a subscriber endpoint.
 It allows a subscriber client to be authenticated by your application, and then redirected by nginx internally to a location chosen by your appplication (such as a publisher or subscriber endpoint). This makes it possible to have securely authenticated clients that are unaware of the channel id they are subscribed to.
 
@@ -968,6 +988,9 @@ Nchan makes several variables usabled in the config file:
 
 - `$nchan_channel_event`
   For channel events, this is the event name. Useful when configuring `nchan_channel_event_string`.
+
+- `$nchan_version`
+  Current Nchan version. Available since 1.1.5.
   
 Additionally, `nchan_stub_status` data is also exposed as variables. These are available only when `nchan_stub_status` is enabled on at least one location:
 
@@ -1125,14 +1148,6 @@ Additionally, `nchan_stub_status` data is also exposed as variables. These are a
   > Send GET request to internal location (which may proxy to an upstream server) after unsubscribing. Disabled for longpoll and interval-polling subscribers.    
   [more details](#subscriber-presence)  
 
-- **nchan_max_reserved_memory** `<size>`  
-  arguments: 1  
-  default: `32M`  
-  context: http  
-  legacy name: push_max_reserved_memory  
-  > The size of the shared memory chunk this module will use for message queuing and buffering.    
-  [more details](#memory-storage)  
-
 - **nchan_message_buffer_length** `[ <number> | <variable> ]`  
   arguments: 1  
   default: `10`  
@@ -1190,6 +1205,14 @@ Additionally, `nchan_stub_status` data is also exposed as variables. These are a
   context: http, server, location  
   > The path to a redis server, of the form 'redis://:password@hostname:6379/0'. Shorthand of the form 'host:port' or just 'host' is also accepted.    
   [more details](#connecting-to-a-redis-server)  
+
+- **nchan_shared_memory_size** `<size>`  
+  arguments: 1  
+  default: `128M`  
+  context: http  
+  legacy names: push_max_reserved_memory, nchan_max_reserved_memory  
+  > Shared memory slab pre-allocated for Nchan. Used for channel statistics, message storage, and interprocess communication.    
+  [more details](#memory-storage)  
 
 - **nchan_store_messages** `[ on | off ]`  
   arguments: 1  
