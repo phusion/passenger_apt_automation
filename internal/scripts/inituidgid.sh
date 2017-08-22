@@ -11,7 +11,7 @@ if [[ "$APP_UID" -lt 1024 ]]; then
 	fi
 fi
 if [[ "$APP_GID" -lt 1024 ]]; then
-	if awk -F: '{ print $4 }' < /etc/passwd | grep -q "^${APP_GID}$"; then
+	if awk -F: '{ print $3 }' < /etc/group | grep -q "^${APP_GID}$"; then
 		echo "ERROR: you can only run this script with a user whose GID is at least 1024, or whose GID does not already exist in the Docker container. Current GID: $APP_GID"
 		exit 1
 	fi
