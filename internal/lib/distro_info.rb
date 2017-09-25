@@ -27,7 +27,6 @@ DEBIAN_DISTRIBUTIONS = {
 # A list of distribution codenames for which the `build` script
 # will build for, and for which the `test` script will test for.
 DEFAULT_DISTROS = %w(
-  precise
   trusty
   xenial
   zesty

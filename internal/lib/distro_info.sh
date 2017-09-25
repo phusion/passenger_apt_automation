@@ -8,7 +8,7 @@
 # then regenerate distro_info.sh by running
 # internal/scripts/regen_distro_info_script.sh.
 
-DEFAULT_DISTROS="precise trusty xenial zesty wheezy jessie stretch"
+DEFAULT_DISTROS="trusty xenial zesty wheezy jessie stretch"
 
 
 function to_distro_codename()
@@ -117,6 +117,14 @@ function to_distro_codename()
 			|| "$INPUT" = "ubuntu-16.04" ]]
 		then
 			echo "xenial"
+			return
+		fi
+	
+		if [[ "$INPUT" = "yakkety"
+			|| "$INPUT" = "ubuntu16.10"
+			|| "$INPUT" = "ubuntu-16.10" ]]
+		then
+			echo "yakkety"
 			return
 		fi
 	
@@ -284,6 +292,14 @@ function to_testbox_image()
 			|| "$INPUT" = "ubuntu-16.04" ]]
 		then
 			echo phusion/passenger_apt_automation_testbox_ubuntu_16_04:1.0.0
+			return
+		fi
+	
+		if [[ "$INPUT" = "yakkety"
+			|| "$INPUT" = "ubuntu16.10"
+			|| "$INPUT" = "ubuntu-16.10" ]]
+		then
+			echo phusion/passenger_apt_automation_testbox_ubuntu_16_10:1.0.0
 			return
 		fi
 	
