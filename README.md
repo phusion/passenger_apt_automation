@@ -148,7 +148,10 @@ Once packages have been built, you can publish them to PackageCloud. The `publis
 
 ### Updating build and/or testboxes
 
-If you change the buildbox or testbox, create a new version by updating the respective clause in `internal/lib/docker_image_info.sh`.
+If you change the buildbox or testbox, you should create a new version:
+
+1. Update the relevant part(s) in `internal/lib/docker_image_info.sh`.
+2. Run `./internal/scripts/regen_distro_info_script.sh`.
 
 ### Adding support for a new distribution
 
