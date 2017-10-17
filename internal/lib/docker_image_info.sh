@@ -1,7 +1,10 @@
 #!/bin/bash
-
+#
 # This is the main place to control the names and versions of the Docker build / test images
 # to be used by various scripts.
+#
+# !! WARNING !!
+# If you change this file, be sure to run internal/scripts/regen_distro_info_script.sh
 
 USAGE="argument 1 should be one of: buildbox_name, buildbox_version, testbox_base_name or testbox_version"
 

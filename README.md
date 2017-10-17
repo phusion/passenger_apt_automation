@@ -148,43 +148,46 @@ Once packages have been built, you can publish them to PackageCloud. The `publis
 
 ### Updating build and/or testboxes
 
-If you change the buildbox or testbox, you should create a new version:
+Prior to changing the buildbox or testbox, you should update their version number as follows:
 
-1. Update the relevant part(s) in `internal/lib/docker_image_info.sh`.
-2. Run `./internal/scripts/regen_distro_info_script.sh`.
+ 1. Update the relevant part(s) in `internal/lib/docker_image_info.sh`.
+ 2. Run `./internal/scripts/regen_distro_info_script.sh`.
 
 ### Adding support for a new distribution
 
 In these instructions, we assume that the new distribution is Ubuntu 16.04 "Xenial". Update the actual parameters accordingly.
 
- 1. Rebuild the build box so that it has the latest distribution information:
-
-        ./docker-images/setup-buildbox-docker-image
+ 1. Bump the the buildbox version number's tiny component. Open `internal/lib/docker_image_info.sh` and change the number under `buildbox_version`.
 
  2. Add a definition for this new distribution to `internal/lib/distro_info.rb`.
 
      * Add to either the `UBUNTU_DISTRIBUTIONS` or the `DEBIAN_DISTRIBUTIONS` constant.
      * Add to the `DEFAULT_DISTROS` constant.
 
- 3. Run `./internal/scripts/regen_distro_info_script.sh`.
- 4. Update the package definitions in `debian_specs/`. Add `<% if %>` statements accordingly to output the appropriate content for the target distribution.
- 5. Build publish packages for this distribution only. You can do that by running the build script with the `-d` option.
+ 3. Run `internal/scripts/regen_distro_info_script.sh`.
+
+ 4. Rebuild the build box so that it has the latest distribution information:
+
+        make -C docker-images buildbox
+
+ 5. Update the package definitions in `debian_specs/`. Add `<% if %>` statements accordingly to output the appropriate content for the target distribution.
+ 6. Build publish packages for this distribution only. You can do that by running the build script with the `-d` option.
 
     For example:
 
         ./build -p /passenger -w work -c cache -o output -d xenial pkg:all
 
- 6. Create a test box for this new distribution.
+ 7. Create a test box for this new distribution.
 
      1. Create `docker-images/testbox-ubuntu-16.04/`
      2. Edit `docker-images/Makefile` and add entries for this new testbox.
-     3. Run `cd docker-images && make testbox-ubuntu-16.04`
+     3. Run `make -C docker-images testbox-ubuntu-16.04`
 
     When done, test Passenger under the new testbox:
 
         ./test -p /passenger -x xenial -d output/xenial -c cache
 
- 7. Commit and push all changes, then publish the new packages and the updated Docker images by running:
+ 8. Commit and push all changes, then publish the new packages and the updated Docker images by running:
 
         git add docker-images
         git commit -a -m "Add support for Ubuntu 16.04 Xenial"
@@ -192,18 +195,21 @@ In these instructions, we assume that the new distribution is Ubuntu 16.04 "Xeni
         cd docker-images
         make upload
 
- 8. On the Phusion CI server, pull the latest buildbox:
+ 9. Inside the [passenger](https://github.com/phusion/passenger) repository:
 
-        docker pull phusion/passenger_apt_automation_buildbox
+     1. Update the `packaging/debian` submodule (which refers to the `passenger_apt_automation` repository) to the latest commit. Assuming you want the submodule to update to the latest `master` branch commit:
 
- 9. Inside the [passenger](https://github.com/phusion/passenger) repository, update the `packaging/debian` submodule (which refers to the `passenger_apt_automation` repository) to the latest commit, then commit the result. Assuming you want the submodule to update to the latest `master` branch commit:
+            cd packaging/debian
+            git checkout master
+            git pull
+            cd ../..
 
-        cd packaging/debian
-        git checkout master
-        git pull
-        cd ../..
-        git commit -a -m "Add packaging support for Ubuntu 16.04 Xenial"
-        git push
+     2. Update `dev/ci/tests/debian/Jenkinsfile` and add this new distro under the `params` section.
+
+     3. Commit and push the result:
+
+            git commit -a -m "Add packaging support for Ubuntu 16.04 Xenial"
+            git push
 
 ### Removing support for a distribution
 
@@ -223,14 +229,21 @@ In these instructions, we assume that the distribution to be removed is Ubuntu 1
         git commit -a -m "Remove support for Ubuntu 16.04 Xenial"
         git push
 
- 6. Inside the [passenger](https://github.com/phusion/passenger) repository, update the `packaging/debian` submodule (which refers to the `passenger_apt_automation` repository) to the latest commit, then commit the result. Assuming you want the submodule to update to the latest `master` branch commit:
+ 6. Inside the [passenger](https://github.com/phusion/passenger) repository:
 
-        cd packaging/debian
-        git checkout master
-        git pull
-        cd ../..
-        git commit -a -m "Remove packaging support for Ubuntu 16.04 Xenial"
-        git push
+     1. Update the `packaging/debian` submodule (which refers to the `passenger_apt_automation` repository) to the latest commit, then commit the result. Assuming you want the submodule to update to the latest `master` branch commit:
+
+            cd packaging/debian
+            git checkout master
+            git pull
+            cd ../..
+
+     2. Update `dev/ci/tests/debian/Jenkinsfile` and remove this new distro under the `params` section.
+
+     3. Commit and push the result:
+
+            git commit -a -m "Remove packaging support for Ubuntu 16.04 Xenial"
+            git push
 
 ### Updating the build box's APT cache
 
