@@ -11,7 +11,8 @@ fi
 reload_apache()
 {
 	if apache2ctl configtest 2>/dev/null; then
-		invoke-rc.d apache2 force-reload || true
+		invoke-rc.d apache2 force-stop  &&
+		invoke-rc.d apache2 start || true
 	else
 		echo "Your apache2 configuration is broken, so we're not restarting it for you."
 	fi
