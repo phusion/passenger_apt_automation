@@ -161,8 +161,8 @@ In these instructions, we assume that the new distribution is Ubuntu 16.04 "Xeni
 
  2. Add a definition for this new distribution to `internal/lib/distro_info.rb`.
 
-     * Add to either the `UBUNTU_DISTRIBUTIONS` or the `DEBIAN_DISTRIBUTIONS` constant.
-     * Add to the `DEFAULT_DISTROS` constant.
+     1. Add to either the `UBUNTU_DISTRIBUTIONS` or the `DEBIAN_DISTRIBUTIONS` constant.
+     2. Add to the `DEFAULT_DISTROS` constant.
 
  3. Run `internal/scripts/regen_distro_info_script.sh`.
 
@@ -170,7 +170,11 @@ In these instructions, we assume that the new distribution is Ubuntu 16.04 "Xeni
 
         make -C docker-images buildbox
 
- 5. Update the package definitions in `debian_specs/`. Add `<% if %>` statements accordingly to output the appropriate content for the target distribution.
+ 5. Update the package definitions in `debian_specs/`.
+ 
+     1. Check if new ruby is available in distro update versions or comments in `debian_specs/passenger/helpers.rb`
+     2. Add `<% if %>` statements accordingly to output the appropriate content for the target distribution. (e.g. in `debian_specs/passenger/control.erb`)
+ 
  6. Build publish packages for this distribution only. You can do that by running the build script with the `-d` option.
 
     For example:
@@ -182,7 +186,8 @@ In these instructions, we assume that the new distribution is Ubuntu 16.04 "Xeni
      1. Create `docker-images/testbox-ubuntu-16.04/` (copy of testbox of previous release)
      2. Set the correct From in `docker-images/testbox-ubuntu-16.04/Dockerfile`
      3. Edit `docker-images/Makefile` and add entries for this new testbox.
-     4. Run `make -C docker-images testbox-ubuntu-16.04`
+     
+        make -C docker-images testbox-ubuntu-16.04
 
     When done, test Passenger under the new testbox:
 
@@ -287,6 +292,8 @@ The Jenkins publishing script posts to some HTTPS servers. For security reasons,
 
 The `jenkins` directory contains scripts which are invoked from jobs in the Phusion Jenkins CI server.
 
+## Troubleshooting
+
 ### Debugging a packaging test failure
 
 If a packaging test job fails, here's what you should do.
@@ -316,6 +323,18 @@ If a packaging test job fails, here's what you should do.
 If the test fails now, a shell will be opened inside the test container, in which you can do anything you want. Please note that this is a root shell, but the tests are run as the `app` user, so be sure to prefix test commands with `setuser app`. You can see in internal/test/test.sh which commands are invoked inside the container in order to run the tests.
 
 Inside the test container, you will be dropped into the directory /tmp/passenger, which is a *copy* of the Passenger source directory. The original Passenger source directory is mounted under /passenger.
+
+### Manually interacting with the packages
+
+Packages are built to `output/<distro>`. You can play around manually with examining and installing these in a docker image:
+
+    docker run -v dir/on/host/output/<distro>:/dir/in/docker/img -it ubuntu:16.04
+    apt-get update && apt-get upgrade
+    dpkg -I passenger_5.1.x-1~distro1_amd64.deb  # view info
+    dpkg -i passenger_5.1.x-1~distro1_amd64.deb  # install passenger (probably need to install a module too)
+    apt --fix-broken install  # to install dependencies
+    
+    
 
 ## Tutorial: building your own packages
 
