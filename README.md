@@ -179,9 +179,10 @@ In these instructions, we assume that the new distribution is Ubuntu 16.04 "Xeni
 
  7. Create a test box for this new distribution.
 
-     1. Create `docker-images/testbox-ubuntu-16.04/`
-     2. Edit `docker-images/Makefile` and add entries for this new testbox.
-     3. Run `make -C docker-images testbox-ubuntu-16.04`
+     1. Create `docker-images/testbox-ubuntu-16.04/` (copy of testbox of previous release)
+     2. Set the correct From in `docker-images/testbox-ubuntu-16.04/Dockerfile`
+     3. Edit `docker-images/Makefile` and add entries for this new testbox.
+     4. Run `make -C docker-images testbox-ubuntu-16.04`
 
     When done, test Passenger under the new testbox:
 
