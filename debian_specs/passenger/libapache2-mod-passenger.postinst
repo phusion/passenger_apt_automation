@@ -11,6 +11,8 @@ fi
 reload_apache()
 {
 	if apache2ctl configtest 2>/dev/null; then
+		# stop then start instead of reloading to ensure the new module
+		# is loaded, not just the apache config.
 		invoke-rc.d apache2 force-stop  &&
 		invoke-rc.d apache2 start || true
 	else
