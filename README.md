@@ -210,7 +210,7 @@ In these instructions, we assume that the new distribution is Ubuntu 16.04 "Xeni
             git pull
             cd ../..
 
-     2. Update `dev/ci/tests/debian/Jenkinsfile` and add this new distro under the `params` section.
+     2. Update `dev/ci/tests/debian/Jenkinsfile` and add this new distro under the `parameters` section.
 
      3. Commit and push the result:
 
