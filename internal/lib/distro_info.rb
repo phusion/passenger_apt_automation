@@ -30,7 +30,6 @@ DEBIAN_DISTRIBUTIONS = {
 DEFAULT_DISTROS = %w(
   trusty
   xenial
-  zesty
   artful
 
   wheezy

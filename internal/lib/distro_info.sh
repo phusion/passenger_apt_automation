@@ -6,7 +6,7 @@
 # 
 # Edit those and regenerate distro_info.sh by running:
 # internal/scripts/regen_distro_info_script.sh
-DEFAULT_DISTROS="trusty xenial zesty artful wheezy jessie stretch"
+DEFAULT_DISTROS="trusty xenial artful wheezy jessie stretch"
 
 
 function to_distro_codename()
