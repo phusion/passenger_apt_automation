@@ -101,6 +101,10 @@ def dynamic_module_supported?(distro)
   ubuntu_gte(distro, "artful") || debian_gte(distro, "stretch")
 end
 
+def binary_wont_build?(distro,arch)
+  (distro === "trusty") && (arch === "i386")
+end
+
 def latest_nginx_sanitized?(distro, sanitized)
   if UBUNTU_DISTRIBUTIONS.key?(distro)
     os = 'ubuntu'

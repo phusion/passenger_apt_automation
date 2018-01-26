@@ -161,6 +161,7 @@ namespace :env do
 
   DISTROS.each do |distro|
     ARCHITECTURES.each do |arch|
+      next if binary_wont_build?(distro, arch)
       task :all => "#{distro}:#{arch}"
 
       register_tracking_task(:pkg, "env:#{distro}:#{arch}")
@@ -186,6 +187,7 @@ namespace :pkg do
 
   DISTROS.each do |distro|
     ARCHITECTURES.each do |arch|
+      next if binary_wont_build?(distro, arch)
       task "passenger:all" => "passenger:#{distro}:#{arch}"
       task "all" => "passenger:#{distro}:#{arch}"
 
@@ -210,7 +212,8 @@ namespace :pkg do
       # Nginx dynamic module is built in pkg:passenger for use with distro standard Nginx, so
       # no need for our own separate Nginx package.
       next if dynamic_module_supported?(distro)
-      
+      next if binary_wont_build?(distro, arch)
+
       task "nginx:all" => "nginx:#{distro}:#{arch}"
       task "all" => "nginx:#{distro}:#{arch}"
 
