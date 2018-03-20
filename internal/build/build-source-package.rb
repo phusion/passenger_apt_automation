@@ -98,6 +98,10 @@ if DEBIAN_NAME =~ /nginx/
         puts "+ Including #{filename} as binary"
         f.puts filename
       end
+      Dir["debian/modules/passenger/images/*.png"].each do |filename|
+        puts "+ Including #{filename} as binary"
+        f.puts filename
+      end
     end
   end
 end
