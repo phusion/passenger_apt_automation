@@ -8,6 +8,7 @@ COMPILE_CONCURRENCY=${COMPILE_CONCURRENCY:-2}
 export DEBIAN_FRONTEND=noninteractive
 export LC_ALL=C.UTF-8
 export LC_CTYPE=C.UTF-8
+export PASSENGER_TEST_NODE_MODULES_DIR=/tmp/passenger/node_modules
 
 if [[ "$DISTRIBUTION" = wheezy ]]; then
 	APACHE2_DEV_PACKAGES="apache2 apache2-threaded-dev"
