@@ -1,5 +1,6 @@
 require 'fileutils'
 require 'open-uri'
+require 'json'
 require File.expand_path(File.dirname(__FILE__) + '/misc/test_support')
 
 include FileUtils
@@ -21,6 +22,18 @@ def create_app_dirs
   app_dirs << create_app_dir("python_test_app.py", "passenger_wsgi.py", "python_test_app")
   app_dirs << create_app_dir("nodejs_test_app.js", "app.js", "nodejs_test_app")
   app_dirs
+end
+
+def list_passenger_instances
+  output = `passenger-config list-instances --json`
+  if $?.exitstatus != 0
+    abort "The command 'passenger-config list-instances --json' failed"
+  end
+  JSON.parse(output)
+end
+
+def passenger_instance_fully_initialized?(instance)
+  !instance['core_pid'].nil?
 end
 
 shared_examples_for "Hello world Ruby application" do
@@ -55,6 +68,24 @@ describe "The system's Apache with Passenger enabled" do
     sh("service apache2 start")
     eventually do
       ping_tcp_socket("127.0.0.1", 80)
+    end
+
+    # Apache restarts all modules during startup, so
+    # we can briefly end up with two Passenger instances.
+    # Wait until the first instance is gone.
+
+    # Wait until at least one Passenger instance exists.
+    eventually do
+      list_passenger_instances.size >= 1
+    end
+    # Allow some time for Apache to restart Passenger during startup.
+    sleep 1
+    # Wait until exactly one *fully initialized* Passenger instance
+    # exists.
+    eventually do
+      instances = list_passenger_instances
+      instances.size == 1 &&
+        passenger_instance_fully_initialized?(instances[0])
     end
   end
 
@@ -95,6 +126,14 @@ describe "The system's Nginx with Passenger enabled" do
     sh("service nginx start")
     eventually do
       ping_tcp_socket("127.0.0.1", 80)
+    end
+
+    # Wait until exactly one *fully initialized* Passenger instance
+    # exists.
+    eventually do
+      instances = list_passenger_instances
+      instances.size == 1 &&
+        passenger_instance_fully_initialized?(instances[0])
     end
   end
 
