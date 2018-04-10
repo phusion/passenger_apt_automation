@@ -5,9 +5,11 @@ def ruby_package_dependencies
       "ruby1.8, ruby1.8-dev, rubygems1.8, ruby1.9.1, ruby1.9.1-dev"
     elsif is_distribution?("<= trusty")
       "ruby1.9.1, ruby1.9.1-dev, ruby2.0, ruby2.0-dev"
-    else
-      # At least up to, and including, v17.10 Artful
+    elsif is_distribution?("<= artful")
       "ruby2.3, ruby2.3-dev"
+    else
+      # At least up to, and including, v18.04 Bionic 
+      "ruby2.5, ruby2.5-dev"
     end
   when :debian
     if is_distribution?("<= wheezy")
@@ -32,9 +34,11 @@ def distro_ruby_versions
       ["1.8", "1.9.1"]
     elsif is_distribution?("<= trusty")
       ["1.9.1", "2.0"]
-    else
-      # At least up to, and including, v17.10 Artful
+    elsif is_distribution?("<= artful")
       ["2.3"]
+    else
+      # At least up to, and including, v18.04 Bionic 
+      ["2.5"]
     end
   when :debian
     if is_distribution?("<= wheezy")

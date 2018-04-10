@@ -14,7 +14,8 @@ UBUNTU_DISTRIBUTIONS = {
   "xenial"   => "16.04",
   "yakkety"  => "16.10",
   "zesty"    => "17.04",
-  "artful"   => "17.10"
+  "artful"   => "17.10",
+  "bionic"   => "18.04"
 }
 
 DEBIAN_DISTRIBUTIONS = {
@@ -31,6 +32,7 @@ DEFAULT_DISTROS = %w(
   trusty
   xenial
   artful
+  bionic
 
   wheezy
   jessie

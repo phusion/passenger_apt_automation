@@ -6,7 +6,7 @@
 # 
 # Edit those and regenerate distro_info.sh by running:
 # internal/scripts/regen_distro_info_script.sh
-DEFAULT_DISTROS="trusty xenial artful wheezy jessie stretch"
+DEFAULT_DISTROS="trusty xenial artful bionic wheezy jessie stretch"
 
 
 function to_distro_codename()
@@ -139,6 +139,14 @@ function to_distro_codename()
 			|| "$INPUT" = "ubuntu-17.10" ]]
 		then
 			echo "artful"
+			return
+		fi
+	
+		if [[ "$INPUT" = "bionic"
+			|| "$INPUT" = "ubuntu18.04"
+			|| "$INPUT" = "ubuntu-18.04" ]]
+		then
+			echo "bionic"
 			return
 		fi
 	
@@ -325,6 +333,14 @@ function to_testbox_image()
 			return
 		fi
 	
+		if [[ "$INPUT" = "bionic"
+			|| "$INPUT" = "ubuntu18.04"
+			|| "$INPUT" = "ubuntu-18.04" ]]
+		then
+			echo phusion/passenger_apt_automation_testbox_ubuntu_18_04:1.0.1
+			return
+		fi
+	
 	
 		if [[ "$INPUT" = "squeeze"
 			|| "$INPUT" = "debian6"
@@ -376,6 +392,11 @@ function dynamic_module_supported()
 
 	
 		if [[ "$CODENAME" = "artful" ]]; then
+			echo true
+			return
+		fi
+	
+		if [[ "$CODENAME" = "bionic" ]]; then
 			echo true
 			return
 		fi
