@@ -189,7 +189,7 @@ function to_distro_codename()
 
 function get_buildbox_image()
 {
-	echo "phusion/passenger_apt_automation_buildbox:1.0.1"
+	echo "phusion/passenger_apt_automation_buildbox:1.1.0"
 }
 
 function to_testbox_image()
