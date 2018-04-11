@@ -60,15 +60,15 @@ header "Preparing Passenger source code..."
 run rm -rf /tmp/passenger
 if [[ -e /passenger/.git ]]; then
 	run setuser app mkdir /tmp/passenger
-	echo "+ cd /passenger"
+	echo "+ cd /passenger (expecting local git repo to copy from)"
 	cd /passenger
-	echo "+ Git copying to /tmp/passenger"
+	echo "+ Copying all git committed files to /tmp/passenger"
 	(
 		set -o pipefail
 		git archive --format=tar HEAD | setuser app tar -C /tmp/passenger -x
 		submodules=`git submodule status | awk '{ print $2 }'`
 		for submodule in $submodules; do
-			echo "+ Git copying submodule $submodule"
+			echo "+ Copying all git committed files from submodule $submodule"
 			pushd $submodule >/dev/null
 			mkdir -p /tmp/passenger/$submodule
 			git archive --format=tar HEAD | setuser app tar -C /tmp/passenger/$submodule -x
