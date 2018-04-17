@@ -14,7 +14,7 @@ Build-Depends: debhelper (>= 7.0.50~), rake,
  apache2-mpm-worker | apache2-mpm, apache2-threaded-dev,
 <% end -%>
 <% if dynamic_module_supported?(@distribution) -%>
- libxslt-dev, libgd2-xpm-dev, libgeoip-dev,
+ libxslt-dev, libgd-dev, libgeoip-dev,
 <% end -%>
  libapr1-dev, libcurl4-openssl-dev, zlib1g-dev, libpcre3-dev,
 <% if is_distribution?("== stretch") -%>
@@ -63,7 +63,7 @@ Description: Debugging symbols for Passenger application server
 Package: passenger-enterprise-dev
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends},
- ruby2.4 | ruby2.3 | ruby2.2 | ruby2.1 | ruby2.0 | ruby1.9.1 | ruby1.8 | ruby-interpreter,
+ ruby2.5 | ruby2.4 | ruby2.3 | ruby2.2 | ruby2.1 | ruby2.0 | ruby1.9.1 | ruby1.8 | ruby-interpreter,
  passenger-enterprise (= ${binary:Version})
 Replaces: ruby-passenger-dev, passenger-dev
 Conflicts: ruby-passenger-dev, passenger-dev
