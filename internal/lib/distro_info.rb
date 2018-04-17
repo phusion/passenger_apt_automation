@@ -85,7 +85,7 @@ def extract_nginx_version(os, distro, sanitize)
     require 'open-uri'
     if UBUNTU_DISTRIBUTIONS.key?(distro)
       require 'json'
-      uri = "https://api.launchpad.net/1.0/ubuntu/+archive/primary?ws.op=getPublishedBinaries&binary_name=nginx&exact_match=true&distro_arch_series=https://api.launchpad.net/1.0/ubuntu/#{distro}/amd64&status=Published"
+      uri = "https://api.launchpad.net/1.0/ubuntu/+archive/primary?ws.op=getPublishedBinaries&binary_name=nginx&exact_match=true&distro_arch_series=https://api.launchpad.net/1.0/ubuntu/#{distro}/amd64&status=Published&pocket=Release"
       version = JSON.parse(open(uri).read)["entries"][0]["binary_package_version"]
     elsif DEBIAN_DISTRIBUTIONS.key?(distro)
       require 'nokogiri'
