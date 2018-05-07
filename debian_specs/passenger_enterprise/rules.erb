@@ -53,7 +53,7 @@ override_dh_auto_build:
 <% if dynamic_module_supported?(@distribution) -%>
 	/usr/bin/rake nginx:as_dynamic_module && \
 		cd nginx-<%= latest_nginx_available(@distribution) %> && \
-		./configure --with-pcre-jit --with-threads --with-ipv6 \
+		./configure --with-pcre-jit --with-threads \
 		--with-http_gzip_static_module --with-http_gunzip_module \
 		--with-http_v2_module --with-http_dav_module \
 		--with-http_realip_module --with-http_geoip_module=dynamic \
