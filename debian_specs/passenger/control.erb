@@ -8,16 +8,12 @@ Maintainer: <%= MAINTAINER_NAME %> <<%= MAINTAINER_EMAIL %>>
 Uploaders: <%= MAINTAINER_NAME %> <<%= MAINTAINER_EMAIL %>>
 Build-Depends: debhelper (>= 7.0.50~), rake,
  <%= ruby_package_dependencies %>,
-<% if is_distribution?(">= trusty") || is_distribution?(">= jessie") -%>
  apache2 (>= 2.4), apache2-dev (>= 2.4),
-<% else -%>
- apache2-mpm-worker | apache2-mpm, apache2-threaded-dev,
-<% end -%>
 <% if dynamic_module_supported?(@distribution) -%>
  libxslt-dev, libgd-dev, libgeoip-dev,
 <% end -%>
  libapr1-dev, libcurl4-openssl-dev, zlib1g-dev, libpcre3-dev,
-<% if is_distribution?("== stretch") -%>
+<% if is_distribution?(">= stretch") -%>
  libssl1.0-dev
 <% else -%>
  libssl-dev
@@ -80,11 +76,7 @@ Package: libapache2-mod-passenger
 Architecture: any
 Section: web
 Depends: ${shlibs:Depends}, ${misc:Depends},
-<% if is_distribution?(">= trusty") || is_distribution?(">= jessie") -%>
  apache2-api-20120211,
-<% else -%>
- apache2-mpm-worker (>= 2.2.9-9) | apache2-mpm-prefork (>= 2.2.9-9) | apache2-mpm-itk (>= 2.2.9-9) | apache2-mpm-event (>= 2.2.9-9),
-<% end -%>
  passenger (= ${binary:Version})
 Description: Apache integration for Passenger application server
  Passenger is an application server for Ruby, Node.js, Python, Meteor. 

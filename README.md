@@ -244,7 +244,7 @@ In these instructions, we assume that the distribution to be removed is Ubuntu 1
             git pull
             cd ../..
 
-     2. Update `dev/ci/tests/debian/Jenkinsfile` and remove this new distro under the `params` section.
+     2. Update `dev/ci/tests/debian/Jenkinsfile` and remove the deprecated distro under the `params` section.
 
      3. Commit and push the result:
 

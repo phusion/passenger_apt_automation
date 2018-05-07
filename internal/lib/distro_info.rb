@@ -34,7 +34,6 @@ DEFAULT_DISTROS = %w(
   artful
   bionic
 
-  wheezy
   jessie
   stretch
 )
