@@ -54,6 +54,14 @@ override_dh_auto_build:
 	/usr/bin/rake nginx:as_dynamic_module && \
 		cd nginx-<%= latest_nginx_available(@distribution) %> && \
 		./configure --with-pcre-jit --with-threads \
+<% if is_distribution?("== stretch")
+# In stretch we have the unique situation of an Nginx new enough to support dynamic
+# modules, but too old to have the ipv6 flag auto-enabled. The flag is already
+# enabled in older distros because there we statically link against the latest Nginx, 
+# and newer distros have Nginx 1.12+.
+-%>
+		--with-ipv6 \
+<% end -%>
 		--with-http_gzip_static_module --with-http_gunzip_module \
 		--with-http_v2_module --with-http_dav_module \
 		--with-http_realip_module --with-http_geoip_module=dynamic \
