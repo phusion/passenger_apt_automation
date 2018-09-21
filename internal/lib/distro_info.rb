@@ -83,8 +83,9 @@ def valid_distro_name?(name)
 end
 
 def fetch_latest_nginx_version_from_launchpad_api(distro)
-  ['Updates', 'Security', 'Released'].each do |pocket|
+  ['Updates', 'Security', 'Release'].each do |pocket|
     url = "https://api.launchpad.net/1.0/ubuntu/+archive/primary?ws.op=getPublishedBinaries&binary_name=nginx&exact_match=true&distro_arch_series=https://api.launchpad.net/1.0/ubuntu/#{distro}/amd64&status=Published&pocket=#{pocket}"
+    p url
     data = open(url) do |io|
       io.read
     end
