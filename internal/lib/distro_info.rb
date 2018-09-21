@@ -1,3 +1,7 @@
+require 'open-uri'
+require 'json'
+require 'nokogiri'
+
 UBUNTU_DISTRIBUTIONS = {
   "lucid"    => "10.04",
   "maverick" => "10.10",
@@ -78,23 +82,37 @@ def valid_distro_name?(name)
   UBUNTU_DISTRIBUTIONS.key?(name) || DEBIAN_DISTRIBUTIONS.key?(name)
 end
 
+def fetch_latest_nginx_version_from_launchpad_api(distro)
+  ['Updates', 'Security', 'Released'].each do |pocket|
+    url = "https://api.launchpad.net/1.0/ubuntu/+archive/primary?ws.op=getPublishedBinaries&binary_name=nginx&exact_match=true&distro_arch_series=https://api.launchpad.net/1.0/ubuntu/#{distro}/amd64&status=Published&pocket=#{pocket}"
+    data = open(url) do |io|
+      io.read
+    end
+    entry = JSON.parse(data)['entries'][0]
+    if entry
+      return entry['binary_package_version']
+    end
+  end
+  abort "Unable to query Launchpad for latest Nginx version in Ubuntu #{distro}"
+end
+
 def extract_nginx_version(os, distro, sanitize)
   cache_file = "/tmp/#{distro}_nginx_version.txt"
   if !File.exists?(cache_file) || ((Time.now - 60*60*24) > File.mtime(cache_file))
-    require 'open-uri'
     if UBUNTU_DISTRIBUTIONS.key?(distro)
-      require 'json'
-      uri = "https://api.launchpad.net/1.0/ubuntu/+archive/primary?ws.op=getPublishedBinaries&binary_name=nginx&exact_match=true&distro_arch_series=https://api.launchpad.net/1.0/ubuntu/#{distro}/amd64&status=Published&pocket=Release"
-      version = JSON.parse(open(uri).read)["entries"][0]["binary_package_version"]
+      version = fetch_latest_nginx_version_from_launchpad_api(distro)
     elsif DEBIAN_DISTRIBUTIONS.key?(distro)
-      require 'nokogiri'
-      version = Nokogiri::XML(open("https://packages.debian.org/search?suite=#{distro}&exact=1&searchon=names&keywords=nginx")).at_css('#psearchres ul li').text.lines.select{|s|s.include? ": all"}.first.strip.split.first.chomp(':')
+      url = "https://packages.debian.org/search?suite=#{distro}&exact=1&searchon=names&keywords=nginx"
+      doc = open(url) do |io|
+        Nokogiri.XML(io)
+      end
+      version = doc.at_css('#psearchres ul li').text.lines.select{|s|s.include? ": all"}.first.strip.split.first.chomp(':')
     end
     File.write(cache_file,version)
   else
     version = File.read(cache_file)
   end
-  version.gsub!(/(-[0-9]+|{os}).*/,"") if sanitize
+  version.gsub!(/(-[0-9]+|{os}).*/, '') if sanitize
   version
 end
 
@@ -106,7 +124,7 @@ def binary_wont_build?(distro,arch)
   (distro === "trusty") && (arch === "i386")
 end
 
-def latest_nginx_sanitized?(distro, sanitized)
+def latest_nginx_sanitized(distro, sanitized)
   if UBUNTU_DISTRIBUTIONS.key?(distro)
     os = 'ubuntu'
   elsif DEBIAN_DISTRIBUTIONS.key?(distro)
@@ -119,9 +137,9 @@ def latest_nginx_sanitized?(distro, sanitized)
 end
 
 def latest_nginx_unsanitized(distro)
-  return latest_nginx_sanitized?(distro, false)
+  return latest_nginx_sanitized(distro, false)
 end
 
 def latest_nginx_available(distro)
-  latest_nginx_sanitized?(distro, true)
+  latest_nginx_sanitized(distro, true)
 end
