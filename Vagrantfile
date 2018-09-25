@@ -5,8 +5,9 @@
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  config.vm.box = "boxcutter/ubuntu1604"
+  config.vm.box = "generic/ubuntu1804"
 
+  config.vm.synced_folder '.', '/vagrant'
   if File.exist?("../../bin/passenger")
     passenger_path = File.absolute_path("../../")
   elsif File.directory?("../passenger")
