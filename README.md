@@ -395,10 +395,12 @@ Replace `<ARCHITECTURE>` with either `i386` or `amd64`. Replace `<DISTRIBUTION>`
 
  * `precise` -- Ubuntu 12.04
  * `trusty` -- Ubuntu 14.04
+ * `xenial` -- Ubuntu 16.04
  * `wheezy` -- Debian 7
  * `jessie` -- Debian 8
+ * `stretch` -- Debian 9
 
-You can find the codename of your distribution version on Wikipedia: [Ubuntu codenames](http://en.wikipedia.org/wiki/Debian#Release_timeline), [Debian codenames](http://en.wikipedia.org/wiki/Ubuntu_(operating_system)#Releases).
+You can find the codename of your distribution version on Wikipedia: [Ubuntu codenames](https://en.wikipedia.org/wiki/Ubuntu#Releases), [Debian codenames](https://en.wikipedia.org/wiki/Debian#Release_timeline).
 
 Here is an example invocation for building packages for Ubuntu 14.04, x86_64:
 
