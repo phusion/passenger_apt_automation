@@ -4,15 +4,17 @@
 # so that ccache doesn't create them with the wrong permissions (owned by root).
 
 set -e
-ROOTDIR=`dirname "$0"`
-ROOTDIR=`cd "$ROOTDIR/../.." && pwd`
+ROOTDIR=$(dirname "$0")
+ROOTDIR=$(cd "$ROOTDIR/../.." && pwd)
+# shellcheck source=../lib/library.sh
 source "$ROOTDIR/internal/lib/library.sh"
+# shellcheck source=../lib/distro_info.sh
 source "$ROOTDIR/internal/lib/distro_info.sh"
 
-SUBDIRS="0 1 2 3 4 5 6 7 8 9 a b c d e f tmp"
+SUBDIRS=(0 1 2 3 4 5 6 7 8 9 a b c d e f tmp)
 
 for DISTRO in $DISTRIBUTIONS; do
-	DISTRO=`to_distro_codename "$DISTRO"`
+	DISTRO=$(to_distro_codename "$DISTRO")
 	for ARCH in $ARCHITECTURES; do
 		dir="/cache/pbuilder/ccache/$DISTRO-$ARCH"
 		verbose_run mkdir -p "$dir"
@@ -22,12 +24,12 @@ for DISTRO in $DISTRIBUTIONS; do
 			echo "+ Initializing $CCACHE_DIR"
 		fi
 		pushd "$dir" >/dev/null
-		verbose_run mkdir -p $SUBDIRS
-		verbose_run chown 1234:1234 $SUBDIRS
-		for dir2 in 0 1 2 3 4 5 6 7 8 9 a b c d e f tmp; do
+		verbose_run mkdir -p "${SUBDIRS[@]}"
+		verbose_run chown 1234:1234 "${SUBDIRS[@]}"
+		for dir2 in "${SUBDIRS[@]}"; do
 			pushd "$dir2" >/dev/null
-			verbose_run mkdir -p $SUBDIRS
-			verbose_run chown 1234:1234 $SUBDIRS
+			verbose_run mkdir -p "${SUBDIRS[@]}"
+			verbose_run chown 1234:1234 "${SUBDIRS[@]}"
 			popd >/dev/null
 		done
 		popd >/dev/null

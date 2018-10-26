@@ -1,9 +1,10 @@
 #!/bin/bash
 set -e
 
-SELFDIR="`dirname \"$0\"`"
+SELFDIR=$(dirname "$0")
 cd "$SELFDIR/../.."
-SELFDIR="`pwd`"
+SELFDIR=$(pwd)
+# shellcheck source=../../internal/lib/library.sh
 source "./internal/lib/library.sh"
 
 require_envvar WORKSPACE "$WORKSPACE"
@@ -59,8 +60,8 @@ exec docker run $TTY_ARGS --rm \
 	-v "$SELFDIR:/system:ro" \
 	-v "$HOME/.oss_packagecloud_proxy_admin_password:/oss_packagecloud_proxy_admin_password.txt:ro" \
 	-v "$HOME/.enterprise_packagecloud_proxy_admin_password:/enterprise_packagecloud_proxy_admin_password.txt:ro" \
-	-e "APP_UID=`/usr/bin/id -u`" \
-	-e "APP_GID=`/usr/bin/id -g`" \
+	-e "APP_UID=$(/usr/bin/id -u)" \
+	-e "APP_GID=$(/usr/bin/id -g)" \
 	-e "LC_CTYPE=en_US.UTF-8" \
 	phusion/passenger_apt_automation_buildbox \
 	/sbin/my_init --quiet --skip-runit --skip-startup-files -- \

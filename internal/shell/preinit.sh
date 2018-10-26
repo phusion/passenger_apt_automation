@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
-ROOTDIR=`dirname "$0"`
-ROOTDIR=`cd "$ROOTDIR/../.." && pwd`
+ROOTDIR=$(dirname "$0")
+ROOTDIR=$(cd "$ROOTDIR/../.." && pwd)
+# shellcheck source=../lib/library.sh
 source "$ROOTDIR/internal/lib/library.sh"
 
 if [[ -e /work ]]; then

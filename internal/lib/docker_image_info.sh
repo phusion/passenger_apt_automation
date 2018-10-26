@@ -6,20 +6,22 @@
 # !! WARNING !!
 # If you change this file, be sure to run internal/scripts/regen_distro_info_script.sh
 
+set -e
+
 USAGE="argument 1 should be one of: buildbox_name, buildbox_version, testbox_base_name or testbox_version"
 
-if [ -z "$1" ]; then
+if [[ -z "$1" ]]; then
 	echo "$USAGE"
 	exit 1
 fi
 
-if [ $1 == "buildbox_name" ]; then
+if [[ "$1" == "buildbox_name" ]]; then
 	echo -n "phusion/passenger_apt_automation_buildbox"
-elif [ $1 == "buildbox_version" ]; then
+elif [[ "$1" == "buildbox_version" ]]; then
 	echo -n "1.1.0"
-elif [ $1 == "testbox_base_name" ]; then
+elif [[ "$1" == "testbox_base_name" ]]; then
 	echo -n "phusion/passenger_apt_automation_testbox"
-elif [ $1 == "testbox_version" ]; then
+elif [[ "$1" == "testbox_version" ]]; then
 	echo -n "1.0.1"
 else
 	echo "$USAGE"

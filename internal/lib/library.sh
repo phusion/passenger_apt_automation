@@ -1,19 +1,9 @@
-if perl -v >/dev/null 2>/dev/null; then
-	RESET=`perl -e 'print("\e[0m")'`
-	BOLD=`perl -e 'print("\e[1m")'`
-	YELLOW=`perl -e 'print("\e[33m")'`
-	BLUE_BG=`perl -e 'print("\e[44m")'`
-elif python -V >/dev/null 2>/dev/null; then
-	RESET=`echo 'import sys; sys.stdout.write("\033[0m")' | python`
-	BOLD=`echo 'import sys; sys.stdout.write("\033[1m")' | python`
-	YELLOW=`echo 'import sys; sys.stdout.write("\033[33m")' | python`
-	BLUE_BG=`echo 'import sys; sys.stdout.write("\033[44m")' | python`
-else
-	RESET=
-	BOLD=
-	YELLOW=
-	BLUE_BG=
-fi
+#!/usr/bin/env bash
+
+RESET=$(echo -e "\\033[0m")
+BOLD=$(echo -e "\\033[1m")
+YELLOW=$(echo -e "\\033[33m")
+BLUE_BG=$(echo -e "\\033[44m")
 
 if [[ "$VERBOSE" = "" ]]; then
 	VERBOSE=false
@@ -28,23 +18,26 @@ function header()
 
 function run()
 {
-	echo "+ $@"
+	echo "+ $*"
 	"$@"
 }
 
 function verbose_run()
 {
 	if $VERBOSE; then
-		echo "+ $@"
+		echo "+ $*"
 	fi
 	"$@"
 }
 
 function absolute_path()
 {
-	local dir="`dirname \"$1\"`"
-	local name="`basename \"$1\"`"
-	dir="`cd \"$dir\" && pwd`"
+	local dir
+	local name
+
+	dir=$(dirname "$1")
+	name=$(basename "$1")
+	dir=$(cd "$dir" && pwd)
 	echo "$dir/$name"
 }
 
@@ -71,11 +64,13 @@ function require_envvar()
 function cleanup()
 {
 	set +e
-	local pids=`jobs -p`
+	local pids
+	pids=$(jobs -p)
 	if [[ "$pids" != "" ]]; then
+		# shellcheck disable=SC2086
 		kill $pids 2>/dev/null
 	fi
-	if [[ `type -t _cleanup` == function ]]; then
+	if [[ $(type -t _cleanup) == function ]]; then
 		_cleanup
 	fi
 }

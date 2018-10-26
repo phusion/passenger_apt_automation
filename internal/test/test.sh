@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
-ROOTDIR=`dirname "$0"`
-ROOTDIR=`cd "$ROOTDIR/../.." && pwd`
+ROOTDIR=$(dirname "$0")
+ROOTDIR=$(cd "$ROOTDIR/../.." && pwd)
+# shellcheck source=../lib/library.sh
 source "$ROOTDIR/internal/lib/library.sh"
 
 COMPILE_CONCURRENCY=${COMPILE_CONCURRENCY:-2}
@@ -11,10 +12,10 @@ export LC_CTYPE=C.UTF-8
 export PASSENGER_TEST_NODE_MODULES_DIR=/tmp/passenger/node_modules
 
 if [[ "$DISTRIBUTION" = wheezy ]]; then
-	APACHE2_DEV_PACKAGES="apache2 apache2-threaded-dev"
+	APACHE2_DEV_PACKAGES=(apache2 apache2-threaded-dev)
 else
-	APACHE2_DEV_PACKAGES="apache2 apache2-dev"
-	NGINX_DEV_PACKAGES="nginx"
+	APACHE2_DEV_PACKAGES=(apache2 apache2-dev)
+	NGINX_DEV_PACKAGES=(nginx)
 fi
 
 if ls /output/*enterprise* >/dev/null 2>/dev/null; then
@@ -45,12 +46,12 @@ if ! ls /output/libnginx-mod-http-passenger* >/dev/null 2>/dev/null; then
 	run gdebi -n -q /output/nginx-extras_*_amd64.deb
 elif ls /output/*enterprise* >/dev/null 2>/dev/null; then
 	run gdebi -n -q /output/libnginx-mod-http-passenger-enterprise_*_amd64.deb
-	run apt-get install -y -q $NGINX_DEV_PACKAGES
+	run apt-get install -y -q "${NGINX_DEV_PACKAGES[@]}"
 else
 	run gdebi -n -q /output/libnginx-mod-http-passenger_*_amd64.deb
-	run apt-get install -y -q $NGINX_DEV_PACKAGES
+	run apt-get install -y -q "${NGINX_DEV_PACKAGES[@]}"
 fi
-run apt-get install -y -q $APACHE2_DEV_PACKAGES
+run apt-get install -y -q "${APACHE2_DEV_PACKAGES[@]}"
 
 echo
 header "Preparing Passenger source code..."
@@ -66,15 +67,16 @@ if [[ -e /passenger/.git ]]; then
 	(
 		set -o pipefail
 		git archive --format=tar HEAD | setuser app tar -C /tmp/passenger -x
-		submodules=`git submodule status | awk '{ print $2 }'`
+		submodules=$(git submodule status | awk '{ print $2 }')
 		for submodule in $submodules; do
 			echo "+ Copying all git committed files from submodule $submodule"
-			pushd $submodule >/dev/null
-			mkdir -p /tmp/passenger/$submodule
-			git archive --format=tar HEAD | setuser app tar -C /tmp/passenger/$submodule -x
+			pushd "$submodule" >/dev/null
+			mkdir -p "/tmp/passenger/$submodule"
+			git archive --format=tar HEAD | setuser app tar -C "/tmp/passenger/$submodule" -x
 			popd >/dev/null
 		done
 	)
+	# shellcheck disable=SC2181
 	if [[ $? != 0 ]]; then
 		exit 1
 	fi
@@ -90,11 +92,11 @@ export PATH=/usr/lib64/ccache:$PATH
 export CCACHE_DIR=/cache/test-$DISTRIBUTION/ccache
 export CCACHE_COMPRESS=1
 export CCACHE_COMPRESS_LEVEL=3
-run setuser app mkdir -p $CCACHE_DIR
+run setuser app mkdir -p "$CCACHE_DIR"
 echo "+ Updating /etc/hosts"
 cat /system/internal/test/misc/hosts.conf >> /etc/hosts
-APACHE_INFO=`apache2ctl -V 2>/dev/null`
-APACHE_VERSION=`echo "$APACHE_INFO" | grep 'Server version' | sed 's/.*\///; s/ .*//'`
+APACHE_INFO=$(apache2ctl -V 2>/dev/null)
+APACHE_VERSION=$(echo "$APACHE_INFO" | grep 'Server version' | sed 's/.*\///; s/ .*//')
 if [[ -e /etc/apache2/conf-enabled ]]; then
 	APACHE_CONF_D_DIR=/etc/apache2/conf-enabled
 else
@@ -108,22 +110,22 @@ else
 	run chmod 644 $APACHE_CONF_D_DIR/apache-pre-24.conf
 fi
 run a2enmod passenger
-run setuser app mkdir -p /cache/test-$DISTRIBUTION/bundle
-run setuser app mkdir -p /cache/test-$DISTRIBUTION/node_modules
-run setuser app ln -s /cache/test-$DISTRIBUTION/node_modules node_modules
-run setuser app rake test:install_deps DOCTOOLS=no DEPS_TARGET=/cache/test-$DISTRIBUTION/bundle BUNDLE_ARGS="-j 4"
+run setuser app mkdir -p "/cache/test-$DISTRIBUTION/bundle"
+run setuser app mkdir -p "/cache/test-$DISTRIBUTION/node_modules"
+run setuser app ln -s "/cache/test-$DISTRIBUTION/node_modules" node_modules
+run setuser app rake test:install_deps DOCTOOLS=no DEPS_TARGET="/cache/test-$DISTRIBUTION/bundle" BUNDLE_ARGS="-j 4"
 if [[ $DYNAMIC_MODULE_SUPPORTED == true ]]; then
 	CONFIG_SUFFIX="-dynamic"
 else
 	CONFIG_SUFFIX=""
 fi
 if ! ls /output/*enterprise* >/dev/null 2>/dev/null; then
-	run setuser app cp /system/internal/test/misc/config-oss$CONFIG_SUFFIX.json test/config.json
+	run setuser app cp "/system/internal/test/misc/config-oss$CONFIG_SUFFIX.json" test/config.json
 else
-	run setuser app cp /system/internal/test/misc/config-enterprise$CONFIG_SUFFIX.json test/config.json
+	run setuser app cp "/system/internal/test/misc/config-enterprise$CONFIG_SUFFIX.json" test/config.json
 fi
-find /var/{log,lib}/nginx -type d | xargs --no-run-if-empty chmod o+rwx
-find /var/{log,lib}/nginx -type f | xargs --no-run-if-empty chmod o+rw
+find . -print0 /var/{log,lib}/nginx -type d | xargs -0 --no-run-if-empty chmod o+rwx
+find . -print0 /var/{log,lib}/nginx -type f | xargs -0 --no-run-if-empty chmod o+rw
 
 if $DEBUG_CONSOLE; then
 	echo
@@ -144,13 +146,13 @@ run env BUNDLE_GEMFILE=/paa/Gemfile bundle exec \
 # in /var/lib/nginx. We relax their permissions here because subsequent tests run Nginx
 # as the 'app' user.
 echo "+ Relaxing permissions in /var/lib/nginx"
-find /var/lib/nginx -type d | xargs --no-run-if-empty chmod o+rwx
-find /var/lib/nginx -type f | xargs --no-run-if-empty chmod o+rw
+find . -print0 /var/lib/nginx -type d | xargs -0 --no-run-if-empty chmod o+rwx
+find . -print0 /var/lib/nginx -type f | xargs -0 --no-run-if-empty chmod o+rw
 
 run passenger-config validate-install --auto --validate-apache2
-run setuser app bundle exec drake -j$COMPILE_CONCURRENCY \
+run setuser app bundle exec drake "-j$COMPILE_CONCURRENCY" \
 	test:integration:native_packaging PRINT_FAILED_COMMAND_OUTPUT=1
-run setuser app env PASSENGER_LOCATION_CONFIGURATION_FILE=`passenger-config --root` \
-	bundle exec drake -j$COMPILE_CONCURRENCY test:integration:apache2
-run setuser app env PASSENGER_LOCATION_CONFIGURATION_FILE=`passenger-config --root` \
-	bundle exec drake -j$COMPILE_CONCURRENCY test:integration:nginx
+run setuser app env "PASSENGER_LOCATION_CONFIGURATION_FILE=$(passenger-config --root)" \
+	bundle exec drake "-j$COMPILE_CONCURRENCY" test:integration:apache2
+run setuser app env "PASSENGER_LOCATION_CONFIGURATION_FILE=$(passenger-config --root)" \
+	bundle exec drake "-j$COMPILE_CONCURRENCY" test:integration:nginx
