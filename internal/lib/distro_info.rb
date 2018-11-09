@@ -35,7 +35,6 @@ DEBIAN_DISTRIBUTIONS = {
 DEFAULT_DISTROS = %w(
   trusty
   xenial
-  artful
   bionic
 
   jessie

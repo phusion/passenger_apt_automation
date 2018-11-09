@@ -8,7 +8,7 @@
 # internal/scripts/regen_distro_info_script.sh
 
 # shellcheck disable=SC2034
-DEFAULT_DISTROS="trusty xenial artful bionic jessie stretch"
+DEFAULT_DISTROS="trusty xenial bionic jessie stretch"
 
 
 function to_distro_codename()
