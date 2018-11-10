@@ -143,3 +143,16 @@ end
 def latest_nginx_available(distro)
   latest_nginx_sanitized(distro, true)
 end
+
+def next_nginx_tiny_version(distro)
+  version_number = latest_nginx_available(distro)
+  components = version_number.split('.')
+
+  tiny_version = components.last
+  if tiny_version !~ /\A[0-9]+\Z/
+    raise "Error parsing Nginx version number: #{version_number}"
+  end
+
+  components[-1] = tiny_version.to_i + 1
+  components.join('.')
+end
