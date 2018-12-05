@@ -19,7 +19,8 @@ UBUNTU_DISTRIBUTIONS = {
   "yakkety"  => "16.10",
   "zesty"    => "17.04",
   "artful"   => "17.10",
-  "bionic"   => "18.04"
+  "bionic"   => "18.04",
+  "cosmic"   => "18.10"
 }
 
 DEBIAN_DISTRIBUTIONS = {
@@ -36,6 +37,7 @@ DEFAULT_DISTROS = %w(
   trusty
   xenial
   bionic
+  cosmic
 
   jessie
   stretch
