@@ -1,12 +1,451 @@
-nginx (1.10.3-1ubuntu3.1) zesty-security; urgency=medium
+nginx (1.15.5-0ubuntu2.1) cosmic-security; urgency=medium
 
-  * SECURITY UPDATE: integer overflow in range filter leading to
-    information exposure
-    - debian/patches/CVE-2017-7529.patch: add check to ensure size does
-      not overflow
-    - CVE-2017-7529
+  * SECURITY UPDATE: excessive memory consumption in HTTP/2 implementation
+    - debian/patches/CVE-2018-16843.patch: add flood detection in
+      src/http/v2/ngx_http_v2.c, src/http/v2/ngx_http_v2.h.
+    - CVE-2018-16843
+  * SECURITY UPDATE: excessive CPU usage in HTTP/2 implementation
+    - debian/patches/CVE-2018-16844.patch: limit the number of idle state
+      switches in src/http/v2/ngx_http_v2.c, src/http/v2/ngx_http_v2.h.
+    - CVE-2018-16844
+  * SECURITY UPDATE: infinite loop in ngx_http_mp4_module
+    - debian/patches/CVE-2018-16845.patch: fixed reading 64-bit atoms in
+      src/http/modules/ngx_http_mp4_module.c.
+    - CVE-2018-16845
 
- -- Steve Beattie <sbeattie@ubuntu.com>  Wed, 12 Jul 2017 00:27:59 -0700
+ -- Marc Deslauriers <marc.deslauriers@ubuntu.com>  Tue, 06 Nov 2018 13:50:41 -0500
+
+nginx (1.15.5-0ubuntu2) cosmic; urgency=medium
+
+  * d/conf/nginx.conf: Enable TLSv1.3 by default by adding TLSv1.3 to
+    the ssl_protocols line.  (SRU, LP: #1800214)
+
+ -- Thomas Ward <teward@ubuntu.com>  Fri, 26 Oct 2018 15:25:59 -0400
+
+nginx (1.15.5-0ubuntu1) cosmic; urgency=medium
+
+  * This is a bugfixes-only upstream micro release, and thus is a bugfixes-
+    only version change. (LP: #1795690)
+  * New upstream release (1.15.5) - full changelog available from
+    http://nginx.org/en/CHANGES
+  * Remaining Ubuntu-specific changes:
+    - debian/patches/ubuntu-branding.patch: add Ubuntu branding (refreshed)
+    - d/{control,rules,nginx-core.*}: add new binary package for main,
+      nginx-core, which contains only source-tarball-included modules
+      and no third-party modules.
+    - debian/tests/control: add nginx-core test.
+    - debian/apport/source_nginx.py: Add apport hooks for additional bug
+      information gathering.
+    - debian/nginx-common.install: Add install rule for apport hooks.
+    - d/nginx-{core,light,full,extras}.postinst: Add checks for whether
+      port 80 is in use or not to determine whether or not to attempt
+      starting of the NGINX service during install/upgrade
+    - d/control: Add dependencies to nginx-{core,light,full,extras} on
+      `iproute2` as the postinst scripts now use `ss` to determine if
+      Port 80 is open or not.
+
+ -- Thomas Ward <teward@ubuntu.com>  Tue, 02 Oct 2018 11:31:05 -0400
+
+nginx (1.15.4-0ubuntu1) cosmic; urgency=medium
+
+  * New upstream release (1.15.4) - full changelog available from
+    http://nginx.org/en/CHANGES (LP: #1794321)
+  * Remaining Ubuntu-specific changes:
+    - debian/patches/ubuntu-branding.patch: add Ubuntu branding (refreshed)
+    - d/{control,rules,nginx-core.*}: add new binary package for main,
+      nginx-core, which contains only source-tarball-included modules
+      and no third-party modules.
+    - debian/tests/control: add nginx-core test.
+    - debian/apport/source_nginx.py: Add apport hooks for additional bug
+      information gathering.
+    - debian/nginx-common.install: Add install rule for apport hooks.
+    - d/nginx-{core,light,full,extras}.postinst: Add checks for whether
+      port 80 is in use or not to determine whether or not to attempt
+      starting of the NGINX service during install/upgrade
+    - d/control: Add dependencies to nginx-{core,light,full,extras} on
+      `iproute2` as the postinst scripts now use `ss` to determine if
+      Port 80 is open or not.
+
+ -- Thomas Ward <teward@ubuntu.com>  Tue, 25 Sep 2018 11:59:46 -0400
+
+nginx (1.15.3-0ubuntu1) cosmic; urgency=medium
+
+  * New upstream release (1.15.3) - full changelog available from
+    http://nginx.org/en/CHANGES  (LP: #1790149)
+  * Remaining Ubuntu-specific changes:
+    - debian/patches/ubuntu-branding.patch: add Ubuntu branding (refreshed)
+    - d/{control,rules,nginx-core.*}: add new binary package for main,
+      nginx-core, which contains only source-tarball-included modules
+      and no third-party modules.
+    - debian/tests/control: add nginx-core test.
+    - debian/apport/source_nginx.py: Add apport hooks for additional bug
+      information gathering.
+    - debian/nginx-common.install: Add install rule for apport hooks.
+    - d/nginx-{core,light,full,extras}.postinst: Add checks for whether
+      port 80 is in use or not to determine whether or not to attempt
+      starting of the NGINX service during install/upgrade
+    - d/control: Add dependencies to nginx-{core,light,full,extras} on
+      `iproute2` as the postinst scripts now use `ss` to determine if
+      Port 80 is open or not.
+
+ -- Thomas Ward <teward@ubuntu.com>  Fri, 31 Aug 2018 09:52:34 -0400
+
+nginx (1.15.2-0ubuntu2) cosmic; urgency=medium
+
+  * d/control: Add `iproute2` dependencies for the binary 
+    nginx-{core,light,full,extras} packages, they got missed in the
+    application of the diff in 1.15.2-0ubuntu1. (LP: #1782226)
+
+ -- Thomas Ward <teward@ubuntu.com>  Tue, 21 Aug 2018 12:07:59 -0400
+
+nginx (1.15.2-0ubuntu1) cosmic; urgency=medium
+
+  * Switch to track NGINX Mainline for 18.10 (and 19.04) releases after
+    discussion with Server team members. Mainline version is 1.15.2
+  * Upstream changelogs for 1.15.2 are available at 
+    http://nginx.org/en/CHANGES
+  * Remaining Ubuntu-specific changes:
+    - debian/patches/ubuntu-branding.patch: add Ubuntu branding (refreshed)
+    - d/{control,rules,nginx-core.*}: add new binary package for main,
+      nginx-core, which contains only source-tarball-included modules
+      and no third-party modules.
+    - debian/tests/control: add nginx-core test.
+    - debian/apport/source_nginx.py: Add apport hooks for additional bug
+      information gathering.
+    - debian/nginx-common.install: Add install rule for apport hooks.
+  * Additional Ubuntu only changes (LP: #1782226):
+    - d/nginx{core,light,full,extras}.postinst: Add checks for whether
+      port 80 is in use or not to determine whether or not to attempt 
+      starting of the NGINX service during install/upgrade.
+    - d/control: Add dependencies to nginx-{core,light,full,extras} on
+      `iproute2` as the postinst scripts now use `ss` to determine if
+      Port 80 is open or not.
+
+ -- Thomas Ward <teward@ubuntu.com>  Sun, 19 Aug 2018 12:16:48 -0400
+
+nginx (1.14.0-0ubuntu2) cosmic; urgency=medium
+
+  * debian/nginx-core.postinst: Make nginx-*.postinst use invoke-rc.d.
+    (LP: #1578344)
+
+ -- Thomas Ward <teward@ubuntu.com>  Tue, 15 May 2018 11:14:02 -0400
+
+nginx (1.14.0-0ubuntu1) bionic; urgency=medium
+
+  * New upstream stable release (1.14.0)
+  * Upstream changelogs can be found at http://nginx.org/en/CHANGES-1.14
+  * There are no functional changes or new features in this release,
+    and the only change is a version number change.
+  * Remaining Ubuntu-specific changes:
+    - debian/patches/ubuntu-branding.patch: add Ubuntu branding (refreshed)
+    - d/{control,rules,nginx-core.*}: add new binary package for main,
+      nginx-core, which contains only source-tarball-included modules
+      and no third-party modules.
+    - debian/tests/control: add nginx-core test.
+    - debian/apport/source_nginx.py: Add apport hooks for additional bug
+      information gathering.
+    - debian/nginx-common.install: Add install rule for apport hooks.
+
+ -- Thomas Ward <teward@ubuntu.com>  Tue, 17 Apr 2018 12:17:58 -0400
+
+nginx (1.13.12-0ubuntu1) bionic; urgency=medium
+
+  * New upstream releases (1.13.11, 1.13.12)
+  * Upstream changelogs can be found at https://nginx.org/en/CHANGES
+  * Remaining Ubuntu-specific changes:
+    - debian/patches/ubuntu-branding.patch: add Ubuntu branding (refreshed)
+    - d/{control,rules,nginx-core.*}: add new binary package for main,
+      nginx-core, which contains only source-tarball-included modules
+      and no third-party modules.
+    - debian/tests/control: add nginx-core test.
+    - debian/apport/source_nginx.py: Add apport hooks for additional bug
+      information gathering.
+    - debian/nginx-common.install: Add install rule for apport hooks.
+
+ -- Thomas Ward <teward@ubuntu.com>  Mon, 16 Apr 2018 11:43:01 -0400
+
+nginx (1.13.10-1ubuntu1) bionic; urgency=medium
+
+  * Merge with Debian unstable. Remaining changes:
+    - debian/patches/ubuntu-branding.patch: add Ubuntu branding (refreshed)
+    - d/{control,rules,nginx-core.*}: add new binary package for main,
+      nginx-core, which contains only source-tarball-included modules
+      and no third-party modules.
+    - debian/tests/control: add nginx-core test.
+    - debian/apport/source_nginx.py: Add apport hooks for additional bug
+      information gathering.
+    - debian/nginx-common.install: Add install rule for apport hooks.
+  * Drop:
+    - debian/patches/0002-Make-sure-signature-stays-the-same-in-
+      all-nginx-buil.patch:  Refreshed patch - Merge-o-Matic introduced some
+      fuzz which caused issues.
+      [ Does not seem necessary ]
+    - d/control: drop mention of SSL Preread from nginx-full, nginx-extras
+      [ Previously undocumented ]
+    - d/gbp.conf: update for 1.12 release
+      [ Previously undocumented ]
+    - d/p/0003-define_gnu_source-on-other-glibc-based-platforms.patch:
+      Refresh patch.
+      [ Previously undocumented ]
+
+ -- Nishanth Aravamudan <nish.aravamudan@canonical.com>  Thu, 05 Apr 2018 15:43:49 -0700
+
+nginx (1.13.10-1) unstable; urgency=medium
+
+  * New upstream version
+
+ -- Christos Trochalakis <ctrochalakis@debian.org>  Wed, 21 Mar 2018 16:16:22 +0200
+
+nginx (1.13.9-1) unstable; urgency=medium
+
+  [ Michael Lustfield ]
+  * Remove non-uploading users
+
+  [ Christos Trochalakis ]
+  * New upstream version 1.13.9
+  * Move packaging repository to salsa.debian.org
+  * Bump Standards-Version to 4.1.3, no changes needed
+
+ -- Christos Trochalakis <ctrochalakis@debian.org>  Wed, 21 Feb 2018 11:24:53 +0200
+
+nginx (1.13.8-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Christos Trochalakis <ctrochalakis@debian.org>  Wed, 27 Dec 2017 09:24:36 +0200
+
+nginx (1.13.7-1) unstable; urgency=medium
+
+  [ Christos Trochalakis ]
+  * New upstream version 1.13.7
+  * Bump Standards-Version, no changes needed
+  * debian/watch: switch to HTTPS for the upstream check
+
+  [ Mpampis Kostas ]
+  * Automate modules watch & upgrade process (Closes: #869499)
+
+  [ Christos Trochalakis ]
+  * Bits & pieces for ngxmod
+  * http-headers-more-filter: Upgrade to 0.33
+  * http-echo: Upgrade to 0.61
+  * http-lua: Upgrade to 0.10.11
+  * http-dav-ext: Upgrade to 0.1.0 (Closes: #878611)
+  * http-fancyindex: Upgrade to 0.4.2
+  * rtmp: Upgrade to 1.2.1 (Closes: #880718)
+
+ -- Christos Trochalakis <ctrochalakis@debian.org>  Thu, 14 Dec 2017 11:04:36 +0200
+
+nginx (1.13.6-2ubuntu2) bionic; urgency=high
+
+  * No change rebuild against openssl1.1.
+
+ -- Dimitri John Ledkov <xnox@ubuntu.com>  Mon, 05 Feb 2018 16:51:17 +0000
+
+nginx (1.13.6-2ubuntu1) bionic; urgency=low
+
+  * Merge from Debian unstable.  Remaining changes:
+    - debian/patches/ubuntu-branding.patch: add Ubuntu branding (refreshed)
+    - d/{control,rules,nginx-core.*}: add new binary package for main,
+      nginx-core, which contains only source-tarball-included modules
+      and no third-party modules.
+    - debian/tests/control: add nginx-core test.
+    - debian/apport/source_nginx.py: Add apport hooks for additional bug
+      information gathering.
+    - debian/nginx-common.install: Add install rule for apport hooks.
+    - debian/rules: Alter build flags for cflags and ldflags to fix known
+      fPIE / fPIC compilation issues (see nginx PPA bug for more details
+      and information, LP: #1657596)
+    - debian/patches/0002-Make-sure-signature-stays-the-same-in-
+      all-nginx-buil.patch:  Refreshed patch - Merge-o-Matic introduced some
+      fuzz which caused issues.
+
+ -- Thomas Ward <teward@ubuntu.com>  Tue, 12 Dec 2017 12:15:30 -0500
+
+nginx (1.13.6-2) unstable; urgency=medium
+
+  * rtmp: Ship docs & examples (Closes: #878368)
+
+ -- Christos Trochalakis <ctrochalakis@debian.org>  Fri, 13 Oct 2017 12:59:28 +0300
+
+nginx (1.13.6-1) unstable; urgency=medium
+
+  * New upstream version
+  * Normalize module paths in packaging repository
+  * Bump Standards-Version, no changes needed
+  * Drop dh-systemd dependency since we depend on debhelper >= 10
+
+ -- Christos Trochalakis <ctrochalakis@debian.org>  Thu, 12 Oct 2017 10:37:29 +0300
+
+nginx (1.13.5-1) unstable; urgency=medium
+
+  * New upstream version 1.13.5
+  * doc: Improve example WordPress configuration
+    Thanks to Larry Holish (Closes: #863343)
+  * Remove upstart conffile (Closes: #874319)
+
+ -- Christos Trochalakis <ctrochalakis@debian.org>  Wed, 06 Sep 2017 10:10:24 +0300
+
+nginx (1.13.4-1) unstable; urgency=medium
+
+  * New upstream version 1.13.4
+  * nginx-lua:
+    + Add a simple lua autopkgtest
+    + Discover LuaJIT 2.1 (FTBFS) (Closes: #873319)
+    + Update to v0.10.10
+    + Update OpenSSL 1.1 patch
+    + Drop patch to build against Nginx 1.11.11, now included upstream
+  * tests: Fix race between reload and curl's http request
+  * Explicitly disable autoreconf (debhelper 10)
+  * Drop Upstart configuration
+  * Bump Standards to 4.1.0
+    + Switch all packages to Priority optional, extra is considered deprecated
+
+ -- Christos Trochalakis <ctrochalakis@debian.org>  Tue, 29 Aug 2017 10:49:03 +0300
+
+nginx (1.13.3-1) unstable; urgency=high
+
+  * New upstream version 1.13.3.
+    Fixes CVE-2017-7529 (Closes: #868109)
+  * Drop gzip_disable "msie6" directive. (Closes: #867024)
+
+ -- Christos Trochalakis <ctrochalakis@debian.org>  Wed, 12 Jul 2017 11:20:27 +0300
+
+nginx (1.13.2-1) unstable; urgency=medium
+
+  [ Christos Trochalakis ]
+  * New upstream version 1.13.2.
+  * Fix nginx-cache-purge segfaults (Closes: #866750)
+  * Merge ca translations.
+    Thanks to Alytidae (Closes: #865996)
+  * Merge es translations.
+    Thanks to Jonathan Bustillos (Closes: #855610)
+  * Merge pt translations.
+    Thanks to Rui Branco (Closes: #858741)
+  * Bump Standards to 4.0.0.
+    - Switch the copyright-format URL to https.
+
+  [ Nicolas Dandrimont ]
+  * Introduce libnginx-mod-rtmp (Closes: #843777)
+
+ -- Christos Trochalakis <ctrochalakis@debian.org>  Mon, 03 Jul 2017 13:44:59 +0300
+
+nginx (1.13.1-2) unstable; urgency=medium
+
+  * Upload to unstable.
+
+ -- Christos Trochalakis <ctrochalakis@debian.org>  Tue, 20 Jun 2017 14:16:52 +0300
+
+nginx (1.13.1-1) experimental; urgency=medium
+
+  * New upstream version 1.13.1.
+
+ -- Christos Trochalakis <ctrochalakis@debian.org>  Wed, 31 May 2017 11:41:59 +0300
+
+nginx (1.13.0-1) experimental; urgency=medium
+
+  * New upstream release.
+    We now target nginx mainline (1.13.x).
+
+ -- Christos Trochalakis <ctrochalakis@debian.org>  Wed, 10 May 2017 11:40:38 +0300
+
+nginx (1.12.1-0ubuntu2) artful; urgency=medium
+
+  * No-change rebuild for perl 5.26.0.
+
+ -- Matthias Klose <doko@ubuntu.com>  Wed, 26 Jul 2017 20:11:43 +0000
+
+nginx (1.12.1-0ubuntu1) artful; urgency=medium
+
+  * New upstream release (1.12.1) - full changelog available at upstream
+    website - http://nginx.org/en/CHANGES-1.12
+  * This release is a security patch micro-release from Upstream.
+  * This package contains security content to fix the following CVEs:
+    * CVE-2017-7529: A security issue was identified in nginx range filter.
+      A specially crafted request might result in an integer overflow and
+      incorrect processing of ranges, potentially resulting in sensitive 
+      information leak. (Closes LP: #1704151)
+  * Additional changes:
+    * d/patches/ubuntu-branding.patch: Refreshed Ubuntu Branding patch.
+
+ -- Thomas Ward <teward@ubuntu.com>  Sat, 15 Jul 2017 12:40:15 -0400
+
+nginx (1.12.0-1ubuntu1) artful; urgency=medium
+
+  * Merge from Debian Experimental (1.12.0-1, via snapshots.debian.org)
+  * All Ubuntu-specific changes from Ubuntu 1.12.0-0ubuntu1 were retained.
+  * Remaining changes:
+    * d/tests/control: Specify nginx-core flavor tests.
+  * This merge closes the merge request on Launchpad. (LP: #1704020)
+
+ -- Thomas Ward <teward@ubuntu.com>  Wed, 12 Jul 2017 19:53:24 -0400
+
+nginx (1.12.0-1) experimental; urgency=medium
+
+  [ Michael Lustfield ]
+  * debian/rules:
+    - Configure build flags to work with other arches and downstreams.
+      Thanks to Thomas Ward.
+
+  [ Christos Trochalakis ]
+  * New upstream release.
+  * Patch nginx-upstream-fair to build against nginx 1.11.6.
+  * Patch nginx-lua to build against nginx 1.11.11.
+  * Patch nginx-echo to build against nginx 1.11.11.
+  * Drop curve list patch, it's included upstream.
+  * Drop perl build flags patch, it is now handled upstream.
+  * Enable SSL Preread builtin module on nginx-full & nginx-extras.
+    (Closes: #854214)
+  * Switch to debhelper 10, no changes needed.
+
+ -- Christos Trochalakis <ctrochalakis@debian.org>  Fri, 05 May 2017 11:16:30 +0300
+
+nginx (1.12.0-0ubuntu1) artful; urgency=medium
+
+  * New upstream release: 1.12.0 Stable branch.
+  * All remaining Ubuntu-specific and Debian-specific changes remain
+    in place with this upload, the upstream version and code are the
+    only bits that have been updated, except where indicated below.
+  * Remaining changes:
+    - d/modules/nginx-upload-progress/config: Apply upstream patch to
+      fix an issue where the module does not properly function due to
+      the wrong module type being set; this prevented the module from
+      working when built. (LP: #1673056)
+    - d/patches: The following patches were dropped from the package
+      because the changes from the patches are already incorporated 
+      in 1.12.0:
+      - 0004-SSL-error-messages-style.patch
+      - 0005-SSL-style.patch
+      - 0006-SSL-support-for-multiple-curves-ticket-885.patch
+    - d/patches/perl-use-dpkg-buildflags.patch: Refreshed patch to 
+      remove fuzz from the patch.
+    - d/modules/nginx-echo: Apply upstream diff/patch to fix an FTBFS
+    - d/modules/nginx-lua: Apply upstream diff/patch to fix an FTBFS
+    - d/modules/nginx-upstream-fair: Apply diff/patch from the Debian 
+      package maintainers' git repository to not use default_port to
+      fix an FTBFS.  (This will eventually be in Debian, and will get
+      merged in then as well).
+
+ -- Thomas Ward <teward@ubuntu.com>  Wed, 26 Apr 2017 12:02:33 -0400
+
+nginx (1.12.0-1) UNRELEASED; urgency=medium
+
+  [ Michael Lustfield ]
+  * debian/rules:
+    - Configure build flags to work with other arches and downstreams.
+      Thanks to Thomas Ward.
+
+  [ Christos Trochalakis ]
+  * New upstream release.
+  * Patch nginx-upstream-fair to build against nginx 1.11.6.
+  * Patch nginx-lua to build against nginx 1.11.11.
+  * Patch nginx-echo to build against nginx 1.11.11.
+  * Drop curve list patch, it's included upstream.
+  * Drop perl build flags patch, it is now handled upstream.
+  * Enable SSL Preread builtin module on nginx-full & nginx-extras.
+    (Closes: #854214)
+  * Switch to debhelper 10, no changes needed.
+
+ -- Christos Trochalakis <ctrochalakis@debian.org>  Fri, 28 Apr 2017 11:14:41 +0300
 
 nginx (1.10.3-1ubuntu3) zesty; urgency=medium
 
