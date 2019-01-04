@@ -1,4 +1,6 @@
 perl-use-dpkg-buildflags.patch
+<% if dynamic_module_supported?(@distribution) %>
 CVE-2018-16843.patch
 CVE-2018-16844.patch
 CVE-2018-16845.patch
+<% end %>
