@@ -1,12 +1,10 @@
 def ruby_package_dependencies
   case distribution_class
   when :ubuntu
-    if is_distribution?("<= trusty")
-      "ruby1.9.1, ruby1.9.1-dev, ruby2.0, ruby2.0-dev"
-    elsif is_distribution?("<= artful")
+    if is_distribution?("<= artful")
       "ruby2.3, ruby2.3-dev"
     else
-      # At least up to, and including, v18.04 Bionic 
+      # At least up to, and including, v18.04 Bionic
       "ruby2.5, ruby2.5-dev"
     end
   when :debian
@@ -26,12 +24,10 @@ end
 def distro_ruby_versions
   case distribution_class
   when :ubuntu
-    if is_distribution?("<= trusty")
-      ["1.9.1", "2.0"]
-    elsif is_distribution?("<= artful")
+    if is_distribution?("<= artful")
       ["2.3"]
     else
-      # At least up to, and including, v18.04 Bionic 
+      # At least up to, and including, v18.04 Bionic
       ["2.5"]
     end
   when :debian
@@ -45,4 +41,3 @@ def distro_ruby_versions
     raise "Unknown distribution class"
   end
 end
-

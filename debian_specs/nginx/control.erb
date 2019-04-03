@@ -1,24 +1,9 @@
 <%
 case distribution_class
 when :ubuntu
-  if is_distribution?("<= trusty")
-    libgd_dependency = "libgd2-dev | libgd2-noxpm-dev"
-    lua_dependency = "liblua5.1-dev"
-  else
-    libgd_dependency = "libgd-dev"
-    lua_dependency = "libluajit-5.1-dev [i386 amd64 kfreebsd-i386 armel armhf powerpc powerpcspe mips mipsel]," \
-    "\n               " \
-    "liblua5.1-0-dev [!i386 !amd64 !kfreebsd-i386 !armel !armhf !powerpc !powerpcspe !mips !mipsel],"
-  end
+  libgd_dependency = "libgd-dev"
 when :debian
   libgd_dependency = "libgd2-dev | libgd2-noxpm-dev"
-  if is_distribution?("== wheezy")
-    lua_dependency = "libluajit-5.1-dev [i386 amd64 kfreebsd-i386 armel armhf powerpc powerpcspe mips mipsel] | liblua5.1-0-dev,"
-  else
-    lua_dependency = "libluajit-5.1-dev [i386 amd64 kfreebsd-i386 armel armhf powerpc powerpcspe mips mipsel]," \
-    "\n               " \
-    "liblua5.1-0-dev [!i386 !amd64 !kfreebsd-i386 !armel !armhf !powerpc !powerpcspe !mips !mipsel],"
-  end
 else
   raise "Unknown distribution class"
 end
@@ -28,20 +13,15 @@ Section: httpd
 Priority: optional
 Maintainer: <%= MAINTAINER_NAME %> <<%= MAINTAINER_EMAIL %>>
 Build-Depends: autotools-dev,
-<% if is_distribution?(">= precise") || is_distribution?(">= wheezy") -%>
                debhelper (>= 9),
-<% else -%>
-               debhelper (>= 7),
-<% end -%>
                po-debconf,
-<% if is_distribution?(">= trusty") || is_distribution?(">= jessie") -%>
                dh-systemd (>= 1.5),
-<% end -%>
                dpkg-dev (>= 1.15.5),
                libexpat-dev,
                <%= libgd_dependency %>,
                libgeoip-dev,
-               <%= lua_dependency %>,
+               libluajit-5.1-dev [i386 amd64 kfreebsd-i386 armel armhf powerpc powerpcspe mips mipsel],
+               liblua5.1-0-dev [!i386 !amd64 !kfreebsd-i386 !armel !armhf !powerpc !powerpcspe !mips !mipsel],
                libmhash-dev,
                libpam0g-dev,
                libpcre3-dev,
@@ -104,9 +84,7 @@ Description: small, powerful, scalable web/proxy server - common files
  This package contains base configuration files used by all versions of
  nginx.
 
-<%
 # Dummy dependency packages that install nginx-extras instead
--%>
 Package: nginx-core
 Architecture: all
 Depends: nginx-extras (>= ${source:Version}) ,
@@ -190,10 +168,9 @@ Breaks: nginx (<< 1.4.5-1)
 Provides: httpd,
           httpd-cgi,
           nginx
-<%
+
 # keep naxsi as conflict until oldest supported distro has an nginx that
 # doesn't indicate such a conflict.
--%>
 Conflicts: nginx-naxsi
 Recommends: <%= PASSENGER_DEBIAN_NAME %> (>= <%= PASSENGER_VERSION %>),
             <%= PASSENGER_DEBIAN_NAME %> (<< <%= NEXT_PASSENGER_VERSION %>)

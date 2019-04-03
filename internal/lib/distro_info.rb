@@ -34,7 +34,6 @@ DEBIAN_DISTRIBUTIONS = {
 # A list of distribution codenames for which the `build` script
 # will build for, and for which the `test` script will test for.
 DEFAULT_DISTROS = %w(
-  trusty
   xenial
   bionic
   cosmic
@@ -120,10 +119,6 @@ end
 
 def dynamic_module_supported?(distro)
   ubuntu_gte(distro, "artful") || debian_gte(distro, "stretch")
-end
-
-def binary_wont_build?(distro,arch)
-  (distro === "trusty") && (arch === "i386")
 end
 
 def latest_nginx_sanitized(distro, sanitized)
