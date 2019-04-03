@@ -1,19 +1,118 @@
-nginx (1.15.5-0ubuntu2.1) cosmic-security; urgency=medium
+nginx (1.15.9-0ubuntu1) disco; urgency=medium
 
-  * SECURITY UPDATE: excessive memory consumption in HTTP/2 implementation
-    - debian/patches/CVE-2018-16843.patch: add flood detection in
-      src/http/v2/ngx_http_v2.c, src/http/v2/ngx_http_v2.h.
-    - CVE-2018-16843
-  * SECURITY UPDATE: excessive CPU usage in HTTP/2 implementation
-    - debian/patches/CVE-2018-16844.patch: limit the number of idle state
-      switches in src/http/v2/ngx_http_v2.c, src/http/v2/ngx_http_v2.h.
-    - CVE-2018-16844
-  * SECURITY UPDATE: infinite loop in ngx_http_mp4_module
-    - debian/patches/CVE-2018-16845.patch: fixed reading 64-bit atoms in
-      src/http/modules/ngx_http_mp4_module.c.
-    - CVE-2018-16845
+  * New upstream release (1.15.9) - full changelog available from
+    http://nginx.org/en/CHANGES (LP: #1817750)
+  * Remaining Ubuntu-specific changes:
+    - debian/patches/ubuntu-branding.patch: add Ubuntu branding (refreshed)
+    - d/{control,rules,nginx-core.*}: add new binary package for main,
+      nginx-core, which contains only source-tarball-included modules
+      and no third-party modules.
+    - debian/tests/control: add nginx-core test.
+    - debian/apport/source_nginx.py: Add apport hooks for additional bug
+      information gathering.
+    - debian/nginx-common.install: Add install rule for apport hooks.
+    - d/nginx-{core,light,full,extras}.postinst: Add checks for whether
+      port 80 is in use or not to determine whether or not to attempt
+      starting of the NGINX service during install/upgrade
+    - d/control: Add dependencies to nginx-{core,light,full,extras} on
+      `iproute2` as the postinst scripts now use `ss` to determine if
+      Port 80 is open or not.
+    - d/rules: Enable --with-compat build option for all nginx package
+      flavors
 
- -- Marc Deslauriers <marc.deslauriers@ubuntu.com>  Tue, 06 Nov 2018 13:50:41 -0500
+ -- Thomas Ward <teward@ubuntu.com>  Tue, 26 Feb 2019 11:15:07 -0500
+
+nginx (1.15.8-0ubuntu1) disco; urgency=medium
+
+  * New upstream release (1.15.8) - full changelog available from 
+    http://nginx.org/en/CHANGES
+  * Remaining Ubuntu-specific changes:
+    - debian/patches/ubuntu-branding.patch: add Ubuntu branding (refreshed)
+    - d/{control,rules,nginx-core.*}: add new binary package for main,
+      nginx-core, which contains only source-tarball-included modules
+      and no third-party modules.
+    - debian/tests/control: add nginx-core test.
+    - debian/apport/source_nginx.py: Add apport hooks for additional bug
+      information gathering.
+    - debian/nginx-common.install: Add install rule for apport hooks.
+    - d/nginx-{core,light,full,extras}.postinst: Add checks for whether
+      port 80 is in use or not to determine whether or not to attempt
+      starting of the NGINX service during install/upgrade
+    - d/control: Add dependencies to nginx-{core,light,full,extras} on
+      `iproute2` as the postinst scripts now use `ss` to determine if
+      Port 80 is open or not.
+    - d/rules: Enable --with-compat build option for all nginx package
+      flavors
+
+ -- Thomas Ward <teward@ubuntu.com>  Fri, 01 Feb 2019 20:21:45 -0500
+
+nginx (1.15.7-0ubuntu1) disco; urgency=medium
+
+  * New upstream release (1.15.7) - full changelog available from
+    http://nginx.org/en/CHANGES
+  * Remaining Ubuntu-specific changes:
+    - debian/patches/ubuntu-branding.patch: add Ubuntu branding (refreshed)
+    - d/{control,rules,nginx-core.*}: add new binary package for main,
+      nginx-core, which contains only source-tarball-included modules
+      and no third-party modules.
+    - debian/tests/control: add nginx-core test.
+    - debian/apport/source_nginx.py: Add apport hooks for additional bug
+      information gathering.
+    - debian/nginx-common.install: Add install rule for apport hooks.
+    - d/nginx-{core,light,full,extras}.postinst: Add checks for whether
+      port 80 is in use or not to determine whether or not to attempt
+      starting of the NGINX service during install/upgrade
+    - d/control: Add dependencies to nginx-{core,light,full,extras} on
+      `iproute2` as the postinst scripts now use `ss` to determine if
+      Port 80 is open or not.
+    - d/rules: Enable --with-compat build option for all nginx package
+      flavors (LP: #1797897)
+
+ -- Thomas Ward <teward@ubuntu.com>  Tue, 27 Nov 2018 10:28:55 -0500
+
+nginx (1.15.6-0ubuntu2) disco; urgency=medium
+
+  * Apply a Debian packaging change to Ubuntu package for config parity:
+    * d/conf/snippets/fastcgi-php.conf: Adjust fastcgi_split_path_info
+      snippet to handle the /example.php/ case. (Debian bug 911398)
+
+ -- Thomas Ward <teward@ubuntu.com>  Fri, 23 Nov 2018 10:56:21 -0500
+
+nginx (1.15.6-0ubuntu1) disco; urgency=medium
+
+  * New upstream release (1.15.6) - full changelog available from 
+    http://nginx.org/en/CHANGES
+  * Remaining Ubuntu-specific changes:
+    - debian/patches/ubuntu-branding.patch: add Ubuntu branding (refreshed)
+    - d/{control,rules,nginx-core.*}: add new binary package for main,
+      nginx-core, which contains only source-tarball-included modules
+      and no third-party modules.
+    - debian/tests/control: add nginx-core test.
+    - debian/apport/source_nginx.py: Add apport hooks for additional bug
+      information gathering.
+    - debian/nginx-common.install: Add install rule for apport hooks.
+    - d/nginx-{core,light,full,extras}.postinst: Add checks for whether
+      port 80 is in use or not to determine whether or not to attempt
+      starting of the NGINX service during install/upgrade
+    - d/control: Add dependencies to nginx-{core,light,full,extras} on
+      `iproute2` as the postinst scripts now use `ss` to determine if
+      Port 80 is open or not.
+    - d/rules: Enable --with-compat build option for all nginx package
+      flavors (LP: #1797897)
+
+ -- Thomas Ward <teward@ubuntu.com>  Tue, 13 Nov 2018 10:10:45 -0500
+
+nginx (1.15.5-0ubuntu4) disco; urgency=medium
+
+  * No-change rebuild against libhiredis0.14
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Mon, 12 Nov 2018 08:47:44 +0000
+
+nginx (1.15.5-0ubuntu3) disco; urgency=medium
+
+  * No-change rebuild for the perl 5.28 transition.
+
+ -- Adam Conrad <adconrad@ubuntu.com>  Fri, 02 Nov 2018 19:02:18 -0600
 
 nginx (1.15.5-0ubuntu2) cosmic; urgency=medium
 

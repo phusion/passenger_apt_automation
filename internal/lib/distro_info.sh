@@ -8,7 +8,7 @@
 # internal/scripts/regen_distro_info_script.sh
 
 # shellcheck disable=SC2034
-DEFAULT_DISTROS="xenial bionic cosmic jessie stretch"
+DEFAULT_DISTROS="xenial bionic disco jessie stretch"
 
 
 function to_distro_codename()
@@ -157,6 +157,14 @@ function to_distro_codename()
 			|| "$INPUT" = "ubuntu-18.10" ]]
 		then
 			echo "cosmic"
+			return
+		fi
+	
+		if [[ "$INPUT" = "disco"
+			|| "$INPUT" = "ubuntu19.04"
+			|| "$INPUT" = "ubuntu-19.04" ]]
+		then
+			echo "disco"
 			return
 		fi
 	
@@ -359,6 +367,14 @@ function to_testbox_image()
 			return
 		fi
 	
+		if [[ "$INPUT" = "disco"
+			|| "$INPUT" = "ubuntu19.04"
+			|| "$INPUT" = "ubuntu-19.04" ]]
+		then
+			echo phusion/passenger_apt_automation_testbox_ubuntu_19_04:1.0.2
+			return
+		fi
+	
 	
 		if [[ "$INPUT" = "squeeze"
 			|| "$INPUT" = "debian6"
@@ -409,6 +425,21 @@ function dynamic_module_supported()
 	local CODENAME="$1"
 
 	
+		if [[ "$CODENAME" = "xenial" ]]; then
+			echo true
+			return
+		fi
+	
+		if [[ "$CODENAME" = "yakkety" ]]; then
+			echo true
+			return
+		fi
+	
+		if [[ "$CODENAME" = "zesty" ]]; then
+			echo true
+			return
+		fi
+	
 		if [[ "$CODENAME" = "artful" ]]; then
 			echo true
 			return
@@ -420,6 +451,11 @@ function dynamic_module_supported()
 		fi
 	
 		if [[ "$CODENAME" = "cosmic" ]]; then
+			echo true
+			return
+		fi
+	
+		if [[ "$CODENAME" = "disco" ]]; then
 			echo true
 			return
 		fi

@@ -45,8 +45,8 @@ run create_user app "Passenger APT Automation" 2446
 header "Installing dependencies"
 run apt-get update -q
 run apt-get install -y -q build-essential gdebi-core ruby ruby-dev rake \
-	 zlib1g-dev wget curl python git ccache reprepro libsqlite3-dev \
-	 nodejs npm apt-transport-https ca-certificates
+	zlib1g-dev wget curl python git \
+	ccache reprepro libsqlite3-dev nodejs npm apt-transport-https ca-certificates
 run apt-get install -y -q libcurl4-openssl-dev libssl-dev
 run curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list

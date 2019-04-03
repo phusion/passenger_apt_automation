@@ -20,7 +20,8 @@ UBUNTU_DISTRIBUTIONS = {
   "zesty"    => "17.04",
   "artful"   => "17.10",
   "bionic"   => "18.04",
-  "cosmic"   => "18.10"
+  "cosmic"   => "18.10",
+  "disco"    => "19.04",
 }
 
 DEBIAN_DISTRIBUTIONS = {
@@ -36,7 +37,7 @@ DEBIAN_DISTRIBUTIONS = {
 DEFAULT_DISTROS = %w(
   xenial
   bionic
-  cosmic
+  disco
 
   jessie
   stretch
@@ -118,7 +119,7 @@ def extract_nginx_version(os, distro, sanitize)
 end
 
 def dynamic_module_supported?(distro)
-  ubuntu_gte(distro, "artful") || debian_gte(distro, "stretch")
+  ubuntu_gte(distro, "xenial") || debian_gte(distro, "stretch")
 end
 
 def latest_nginx_sanitized(distro, sanitized)
