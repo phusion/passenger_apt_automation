@@ -58,7 +58,7 @@ run ln -s /usr/local/node-*/bin/* /usr/bin/
 
 run curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
-run apt-get update -q && apt-get install -y -q yarn
+run apt-get update -q && apt-get install -y -q yarn --no-install-recommends
 
 header "Miscellaneous"
 run mkdir /etc/container_environment

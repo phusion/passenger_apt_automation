@@ -48,6 +48,9 @@ run apt-get install -y -q apt-utils
 run apt-get install -y -q build-essential gdebi-core ruby ruby-dev rake \
 	libcurl4-openssl-dev zlib1g-dev libssl-dev wget curl python git \
 	ccache reprepro libsqlite3-dev apt-transport-https ca-certificates
+run ln -s /usr/bin/python3 /bin/my_init_python
+run gem install bundler -v 1.11.2 --no-rdoc --no-ri
+run env BUNDLE_GEMFILE=/paa_build/Gemfile bundle install
 
 run wget https://nodejs.org/dist/v6.11.0/node-v6.11.0-linux-x64.tar.gz -O /tmp/node.tar.gz
 run tar -xzf /tmp/node.tar.gz -C /usr/local
@@ -55,11 +58,7 @@ run ln -s /usr/local/node-*/bin/* /usr/bin/
 
 run curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
-run apt-get update -q && apt-get install -y -q yarn
-run ln -s /usr/bin/nodejs /usr/bin/node
-run ln -s /usr/bin/python3 /bin/my_init_python
-run gem install bundler -v 1.11.2 --no-rdoc --no-ri
-run env BUNDLE_GEMFILE=/paa_build/Gemfile bundle install
+run apt-get update -q && apt-get install -y -q yarn --no-install-recommends
 
 header "Miscellaneous"
 run mkdir /etc/container_environment
