@@ -47,7 +47,12 @@ run apt-get update -q
 run apt-get install -y -q apt-utils
 run apt-get install -y -q build-essential gdebi-core ruby ruby-dev rake \
 	libcurl4-openssl-dev zlib1g-dev libssl-dev wget curl python git \
-	ccache reprepro libsqlite3-dev nodejs apt-transport-https ca-certificates
+	ccache reprepro libsqlite3-dev apt-transport-https ca-certificates
+
+run wget https://nodejs.org/dist/v6.11.0/node-v6.11.0-linux-x64.tar.gz -O /tmp/node.tar.gz
+run tar -xzf /tmp/node.tar.gz -C /usr/local
+run ln -s /usr/local/node-*/bin/* /usr/bin/
+
 run curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
 run apt-get update -q && apt-get install -y -q yarn
