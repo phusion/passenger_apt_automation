@@ -119,7 +119,7 @@ def extract_nginx_version(os, distro, sanitize)
 end
 
 def dynamic_module_supported?(distro)
-  ubuntu_gte(distro, "xenial") || debian_gte(distro, "stretch")
+  ubuntu_gte(distro, "artful") || debian_gte(distro, "stretch")
 end
 
 def latest_nginx_sanitized(distro, sanitized)
