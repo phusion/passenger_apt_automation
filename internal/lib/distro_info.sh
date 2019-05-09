@@ -425,21 +425,6 @@ function dynamic_module_supported()
 	local CODENAME="$1"
 
 	
-		if [[ "$CODENAME" = "xenial" ]]; then
-			echo true
-			return
-		fi
-	
-		if [[ "$CODENAME" = "yakkety" ]]; then
-			echo true
-			return
-		fi
-	
-		if [[ "$CODENAME" = "zesty" ]]; then
-			echo true
-			return
-		fi
-	
 		if [[ "$CODENAME" = "artful" ]]; then
 			echo true
 			return
