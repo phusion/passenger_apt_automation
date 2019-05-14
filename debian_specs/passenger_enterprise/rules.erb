@@ -62,7 +62,7 @@ override_dh_auto_build:
 -%>
 		--with-ipv6 \
 <% elsif is_distribution?("== disco") -%>
-		--compat \
+		--with-compat \
 <% end -%>
 		--with-http_gzip_static_module --with-http_gunzip_module \
 		--with-http_v2_module --with-http_dav_module \
