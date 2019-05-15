@@ -18,7 +18,7 @@ fi
 if [[ "$1" == "buildbox_name" ]]; then
 	echo -n "phusion/passenger_apt_automation_buildbox"
 elif [[ "$1" == "buildbox_version" ]]; then
-	echo -n "1.1.3"
+	echo -n "1.1.4"
 elif [[ "$1" == "testbox_base_name" ]]; then
 	echo -n "phusion/passenger_apt_automation_testbox"
 elif [[ "$1" == "testbox_version" ]]; then
