@@ -1,3 +1,21 @@
+nginx (1.15.9-0ubuntu1.1) disco-security; urgency=medium
+
+  * SECURITY UPDATE: HTTP/2 Data Dribble issue
+    - debian/patches/CVE-2019-9511.patch: limited number of DATA frames in
+      src/http/v2/ngx_http_v2.c, src/http/v2/ngx_http_v2.h,
+      src/http/v2/ngx_http_v2_filter_module.c.
+    - CVE-2019-9511
+  * SECURITY UPDATE: HTTP/2 Resource Loop / Priority Shuffling issue
+    - debian/patches/CVE-2019-9513.patch: limited number of PRIORITY frames
+      in src/http/v2/ngx_http_v2.c, src/http/v2/ngx_http_v2.h.
+    - CVE-2019-9513
+  * SECURITY UPDATE: HTTP/2 0-Length Headers Leak issue
+    - debian/patches/CVE-2019-9516.patch: reject zero length headers with
+      PROTOCOL_ERROR in src/http/v2/ngx_http_v2.c.
+    - CVE-2019-9516
+
+ -- Marc Deslauriers <marc.deslauriers@ubuntu.com>  Wed, 14 Aug 2019 14:41:19 -0400
+
 nginx (1.15.9-0ubuntu1) disco; urgency=medium
 
   * New upstream release (1.15.9) - full changelog available from
