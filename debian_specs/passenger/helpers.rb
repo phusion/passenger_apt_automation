@@ -10,9 +10,11 @@ def ruby_package_dependencies
   when :debian
     if is_distribution?("<= jessie")
       "ruby2.1, ruby2.1-dev"
-    else
+    elsif is_distribution?("<= stretch")
       # At least up to, and including, v9 Stretch
       "ruby2.3, ruby2.3-dev"
+    else
+      "ruby2.5, ruby2.5-dev"
     end
   else
     raise "Unknown distribution class"
@@ -33,9 +35,11 @@ def distro_ruby_versions
   when :debian
     if is_distribution?("<= jessie")
       ["2.1"]
-    else
+    elsif is_distribution?("<= stretch")
       # At least up to, and including, v9 Stretch
       ["2.3"]
+    else
+      ["2.5"]
     end
   else
     raise "Unknown distribution class"

@@ -41,6 +41,7 @@ DEFAULT_DISTROS = %w(
 
   jessie
   stretch
+  buster
 )
 
 

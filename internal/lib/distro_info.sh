@@ -8,7 +8,7 @@
 # internal/scripts/regen_distro_info_script.sh
 
 # shellcheck disable=SC2034
-DEFAULT_DISTROS="xenial bionic disco jessie stretch"
+DEFAULT_DISTROS="xenial bionic disco jessie stretch buster"
 
 
 function to_distro_codename()
@@ -215,7 +215,7 @@ function to_distro_codename()
 
 function get_buildbox_image()
 {
-	echo "phusion/passenger_apt_automation_buildbox:1.1.4"
+	echo "phusion/passenger_apt_automation_buildbox:1.1.5"
 }
 
 function to_testbox_image()
