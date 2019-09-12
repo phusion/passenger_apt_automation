@@ -163,6 +163,7 @@ In these instructions, we assume that the new distribution is Ubuntu 16.04 "Xeni
 
      1. Add to either the `UBUNTU_DISTRIBUTIONS` or the `DEBIAN_DISTRIBUTIONS` constant.
      2. Add to the `DEFAULT_DISTROS` constant.
+     3. If it's a debian release you'll likely have to add the signing key to the buildbox's install.sh. (If debootstrap complains about a key in step 6).
 
  3. Run `internal/scripts/regen_distro_info_script.sh`.
 
