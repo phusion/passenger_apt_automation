@@ -52,14 +52,17 @@ run chown app: ~app/.pbuilderrc
 
 header "Installing dependencies"
 run apt-get install -y -q ubuntu-dev-tools debhelper source-highlight \
-	ruby ruby-dev libsqlite3-dev runit git gawk realpath debian-keyring \
+	ruby ruby-dev libsqlite3-dev runit git gawk dirmngr debian-keyring \
 	zlib1g-dev libxml2-dev libxslt1-dev gdebi-core gnupg dh-systemd
-run gem install rake bundler --no-rdoc --no-ri
+run gem install rake bundler --no-document
+run gem update --system --no-document
 run env BUNDLE_GEMFILE=/paa_build/Gemfile bundle install
 
 header "Importing public keys"
 run sudo -u app -H gpg --keyserver keyserver.ubuntu.com --recv-keys C324F5BB38EEB5A0
 run sudo -u app -H gpg --armor --export C324F5BB38EEB5A0 | apt-key add -
+# start dirmngr
+run dirmngr
 # Fixes pbuilder-dist not being able to debootstrap Debian dists.
 run gpg --no-default-keyring --keyring /usr/share/keyrings/debian-archive-keyring.gpg --keyserver keyserver.ubuntu.com --recv-keys 6FB2A1C265FFB764
 run gpg --no-default-keyring --keyring /usr/share/keyrings/debian-archive-keyring.gpg --keyserver keyserver.ubuntu.com --recv-keys DCC9EFBF77E11517
