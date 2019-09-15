@@ -126,4 +126,4 @@ end
 
 puts "--> Building Debian source package"
 sh "ln /work/#{TARBALL} ../#{TARBALL}"
-sh "debuild -us -uc -S"
+sh "debuild -us -uc -d -S"

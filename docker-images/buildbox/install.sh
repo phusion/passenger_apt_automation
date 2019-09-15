@@ -52,7 +52,7 @@ run chown app: ~app/.pbuilderrc
 
 header "Installing dependencies"
 run apt-get install -y -q ubuntu-dev-tools debhelper source-highlight \
-	ruby ruby-dev libsqlite3-dev runit git gawk dirmngr debian-keyring \
+	ruby ruby-dev libsqlite3-dev runit git gawk dh-make dirmngr debian-keyring \
 	zlib1g-dev libxml2-dev libxslt1-dev gdebi-core gnupg dh-systemd
 run gem install rake bundler --no-document
 run gem update --system --no-document
@@ -79,10 +79,10 @@ run rm -rf *.deb *.gz *.dsc *.changes pam-*
 
 header "Finishing up"
 # Undo 'apt-get build-dep pam'
-run apt-get remove -y autoconf automake autopoint dh-autoreconf docbook-xml \
-	docbook-xsl flex libaudit-dev libcrack2 libcrack2-dev libdb-dev libdb5.3-dev \
-	libfl-dev libgc1c2 libpcre3-dev libpcrecpp0 libselinux1-dev libsepol1-dev \
-	libtool libxml2-utils m4 pkg-config sgml-data w3m xsltproc
+run apt-get remove -y docbook-xml docbook-xsl flex libaudit-dev libcrack2 \
+	libcrack2-dev libdb-dev libdb5.3-dev libfl-dev libgc1c2 libpcre3-dev \
+	libpcrecpp0 libselinux1-dev libsepol1-dev libxml2-utils pkg-config \
+	sgml-data w3m xsltproc
 run apt-get autoremove -y
 run apt-get clean
 run rm -rf /tmp/* /var/tmp/*

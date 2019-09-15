@@ -75,6 +75,7 @@ DOCKER_OPTIONS=()
 CACHE_DIR=$(absolute_path "$CACHE_DIR")
 run mkdir -p "$CACHE_DIR"
 run mkdir -p "$CACHE_DIR/pbuilder/ccache"
+BUILDBOX_IMAGE=$(get_buildbox_image)
 
 if [[ "$WORK_DIR" != "" ]]; then
 	WORK_DIR=$(absolute_path "$WORK_DIR")
@@ -91,7 +92,7 @@ verbose_run docker run \
 	-e "ARCHITECTURES=$ARCHITECTURES" \
 	-e "APP_UID=$(/usr/bin/id -u)" \
 	-e "APP_GID=$(/usr/bin/id -g)" \
-	phusion/passenger_apt_automation_buildbox \
+	$BUILDBOX_IMAGE \
 	/system/internal/scripts/inituidgid.sh \
 	/system/internal/scripts/initccache.sh
 
@@ -108,7 +109,7 @@ exec docker run \
 	-e "APP_GID=$(/usr/bin/id -g)" \
 	-e "LC_CTYPE=C.UTF-8" \
 	"${DOCKER_OPTIONS[@]}" \
-	phusion/passenger_apt_automation_buildbox \
+	$BUILDBOX_IMAGE \
 	/sbin/my_init --quiet --skip-runit --skip-startup-files -- \
 	/system/internal/scripts/inituidgid.sh \
 	/system/internal/shell/preinit.sh \

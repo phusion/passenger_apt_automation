@@ -13,11 +13,7 @@ Build-Depends: debhelper (>= 7.0.50~), rake,
  libxslt-dev, libgd-dev, libgeoip-dev,
 <% end -%>
  libapr1-dev, libcurl4-openssl-dev, zlib1g-dev, libpcre3-dev,
-<% if is_distribution?(">= stretch") -%>
- libssl1.0-dev
-<% else -%>
  libssl-dev
-<% end -%>
 Standards-Version: 3.9.3
 Homepage: https://www.phusionpassenger.com/
 Vcs-Git: git://github.com/phusion/passenger.git
