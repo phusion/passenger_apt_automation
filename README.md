@@ -266,6 +266,10 @@ The first way is by deleting the pbuilder chroot tarball in the cache directory.
 
     rm ~/cache/base-wheezy-amd64.tgz
 
+or
+
+    find /data/jenkins/ -name 'base-stretch-*.tgz' -delete
+
 The second way is by updating it in-place. For example:
 
  1. Run: `./shell -c ~/cache`. This will drop you into the buildbox shell.
