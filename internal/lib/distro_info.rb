@@ -22,6 +22,7 @@ UBUNTU_DISTRIBUTIONS = {
   "bionic"   => "18.04",
   "cosmic"   => "18.10",
   "disco"    => "19.04",
+  "eoan"     => "19.10",
 }
 
 DEBIAN_DISTRIBUTIONS = {
@@ -37,7 +38,7 @@ DEBIAN_DISTRIBUTIONS = {
 DEFAULT_DISTROS = %w(
   xenial
   bionic
-  disco
+  eoan
 
   jessie
   stretch

@@ -8,7 +8,7 @@
 # internal/scripts/regen_distro_info_script.sh
 
 # shellcheck disable=SC2034
-DEFAULT_DISTROS="xenial bionic disco jessie stretch buster"
+DEFAULT_DISTROS="xenial bionic eoan jessie stretch buster"
 
 
 function to_distro_codename()
@@ -168,6 +168,14 @@ function to_distro_codename()
 			return
 		fi
 	
+		if [[ "$INPUT" = "eoan"
+			|| "$INPUT" = "ubuntu19.10"
+			|| "$INPUT" = "ubuntu-19.10" ]]
+		then
+			echo "eoan"
+			return
+		fi
+	
 	
 		if [[ "$INPUT" = "squeeze"
 			|| "$INPUT" = "debian6"
@@ -215,7 +223,7 @@ function to_distro_codename()
 
 function get_buildbox_image()
 {
-	echo "phusion/passenger_apt_automation_buildbox:1.1.5"
+	echo "phusion/passenger_apt_automation_buildbox:1.1.6"
 }
 
 function to_testbox_image()
@@ -375,6 +383,14 @@ function to_testbox_image()
 			return
 		fi
 	
+		if [[ "$INPUT" = "eoan"
+			|| "$INPUT" = "ubuntu19.10"
+			|| "$INPUT" = "ubuntu-19.10" ]]
+		then
+			echo phusion/passenger_apt_automation_testbox_ubuntu_19_10:1.0.7
+			return
+		fi
+	
 	
 		if [[ "$INPUT" = "squeeze"
 			|| "$INPUT" = "debian6"
@@ -441,6 +457,11 @@ function dynamic_module_supported()
 		fi
 	
 		if [[ "$CODENAME" = "disco" ]]; then
+			echo true
+			return
+		fi
+	
+		if [[ "$CODENAME" = "eoan" ]]; then
 			echo true
 			return
 		fi
