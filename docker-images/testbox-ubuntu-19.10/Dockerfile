@@ -1,3 +1,3 @@
-FROM ubuntu:19.04
+FROM ubuntu:19.10
 ADD . /paa_build
 RUN bash /paa_build/install.sh
