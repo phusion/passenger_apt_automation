@@ -9,7 +9,8 @@ source "$SELFDIR/internal/lib/library.sh"
 source "$SELFDIR/internal/lib/distro_info.sh"
 
 OUTPUT_DIR=
-PACKAGE_CLOUD_TOKEN_FILE=
+REPO_SERVER_API_USERNAME=
+REPO_SERVER_API_TOKEN_FILE=
 REPOSITORY=
 LOG_DIR=
 YANK=false
@@ -22,16 +23,18 @@ ARGV=
 function usage()
 {
 	echo "Usage: ./publish [OPTIONS] <TASK NAMES...>"
-	echo "Publish built Debian packages to PackageCloud."
+	echo "Publish built Debian packages to the Passenger RPM repos server."
 	echo
 	echo "Required options:"
 	echo "  -d DIR     Path in which build products are stored"
-	echo "  -c PATH    Path to PackageCloud token file"
-	echo "  -r NAME    Repository name, e.g. passenger-testing"
+	echo "  -u NAME    Repo server API username"
+	echo "  -c PATH    Path to repo server API token file"
+	echo "  -r NAME    Repository name: apt-repo-oss(.staging) or"
+	echo "             apt-repo-enterprise(.staging)"
 	echo
 	echo "Optional options:"
 	echo "  -l DIR     Write logs to the given directory"
-	echo "  -j NUM     Set concurrency. Default: 8"
+	echo "  -j NUM     Set concurrency. Default: 1"
 	echo "  -y         Yank old packages"
 	echo "  -Y         Yank all packages from repository before publishing"
 	echo "  -O         Periodically show progress overview"
@@ -46,13 +49,16 @@ function parse_options()
 	local OPTIND=1
 	local ORIG_ARGV
 	local opt
-	while getopts "d:c:r:D:C:l:j:yYOtTh" opt; do
+	while getopts "d:u:c:r:D:C:l:j:yYOtTh" opt; do
 		case "$opt" in
 		d)
 			OUTPUT_DIR="$OPTARG"
 			;;
+		u)
+			REPO_SERVER_API_USERNAME="$OPTARG"
+			;;
 		c)
-			PACKAGE_CLOUD_TOKEN_FILE="$OPTARG"
+			REPO_SERVER_API_TOKEN_FILE="$OPTARG"
 			;;
 		r)
 			REPOSITORY="$OPTARG"
@@ -108,8 +114,12 @@ function parse_options()
 		exit 1
 	fi
 	if ! $SHOW_TASKS; then
-		if [[ "$PACKAGE_CLOUD_TOKEN_FILE" = "" ]]; then
-			echo "ERROR: please specify a PackageCloud token file with -c."
+		if [[ "$REPO_SERVER_API_USERNAME" = "" ]]; then
+			echo "ERROR: please specify a repo server API username with -u."
+			exit 1
+		fi
+		if [[ "$REPO_SERVER_API_TOKEN_FILE" = "" ]]; then
+			echo "ERROR: please specify a repo server API token file with -c."
 			exit 1
 		fi
 		if [[ "$REPOSITORY" = "" ]]; then
@@ -121,8 +131,8 @@ function parse_options()
 
 parse_options "$@"
 OUTPUT_DIR=$(absolute_path "$OUTPUT_DIR")
-if [[ "$PACKAGE_CLOUD_TOKEN_FILE" = "" ]]; then
-	PACKAGE_CLOUD_TOKEN_FILE=$(absolute_path "$PACKAGE_CLOUD_TOKEN_FILE")
+if [[ "$REPO_SERVER_API_TOKEN_FILE" = "" ]]; then
+	REPO_SERVER_API_TOKEN_FILE="`absolute_path \"$REPO_SERVER_API_TOKEN_FILE\"`"
 fi
 
 EXTRA_MOUNTS=()
@@ -159,11 +169,12 @@ else
 		--rm $TTY_ARGS \
 		-v "$SELFDIR/internal:/system/internal:ro" \
 		-v "$OUTPUT_DIR:/output:ro" \
-		-v "$PACKAGE_CLOUD_TOKEN_FILE:/package_cloud_token.txt:ro" \
+		-v "$REPO_SERVER_API_TOKEN_FILE:/repo_server_api_token.txt:ro" \
 		"${EXTRA_MOUNTS[@]}" \
 		-e "REPOSITORY=$REPOSITORY" \
 		-e "YANK=$YANK" \
 		-e "YANK_ALL=$YANK_ALL" \
+		-e "REPO_SERVER_API_USERNAME=$REPO_SERVER_API_USERNAME" \
 		-e "SHOW_OVERVIEW_PERIODICALLY=$SHOW_OVERVIEW_PERIODICALLY" \
 		-e "APP_UID=$(/usr/bin/id -u)" \
 		-e "APP_GID=$(/usr/bin/id -g)" \

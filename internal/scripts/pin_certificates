@@ -35,6 +35,5 @@ def update_pin_file(path, hostname, port = 443)
   end
 end
 
-update_pin_file "internal/publish/packagecloud_fingerprint.txt", "packagecloud.io"
 update_pin_file "internal/publish/oss-binaries.phusionpassenger.com-fingerprint.txt", "oss-binaries.phusionpassenger.com"
 update_pin_file "internal/publish/passenger_website_fingerprint.txt", "www.phusionpassenger.com"

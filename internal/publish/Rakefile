@@ -1,5 +1,8 @@
 require_relative 'rakefile_support'
 require_relative '../lib/tracking'
+require 'shellwords'
+require 'tmpdir'
+require 'uri'
 
 initialize_rakefile!
 initialize_tracking_database!(SHOW_OVERVIEW_PERIODICALLY)
@@ -8,44 +11,32 @@ initialize_tracking_database!(SHOW_OVERVIEW_PERIODICALLY)
 desc "Publish all packages"
 task "publish:all"
 
-task :init_packagecloud => PACKAGECLOUD_YANK_ALL_TASKS do
+task :init_repo_server_client => REPO_SERVER_YANK_ALL_TASKS do
   initialize_tracking_database_logs!
 end
 
 
 ##### Tasks for the 'yank all' feature #####
 
-if PACKAGECLOUD_YANK_ALL_TASKS.any?
+if REPO_SERVER_YANK_ALL_TASKS.any?
   register_tracking_category(:yank, "Yanking")
-end
-PACKAGECLOUD_YANK_ALL_TASKS.each_with_index do |task_name, i|
-  name = PACKAGECLOUD_PACKAGE_NAMES[i]
-  url  = URI.parse(PACKAGECLOUD_PACKAGE_URLS[i])
+  register_tracking_task(:yank, 'all')
+  task('yank_all') do
+    track_task(:yank, 'all', false) do |task|
+      retry_at_most(task, 1) do
+        task.log "Yanking all packages"
 
-  register_tracking_task(:yank, name)
-  task(task_name) do
-    track_task(:yank, name, false) do |task|
-      info = nil
-
-      retry_at_most(task, 3) do
-        task.log "Yanking package #{i + 1}/#{PACKAGECLOUD_YANK_ALL_TASKS.size}: #{name}"
-
-        request = Net::HTTP::Get.new(uri_path_and_query_string(url))
-        request.basic_auth(PACKAGECLOUD_TOKEN, "")
-        response = PACKAGECLOUD_HTTP.request(url, request)
+        url = URI.parse("https://#{REPOSITORY}.phusionpassenger.com/api/clear")
+        request = Net::HTTP::Post.new(url)
+        request.basic_auth(REPO_SERVER_API_USERNAME, REPO_SERVER_API_TOKEN)
+        response = REPO_SERVER_HTTP.request(url, request)
         if response.code != "200"
-          task.log "Unable to fetch information for package #{name}:"
+          task.log "Unable to yank all packages:"
           task.log "URL   : #{url}"
           task.log "Status: #{response.code}"
           task.log "Body  : #{response.body}"
           abort
         end
-
-        info = JSON.parse(response.body)
-      end
-
-      retry_at_most(task, 3) do
-        yank_package(task, info['distro_version'], info['filename'])
       end
     end
   end
@@ -67,16 +58,33 @@ DISTROS.each do |distro_class, distro|
     task "publish:#{distro}" => "publish:#{distro}:#{basename}"
 
     register_tracking_task(:publish, "#{distro} #{basename}")
-    task "publish:#{distro}:#{basename}" => [:init_packagecloud] do
+    task "publish:#{distro}:#{basename}" => [:init_repo_server_client] do
       track_task(:publish, "#{distro} #{basename}", false) do |task|
-        if YANK
-          retry_at_most(task, 3) do
-            task.log "Yanking #{basename}"
-            yank_package(task, "#{distro_class}/#{distro}", basename)
+        Dir.mktmpdir do |tmpdir|
+          # Create a tarball of the RPM
+          dir = File.dirname(path)
+          basename = File.basename(path)
+          task.sh "tar -C #{Shellwords.escape dir}" \
+            " -cf #{Shellwords.escape tmpdir}/input.tar" \
+            " #{Shellwords.escape basename}"
+
+          # Create curl config file with auth details
+          # https://stackoverflow.com/a/27894407/20816
+          File.open("#{tmpdir}/netrc", 'w:utf-8') do |f|
+            f.write("machine #{REPOSITORY}.phusionpassenger.com" \
+              " login #{REPO_SERVER_API_USERNAME}" \
+              " password #{REPO_SERVER_API_TOKEN}\n")
           end
-        end
-        retry_at_most(task, 3) do
-          task.sh "package_cloud push phusion/#{REPOSITORY}/#{distro_class}/#{distro} #{path}"
+
+          # Upload tarball to the repo server
+          retry_at_most(task, 1) do
+            task.sh "curl -sSLf" \
+              " --netrc-file #{Shellwords.escape tmpdir}/netrc" \
+              " -F distro=#{distro}" \
+              " -F force=#{YANK}" \
+              " -F packages=@#{Shellwords.escape tmpdir}/input.tar" \
+              " https://#{REPOSITORY}.phusionpassenger.com/api/import"
+          end
         end
       end
     end
