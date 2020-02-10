@@ -49,48 +49,33 @@ register_tracking_category(:publish, "Packages")
 
 DISTROS.each do |distro_class, distro|
   desc "Publish #{distro} packages"
-  task "publish:#{distro}"
+  task "publish:#{distro}" => [:init_repo_server_client] do
 
-  Dir["/output/#{distro}/*.{deb,dsc}"].each do |path|
-    basename = File.basename(path)
+    Dir.mktmpdir do |tmpdir|
+      task.sh "tar -cf #{Shellwords.escape tmpdir}/#{Shellwords.escape distro}.tar" \
+              " --strip-components 3 " +
+              Dir["/output/#{Shellwords.escape distro}/*.{deb,dsc}"].join(' ')
 
-    task "publish:all" => "publish:#{distro}:#{basename}"
-    task "publish:#{distro}" => "publish:#{distro}:#{basename}"
+      # Create curl config file with auth details
+      # https://stackoverflow.com/a/27894407/20816
+      File.open("#{tmpdir}/netrc", 'w:utf-8') do |f|
+        f.write("machine #{REPOSITORY}.phusionpassenger.com" \
+                " login #{REPO_SERVER_API_USERNAME}" \
+                " password #{REPO_SERVER_API_TOKEN}\n")
+      end
 
-    register_tracking_task(:publish, "#{distro} #{basename}")
-    task "publish:#{distro}:#{basename}" => [:init_repo_server_client] do
-      track_task(:publish, "#{distro} #{basename}", false) do |task|
-        Dir.mktmpdir do |tmpdir|
-          # Create a tarball of the RPM
-          dir = File.dirname(path)
-          basename = File.basename(path)
-          task.sh "tar -C #{Shellwords.escape dir}" \
-            " -cf #{Shellwords.escape tmpdir}/input.tar" \
-            " #{Shellwords.escape basename}"
-
-          # Create curl config file with auth details
-          # https://stackoverflow.com/a/27894407/20816
-          File.open("#{tmpdir}/netrc", 'w:utf-8') do |f|
-            f.write("machine #{REPOSITORY}.phusionpassenger.com" \
-              " login #{REPO_SERVER_API_USERNAME}" \
-              " password #{REPO_SERVER_API_TOKEN}\n")
-          end
-
-          # Upload tarball to the repo server
-          retry_at_most(task, 1) do
-            task.sh "curl -sSLf" \
-              " --netrc-file #{Shellwords.escape tmpdir}/netrc" \
-              " -F distro=#{distro}" \
-              " -F force=#{YANK}" \
-              " -F packages=@#{Shellwords.escape tmpdir}/input.tar" \
-              " https://#{REPOSITORY}.phusionpassenger.com/api/import"
-          end
-        end
+      # Upload tarball to the repo server
+      retry_at_most(task, 1) do
+        task.sh "curl -sSLf" \
+                " --netrc-file #{Shellwords.escape tmpdir}/netrc" \
+                " -F distro=#{distro}" \
+                " -F force=#{YANK}" \
+                " -F packages=@#{Shellwords.escape tmpdir}/#{Shellwords.escape distro}.tar" \
+                " https://#{REPOSITORY}.phusionpassenger.com/api/import"
       end
     end
   end
 end
-
 
 task :start do
   initialize_tracking_database_logs!
