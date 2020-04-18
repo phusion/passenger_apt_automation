@@ -52,7 +52,7 @@ run curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
 run apt-get update -q && apt-get install -y -q yarn
 run ln -s /usr/bin/python3 /bin/my_init_python
-run gem install bundler -v 1.16.1 --no-rdoc --no-ri
+run gem install bundler -v 1.17.3 --no-document
 run env BUNDLE_GEMFILE=/paa_build/Gemfile bundle install
 
 header "Miscellaneous"

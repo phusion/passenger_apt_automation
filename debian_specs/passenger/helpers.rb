@@ -3,8 +3,10 @@ def ruby_package_dependencies
   when :ubuntu
     if is_distribution?("<= artful")
       "ruby2.3, ruby2.3-dev"
+    elsif is_distribution?(">= focal")
+      "ruby2.7, ruby2.7-dev"
     else
-      # At least up to, and including, v18.04 Bionic
+      # v18.04 Bionic
       "ruby2.5, ruby2.5-dev"
     end
   when :debian
@@ -28,8 +30,10 @@ def distro_ruby_versions
   when :ubuntu
     if is_distribution?("<= artful")
       ["2.3"]
+    elsif is_distribution?(">= focal")
+      ["2.7"]
     else
-      # At least up to, and including, v18.04 Bionic
+      # v18.04 Bionic
       ["2.5"]
     end
   when :debian

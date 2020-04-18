@@ -24,7 +24,7 @@ Package: passenger
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends},
  procps,
- ruby2.5 | ruby2.4 | ruby2.3 | ruby2.2 | ruby2.1 | ruby2.0 | ruby1.9.1 | ruby1.8 | ruby-interpreter,
+ ruby2.7 | ruby2.6 | ruby2.5 | ruby2.4 | ruby2.3 | ruby2.2 | ruby2.1 | ruby2.0 | ruby1.9.1 | ruby1.8 | ruby-interpreter,
  rubygems-integration (>= 1.8) | rubygems1.9.1 | rubygems1.9 | rubygems (>= 1.2),
  ruby-rack
 Recommends: passenger-doc (= ${binary:Version}), passenger-dev (= ${binary:Version})
@@ -55,7 +55,7 @@ Description: Debugging symbols for Passenger application server
 Package: passenger-dev
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends},
- ruby2.5 | ruby2.4 | ruby2.3 | ruby2.2 | ruby2.1 | ruby2.0 | ruby1.9.1 | ruby1.8 | ruby-interpreter,
+ ruby2.7 | ruby2.6 | ruby2.5 | ruby2.4 | ruby2.3 | ruby2.2 | ruby2.1 | ruby2.0 | ruby1.9.1 | ruby1.8 | ruby-interpreter,
  passenger (= ${binary:Version})
 Replaces: ruby-passenger-dev
 Conflicts: ruby-passenger-dev
