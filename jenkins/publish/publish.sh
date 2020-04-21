@@ -58,9 +58,8 @@ run ./publish \
 header "Clearing proxy caches"
 exec docker run $TTY_ARGS --rm \
 	-v "$SELFDIR:/system:ro" \
-	-e "REPO_SERVER_API_USERNAME=$(cat "$REPO_SERVER_API_USERNAME_FILE")" \
-	-v "$REPO_SERVER_API_TOKEN_FILE:/repo_server_api_token.txt:ro" \
-	-e "REPOSITORY=$REPOSITORY" \
+	-v "$HOME/.oss_packagecloud_proxy_admin_password:/oss_packagecloud_proxy_admin_password.txt:ro" \
+	-v "$HOME/.enterprise_packagecloud_proxy_admin_password:/enterprise_packagecloud_proxy_admin_password.txt:ro" \
 	-e "APP_UID=$(/usr/bin/id -u)" \
 	-e "APP_GID=$(/usr/bin/id -g)" \
 	-e "LC_CTYPE=en_US.UTF-8" \

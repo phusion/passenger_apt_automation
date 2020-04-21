@@ -2,27 +2,28 @@
 require 'net/http'
 require 'net/https'
 require 'uri'
-require 'net/http/persistent'
 
-def make_repo_server_http
-  http = Net::HTTP::Persistent.new
+def clear_cache(url, password_file)
+  admin_password = File.read(password_file).strip
+
+  puts "+ POST #{url}"
+  uri = URI.parse(url)
+  http = Net::HTTP.new(uri.host, uri.port)
+  http.use_ssl = true
+  http.ca_path = "/etc/ssl/certs"
   http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-  http
+
+  request = Net::HTTP::Post.new(uri.path)
+  request.basic_auth("admin", admin_password)
+  response = http.request(request)
+  if response.code != "200"
+    abort "Unable to clear cache:\n" +
+      "Status: #{response.code}\n" +
+      "Body  : #{response.body}"
+  end
 end
 
-Kernel.const_set(:REPO_SERVER_API_USERNAME, ENV['REPO_SERVER_API_USERNAME'])
-Kernel.const_set(:REPO_SERVER_API_TOKEN, File.read("/repo_server_api_token.txt").strip)
-Kernel.const_set(:REPO_SERVER_HTTP, make_repo_server_http)
-Kernel.const_set(:REPOSITORY, ENV['REPOSITORY'])
-
-url = URI.parse("https://#{REPOSITORY}.phusionpassenger.com/api/clear_caches")
-request = Net::HTTP::Post.new(url)
-request.basic_auth(REPO_SERVER_API_USERNAME, REPO_SERVER_API_TOKEN)
-response = REPO_SERVER_HTTP.request(url, request)
-if response.code != "200"
-  task.log "Unable to clear caches:"
-  task.log "URL   : #{url}"
-  task.log "Status: #{response.code}"
-  task.log "Body  : #{response.body}"
-  abort
-end
+clear_cache("https://oss-binaries.phusionpassenger.com/packagecloud_proxy/clear_cache",
+  "/oss_packagecloud_proxy_admin_password.txt")
+clear_cache("https://www.phusionpassenger.com/packagecloud_proxy/clear_cache",
+  "/enterprise_packagecloud_proxy_admin_password.txt")
