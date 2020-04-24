@@ -49,7 +49,10 @@ register_tracking_category(:publish, "Packages")
 
 DISTROS.each do |distro_class, distro|
   desc "Publish #{distro} packages"
+  task "publish:all" => "publish:#{distro}"
+  register_tracking_task(:publish, "#{distro}")
   task "publish:#{distro}" => [:init_repo_server_client] do
+    track_task(:publish, "#{distro}", false) do |task|
 
     Dir.mktmpdir do |tmpdir|
       task.sh "tar -cf #{Shellwords.escape tmpdir}/#{Shellwords.escape distro}.tar" \
@@ -73,6 +76,7 @@ DISTROS.each do |distro_class, distro|
                 " -F packages=@#{Shellwords.escape tmpdir}/#{Shellwords.escape distro}.tar" \
                 " https://#{REPOSITORY}.phusionpassenger.com/api/import"
       end
+    end
     end
   end
 end
