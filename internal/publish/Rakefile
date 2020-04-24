@@ -55,9 +55,9 @@ DISTROS.each do |distro_class, distro|
     track_task(:publish, "#{distro}", false) do |task|
 
     Dir.mktmpdir do |tmpdir|
+      files = Dir["/output/#{distro}/*.{deb,dsc}"].map { |x| File.basename(x) }
       task.sh "tar -cf #{Shellwords.escape tmpdir}/#{Shellwords.escape distro}.tar" \
-              " --strip-components 3 " +
-              Dir["/output/#{Shellwords.escape distro}/*.{deb,dsc}"].join(' ')
+        " -C /output/#{Shellwords.escape distro} #{Shellwords.shelljoin(files)}"
 
       # Create curl config file with auth details
       # https://stackoverflow.com/a/27894407/20816
