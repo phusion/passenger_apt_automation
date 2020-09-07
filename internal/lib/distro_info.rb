@@ -24,6 +24,7 @@ UBUNTU_DISTRIBUTIONS = {
   "disco"    => "19.04",
   "eoan"     => "19.10",
   "focal"    => "20.04",
+  "groovy"   => "20.10",
 }
 
 DEBIAN_DISTRIBUTIONS = {
@@ -40,6 +41,7 @@ DEFAULT_DISTROS = %w(
   xenial
   bionic
   focal
+  groovy
 
   jessie
   stretch
