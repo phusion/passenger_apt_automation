@@ -63,9 +63,10 @@ run sudo -u app -H gpg --keyserver keyserver.ubuntu.com --recv-keys C324F5BB38EE
 run sudo -u app -H gpg --armor --export C324F5BB38EEB5A0 | apt-key add -
 # start dirmngr
 run dirmngr
-# Fixes pbuilder-dist not being able to debootstrap Debian dists.
+# Fixes pbuilder-dist not being able to debootstrap newer dists.
 run gpg --no-default-keyring --keyring /usr/share/keyrings/debian-archive-keyring.gpg --keyserver keyserver.ubuntu.com --recv-keys 6FB2A1C265FFB764
 run gpg --no-default-keyring --keyring /usr/share/keyrings/debian-archive-keyring.gpg --keyserver keyserver.ubuntu.com --recv-keys DCC9EFBF77E11517
+run gpg --no-default-keyring --keyring /usr/share/keyrings/ubuntu-archive-keyring.gpg --keyserver keyserver.ubuntu.com --recv-keys 871920D1991BC93C
 
 header "Fix Docker PAM bug"
 # https://github.com/docker/docker/issues/6345
