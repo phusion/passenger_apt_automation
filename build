@@ -189,6 +189,25 @@ else
 		/system/internal/scripts/inituidgid.sh \
 		/system/internal/scripts/initccache.sh
 
+	needs_cross_compile=0
+  for arch in $ARCHITECTURES; do
+		case "$arch" in
+			# Architectures that don't need cross-compiling go here
+			amd64|i386)
+					;;
+			*)
+					needs_cross_compile=1
+					;;
+			esac
+	done
+
+	if [ "$needs_cross_compile" != "0" ] ; then
+		# Downloads and registers qemu emulators for non x86/amd64 architectures
+		# Safe to rerun multiple times
+		echo "+ Registering cross-architecture emulators"
+		docker run --rm --privileged multiarch/qemu-user-static --reset -p yes > /dev/null
+  fi
+
 	echo "-------- Entering Docker container --------"
 	exec docker run \
 		--rm $TTY_ARGS \

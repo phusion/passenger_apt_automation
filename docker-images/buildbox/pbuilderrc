@@ -2,3 +2,5 @@
 CCACHEDIR=/var/cache/pbuilder/ccache/$DIST-$ARCH
 mkdir -p $CCACHEDIR
 chown app:app $CCACHEDIR
+# More modern and reliable when cross-compiling
+PBUILDERSATISFYDEPENDSCMD=/usr/lib/pbuilder/pbuilder-satisfydepends-apt
