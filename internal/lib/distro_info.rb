@@ -43,7 +43,6 @@ DEFAULT_DISTROS = %w(
   focal
   groovy
 
-  jessie
   stretch
   buster
 )
