@@ -13,8 +13,9 @@ source "$ROOTDIR/internal/lib/library.sh"
 require_args_exact 2 "$@"
 DISTRO="$1"
 ARCH="$2"
+HOSTARCH=`dpkg --print-architecture`
 
-if [[ $ARCH == amd64 ]]; then
+if [[ $ARCH == $HOSTARCH ]]; then
 	BASE_TGZ="$DISTRO-base.tgz"
 else
 	BASE_TGZ="$DISTRO-$ARCH-base.tgz"
