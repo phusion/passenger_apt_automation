@@ -45,11 +45,10 @@ run create_user app "Passenger APT Automation" 2446
 header "Installing dependencies"
 run apt-get update -q
 run apt-get install -y -q build-essential gdebi-core ruby ruby-dev rake \
-	zlib1g-dev wget curl python git \
+	zlib1g-dev wget curl python git libcurl4-openssl-dev libssl-dev \
 	ccache reprepro libsqlite3-dev nodejs npm apt-transport-https ca-certificates
-run apt-get install -y -q libcurl4-openssl-dev libssl-dev
-run curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
+run curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor > /usr/share/keyrings/yarn-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/yarn-keyring.gpg] https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
 run apt-get update -q && apt-get install -y -q yarn
 run ln -s /usr/bin/python3 /bin/my_init_python
 run gem install bundler -v 1.17.3 --no-document

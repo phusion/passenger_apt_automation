@@ -8,7 +8,7 @@
 # internal/scripts/regen_distro_info_script.sh
 
 # shellcheck disable=SC2034
-DEFAULT_DISTROS="xenial bionic focal groovy jessie stretch buster"
+DEFAULT_DISTROS="xenial bionic focal hirsute stretch buster"
 
 
 function to_distro_codename()
@@ -189,6 +189,14 @@ function to_distro_codename()
 			|| "$INPUT" = "ubuntu-20.10" ]]
 		then
 			echo "groovy"
+			return
+		fi
+	
+		if [[ "$INPUT" = "hirsute"
+			|| "$INPUT" = "ubuntu21.04"
+			|| "$INPUT" = "ubuntu-21.04" ]]
+		then
+			echo "hirsute"
 			return
 		fi
 	
@@ -423,6 +431,14 @@ function to_testbox_image()
 			return
 		fi
 	
+		if [[ "$INPUT" = "hirsute"
+			|| "$INPUT" = "ubuntu21.04"
+			|| "$INPUT" = "ubuntu-21.04" ]]
+		then
+			echo phusion/passenger_apt_automation_testbox_ubuntu_21_04:1.0.7
+			return
+		fi
+	
 	
 		if [[ "$INPUT" = "squeeze"
 			|| "$INPUT" = "debian6"
@@ -504,6 +520,11 @@ function dynamic_module_supported()
 		fi
 	
 		if [[ "$CODENAME" = "groovy" ]]; then
+			echo true
+			return
+		fi
+	
+		if [[ "$CODENAME" = "hirsute" ]]; then
 			echo true
 			return
 		fi
