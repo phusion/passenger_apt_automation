@@ -44,9 +44,14 @@ run create_user app "Passenger APT Automation" 2446
 
 header "Installing dependencies"
 run apt-get update -q
-run apt-get install -y -q build-essential gdebi-core ruby ruby-dev rake \
-	zlib1g-dev wget curl python git libcurl4-openssl-dev libssl-dev \
-	ccache reprepro libsqlite3-dev nodejs npm apt-transport-https ca-certificates
+run apt-get install -y -q gdebi-core ruby ruby-dev rake \
+	wget curl python libcurl4-openssl-dev libssl-dev \
+	ccache reprepro nodejs apt-transport-https ca-certificates \
+	fakeroot libalgorithm-merge-perl less libfile-fcntllock-perl \
+	liblocale-gettext-perl node-request
+run apt-get install -y -q --no-install-recommends npm git \
+	build-essential libsqlite3-dev zlib1g-dev ssh-client
+# not installed because of x11: manpages manpages-dev libc-devtools libfile-mimeinfo-perl libnet-dbus-perl libx11-protocol-perl x11-utils x11-xserver-utils
 run curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor > /usr/share/keyrings/yarn-keyring.gpg
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/yarn-keyring.gpg] https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
 run apt-get update -q && apt-get install -y -q yarn
