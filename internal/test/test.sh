@@ -150,9 +150,9 @@ find . -print0 /var/lib/nginx -type d | xargs -0 --no-run-if-empty chmod o+rwx
 find . -print0 /var/lib/nginx -type f | xargs -0 --no-run-if-empty chmod o+rw
 
 run passenger-config validate-install --auto --validate-apache2
-run setuser app bundle exec drake "-j$COMPILE_CONCURRENCY" \
+run setuser app bundle exec rake "-j$COMPILE_CONCURRENCY" \
 	test:integration:native_packaging PRINT_FAILED_COMMAND_OUTPUT=1
 run setuser app env "PASSENGER_LOCATION_CONFIGURATION_FILE=$(passenger-config --root)" \
-	bundle exec drake "-j$COMPILE_CONCURRENCY" test:integration:apache2
+	bundle exec rake "-j$COMPILE_CONCURRENCY" test:integration:apache2
 run setuser app env "PASSENGER_LOCATION_CONFIGURATION_FILE=$(passenger-config --root)" \
-	bundle exec drake "-j$COMPILE_CONCURRENCY" test:integration:nginx
+	bundle exec rake "-j$COMPILE_CONCURRENCY" test:integration:nginx

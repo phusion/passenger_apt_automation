@@ -164,7 +164,7 @@ if $SHOW_TASKS; then
 		-e "LC_CTYPE=C.UTF-8" \
 		"$BUILDBOX_IMAGE" \
 		/sbin/my_init --quiet --skip-runit --skip-startup-files -- \
-		drake -f /system/internal/build/Rakefile -T --trace
+		rake -f /system/internal/build/Rakefile -T --trace
 else
 	PASSENGER_DIR=$(absolute_path "$PASSENGER_DIR")
 	WORK_DIR=$(absolute_path "$WORK_DIR")
@@ -210,5 +210,5 @@ else
 		/sbin/my_init --quiet --skip-runit --skip-startup-files -- \
 		/system/internal/scripts/inituidgid.sh \
 		/sbin/setuser app \
-		drake -f /system/internal/build/Rakefile -j "$CONCURRENCY" "${ARGV[@]}"
+		rake -f /system/internal/build/Rakefile -j "$CONCURRENCY" "${ARGV[@]}"
 fi

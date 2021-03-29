@@ -162,7 +162,7 @@ if $SHOW_TASKS; then
 		/system/internal/scripts/inituidgid.sh \
 		/system/internal/publish/preinit.sh \
 		/sbin/setuser app \
-		drake -f /system/internal/publish/Rakefile -T --trace
+		rake -f /system/internal/publish/Rakefile -T --trace
 else
 	echo "-------- Entering Docker container --------"
 	exec docker run \
@@ -184,5 +184,5 @@ else
 		/system/internal/scripts/inituidgid.sh \
 		/system/internal/publish/preinit.sh \
 		/sbin/setuser app \
-		drake -f /system/internal/publish/Rakefile -j "$CONCURRENCY" "${ARGV[@]}"
+		rake -f /system/internal/publish/Rakefile -j "$CONCURRENCY" "${ARGV[@]}"
 fi
