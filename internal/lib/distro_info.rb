@@ -42,7 +42,7 @@ DEFAULT_DISTROS = %w(
   xenial
   bionic
   focal
-  hirsute
+  groovy
 
   stretch
   buster
