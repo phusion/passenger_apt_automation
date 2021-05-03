@@ -23,6 +23,7 @@ function create_user()
 		adduser --uid $id --gid $id --disabled-password --gecos "$full_name" $name
 	fi
 	usermod -L $name
+	chmod o+r /home/$name
 }
 
 function create_group()
@@ -48,7 +49,7 @@ run apt-get install -y -q gdebi-core ruby ruby-dev rake \
 	wget curl python libcurl4-openssl-dev libssl-dev \
 	ccache reprepro nodejs apt-transport-https ca-certificates \
 	fakeroot libalgorithm-merge-perl less libfile-fcntllock-perl \
-	liblocale-gettext-perl node-request
+	liblocale-gettext-perl node-request node-express
 run apt-get install -y -q --no-install-recommends npm git \
 	build-essential libsqlite3-dev zlib1g-dev ssh-client
 # not installed because of x11: manpages manpages-dev libc-devtools libfile-mimeinfo-perl libnet-dbus-perl libx11-protocol-perl x11-utils x11-xserver-utils
