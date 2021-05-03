@@ -19,7 +19,7 @@ testbox-debian-9:
 	./setup-testbox-docker-image "$(TESTBOX_BASE_NAME)_debian_9:$(TESTBOX_VERSION)" "testbox-debian-9"
 
 testbox-ubuntu-21.04:
-	./setup-testbox-docker-image "$(TESTBOX_BASE_NAME)_ubuntu_20_10:$(TESTBOX_VERSION)" "testbox-ubuntu-21.04"
+	./setup-testbox-docker-image "$(TESTBOX_BASE_NAME)_ubuntu_21_04:$(TESTBOX_VERSION)" "testbox-ubuntu-21.04"
 
 testbox-ubuntu-20.04:
 	./setup-testbox-docker-image "$(TESTBOX_BASE_NAME)_ubuntu_20_04:$(TESTBOX_VERSION)" "testbox-ubuntu-20.04"
@@ -34,7 +34,7 @@ tag_latest:
 	docker tag $(BUILDBOX_NAME):$(BUILDBOX_VERSION) $(BUILDBOX_NAME):latest
 	docker tag $(TESTBOX_BASE_NAME)_debian_10:$(TESTBOX_VERSION) $(TESTBOX_BASE_NAME)_debian_10:latest
 	docker tag $(TESTBOX_BASE_NAME)_debian_9:$(TESTBOX_VERSION) $(TESTBOX_BASE_NAME)_debian_9:latest
-	docker tag $(TESTBOX_BASE_NAME)_ubuntu_20_10:$(TESTBOX_VERSION) $(TESTBOX_BASE_NAME)_ubuntu_20_10:latest
+	docker tag $(TESTBOX_BASE_NAME)_ubuntu_21_04:$(TESTBOX_VERSION) $(TESTBOX_BASE_NAME)_ubuntu_21_04:latest
 	docker tag $(TESTBOX_BASE_NAME)_ubuntu_20_04:$(TESTBOX_VERSION) $(TESTBOX_BASE_NAME)_ubuntu_20_04:latest
 	docker tag $(TESTBOX_BASE_NAME)_ubuntu_18_04:$(TESTBOX_VERSION) $(TESTBOX_BASE_NAME)_ubuntu_18_04:latest
 	docker tag $(TESTBOX_BASE_NAME)_ubuntu_16_04:$(TESTBOX_VERSION) $(TESTBOX_BASE_NAME)_ubuntu_16_04:latest
@@ -46,8 +46,8 @@ upload: tag_latest
 	docker push $(TESTBOX_BASE_NAME)_debian_10:$(TESTBOX_VERSION)
 	docker push $(TESTBOX_BASE_NAME)_debian_9:latest
 	docker push $(TESTBOX_BASE_NAME)_debian_9:$(TESTBOX_VERSION)
-	docker push $(TESTBOX_BASE_NAME)_ubuntu_20_10:latest
-	docker push $(TESTBOX_BASE_NAME)_ubuntu_20_10:$(TESTBOX_VERSION)
+	docker push $(TESTBOX_BASE_NAME)_ubuntu_21_04:latest
+	docker push $(TESTBOX_BASE_NAME)_ubuntu_21_04:$(TESTBOX_VERSION)
 	docker push $(TESTBOX_BASE_NAME)_ubuntu_20_04:latest
 	docker push $(TESTBOX_BASE_NAME)_ubuntu_20_04:$(TESTBOX_VERSION)
 	docker push $(TESTBOX_BASE_NAME)_ubuntu_18_04:latest
