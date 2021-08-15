@@ -26,6 +26,7 @@ UBUNTU_DISTRIBUTIONS = {
   "focal"    => "20.04",
   "groovy"   => "20.10",
   "hirsute"  => "21.04",
+  "impish"   => "21.10",
 }
 
 DEBIAN_DISTRIBUTIONS = {
@@ -33,7 +34,9 @@ DEBIAN_DISTRIBUTIONS = {
   "wheezy"   => 7,
   "jessie"   => 8,
   "stretch"  => 9,
-  "buster"   => 10
+  "buster"   => 10,
+  "bullseye" => 11,
+  "bookworm" => 12,
 }
 
 # A list of distribution codenames for which the `build` script
@@ -46,8 +49,8 @@ DEFAULT_DISTROS = %w(
 
   stretch
   buster
+  bullseye
 )
-
 
 ###### Helper methods ######
 

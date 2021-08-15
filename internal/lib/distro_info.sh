@@ -8,7 +8,7 @@
 # internal/scripts/regen_distro_info_script.sh
 
 # shellcheck disable=SC2034
-DEFAULT_DISTROS="xenial bionic focal hirsute stretch buster"
+DEFAULT_DISTROS="xenial bionic focal hirsute stretch buster bullseye"
 
 
 function to_distro_codename()
@@ -200,6 +200,14 @@ function to_distro_codename()
 			return
 		fi
 	
+		if [[ "$INPUT" = "impish"
+			|| "$INPUT" = "ubuntu21.10"
+			|| "$INPUT" = "ubuntu-21.10" ]]
+		then
+			echo "impish"
+			return
+		fi
+	
 	
 		if [[ "$INPUT" = "squeeze"
 			|| "$INPUT" = "debian6"
@@ -238,6 +246,22 @@ function to_distro_codename()
 			|| "$INPUT" = "debian-10" ]]
 		then
 			echo "buster"
+			return
+		fi
+	
+		if [[ "$INPUT" = "bullseye"
+			|| "$INPUT" = "debian11"
+			|| "$INPUT" = "debian-11" ]]
+		then
+			echo "bullseye"
+			return
+		fi
+	
+		if [[ "$INPUT" = "bookworm"
+			|| "$INPUT" = "debian12"
+			|| "$INPUT" = "debian-12" ]]
+		then
+			echo "bookworm"
 			return
 		fi
 	
@@ -439,6 +463,14 @@ function to_testbox_image()
 			return
 		fi
 	
+		if [[ "$INPUT" = "impish"
+			|| "$INPUT" = "ubuntu21.10"
+			|| "$INPUT" = "ubuntu-21.10" ]]
+		then
+			echo phusion/passenger_apt_automation_testbox_ubuntu_21_10:1.1.1
+			return
+		fi
+	
 	
 		if [[ "$INPUT" = "squeeze"
 			|| "$INPUT" = "debian6"
@@ -477,6 +509,22 @@ function to_testbox_image()
 			|| "$INPUT" = "debian-10" ]]
 		then
 			echo phusion/passenger_apt_automation_testbox_debian_10:1.1.1
+			return
+		fi
+	
+		if [[ "$INPUT" = "bullseye"
+			|| "$INPUT" = "debian11"
+			|| "$INPUT" = "debian-11" ]]
+		then
+			echo phusion/passenger_apt_automation_testbox_debian_11:1.1.1
+			return
+		fi
+	
+		if [[ "$INPUT" = "bookworm"
+			|| "$INPUT" = "debian12"
+			|| "$INPUT" = "debian-12" ]]
+		then
+			echo phusion/passenger_apt_automation_testbox_debian_12:1.1.1
 			return
 		fi
 	
@@ -529,6 +577,11 @@ function dynamic_module_supported()
 			return
 		fi
 	
+		if [[ "$CODENAME" = "impish" ]]; then
+			echo true
+			return
+		fi
+	
 	
 		if [[ "$CODENAME" = "stretch" ]]; then
 			echo true
@@ -536,6 +589,16 @@ function dynamic_module_supported()
 		fi
 	
 		if [[ "$CODENAME" = "buster" ]]; then
+			echo true
+			return
+		fi
+	
+		if [[ "$CODENAME" = "bullseye" ]]; then
+			echo true
+			return
+		fi
+	
+		if [[ "$CODENAME" = "bookworm" ]]; then
 			echo true
 			return
 		fi
