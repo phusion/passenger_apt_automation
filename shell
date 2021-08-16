@@ -11,7 +11,7 @@ source "$SELFDIR/internal/lib/distro_info.sh"
 WORK_DIR=
 CACHE_DIR=
 DISTRIBUTIONS="$DEFAULT_DISTROS"
-ARCHITECTURES="i386 amd64"
+ARCHITECTURES="amd64 arm64"
 
 function usage()
 {
