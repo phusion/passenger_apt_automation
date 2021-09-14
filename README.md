@@ -360,7 +360,7 @@ NOTE: If you are on macOS, installing Docker for Mac is NOT enough. You MUST use
 
 First, clone the Passenger git repository and its submodules:
 
-    git clone git://github.com/phusion/passenger.git
+    git clone https://github.com/phusion/passenger.git
     cd passenger
     git submodule update --init --recursive
 
