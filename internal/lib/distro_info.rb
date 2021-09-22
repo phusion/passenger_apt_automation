@@ -49,7 +49,6 @@ DEFAULT_DISTROS = %w(
 
   stretch
   buster
-  bullseye
 )
 
 ###### Helper methods ######
