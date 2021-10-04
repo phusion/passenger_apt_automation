@@ -48,7 +48,9 @@ run apt-get install -y -q build-essential gdebi-core ruby ruby-dev rake \
 	zlib1g-dev wget curl python libcurl4-openssl-dev libssl-dev \
 	ccache reprepro libsqlite3-dev nodejs apt-transport-https ca-certificates
 run apt-get install -y -q --no-install-recommends npm git
-run curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+echo '+ curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -'
+curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+echo '+ echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list'
 echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
 run apt-get update -q && apt-get install -y -q yarn
 run ln -s /usr/bin/python3 /bin/my_init_python

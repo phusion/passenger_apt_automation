@@ -60,7 +60,8 @@ run env BUNDLE_GEMFILE=/paa_build/Gemfile bundle install
 
 header "Importing public keys"
 run sudo -u app -H gpg --keyserver keyserver.ubuntu.com --recv-keys C324F5BB38EEB5A0
-run sudo -u app -H gpg --armor --export C324F5BB38EEB5A0 | apt-key add -
+echo '+ sudo -u app -H gpg --armor --export C324F5BB38EEB5A0 | apt-key add -'
+sudo -u app -H gpg --armor --export C324F5BB38EEB5A0 | apt-key add -
 # start dirmngr
 run dirmngr
 # Fixes pbuilder-dist not being able to debootstrap newer dists.

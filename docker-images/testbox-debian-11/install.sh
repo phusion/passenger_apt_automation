@@ -56,7 +56,9 @@ run wget https://nodejs.org/dist/v6.11.0/node-v6.11.0-linux-x64.tar.gz -O /tmp/n
 run tar -xzf /tmp/node.tar.gz -C /usr/local
 run ln -s /usr/local/node-*/bin/* /usr/bin/
 
-run curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+echo '+ curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -'
+curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+echo '+ echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list'
 echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
 run apt-get update -q && apt-get install -y -q yarn --no-install-recommends
 
