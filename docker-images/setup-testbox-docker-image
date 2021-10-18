@@ -9,4 +9,4 @@ SELFDIR=`dirname "$0"`
 SELFDIR=`cd "$SELFDIR" && pwd`
 set -x
 cd "$SELFDIR/$2"
-exec docker build --progress plain --no-cache --force-rm -t $1 .
+exec docker build --pull --no-cache --force-rm -t $1 .
