@@ -53,7 +53,7 @@ run chown app: ~app/.pbuilderrc
 header "Installing dependencies"
 run apt-get install -y -q ubuntu-dev-tools debhelper source-highlight \
 	ruby ruby-dev libsqlite3-dev runit git gawk dh-make dirmngr debian-keyring \
-	zlib1g-dev libxml2-dev libxslt1-dev gdebi-core gnupg dh-systemd
+	zlib1g-dev libxml2-dev libxslt1-dev gdebi-core gnupg dh-systemd distro-info-data
 run gem install rake bundler --no-document
 run gem update --system 3.1.5 --no-document
 run env BUNDLE_GEMFILE=/paa_build/Gemfile bundle install
