@@ -8,7 +8,7 @@
 # internal/scripts/regen_distro_info_script.sh
 
 # shellcheck disable=SC2034
-DEFAULT_DISTROS="xenial bionic focal impish stretch buster"
+DEFAULT_DISTROS="xenial bionic focal impish stretch buster bullseye"
 
 
 function to_distro_codename()
@@ -271,7 +271,7 @@ function to_distro_codename()
 
 function get_buildbox_image()
 {
-	echo "phusion/passenger_apt_automation_buildbox:2.0.0"
+	echo "phusion/passenger_apt_automation_buildbox:2.0.3"
 }
 
 function to_testbox_image()
