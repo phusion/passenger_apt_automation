@@ -13,7 +13,7 @@ if grep -q 'DISTRIB_RELEASE=21.10' /etc/lsb-release; then
 	userdel runit-log
 	# only deleting _runit-log user because it has _runit-log as its primary group, and I can't delete the group if I leave the user
 	userdel _runit-log
-	groupdel _runit-log
+	#groupdel _runit-log # deleting the user deletes the group
 fi
 
 if [[ "$APP_UID" -lt 1024 ]]; then
