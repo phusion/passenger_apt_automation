@@ -13,10 +13,12 @@ def ruby_package_dependencies
     if is_distribution?("<= jessie")
       "ruby2.1, ruby2.1-dev"
     elsif is_distribution?("<= stretch")
-      # At least up to, and including, v9 Stretch
       "ruby2.3, ruby2.3-dev"
-    else
+    elsif is_distribution?("<= buster")
       "ruby2.5, ruby2.5-dev"
+    else
+      # bullseye
+      "ruby2.7, ruby2.7-dev"
     end
   else
     raise "Unknown distribution class"
@@ -40,10 +42,12 @@ def distro_ruby_versions
     if is_distribution?("<= jessie")
       ["2.1"]
     elsif is_distribution?("<= stretch")
-      # At least up to, and including, v9 Stretch
       ["2.3"]
-    else
+    elsif is_distribution?("<= buster")
       ["2.5"]
+    else
+      # bullseye
+      ["2.7"]
     end
   else
     raise "Unknown distribution class"
