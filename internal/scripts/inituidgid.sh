@@ -5,15 +5,12 @@ set -e
 set -o pipefail
 
 # Hack to make the Passenger Apt packaging tests on our Jenkins infrastructure work. Jenkins has UID 999 and GID 998.
-# getent group 998
-# getent passwd 999
 
-# There is a user runit-log and group _runit-log in the impish container with these UID/GID, but we don't need them so we just delete them.
-if grep -q 'DISTRIB_RELEASE=21.10' /etc/lsb-release; then
-	userdel runit-log
-	# only deleting _runit-log user because it has _runit-log as its primary group, and I can't delete the group if I leave the user
-	userdel _runit-log
-	#groupdel _runit-log # deleting the user deletes the group
+if getent group 998; then
+	groupdel -f $(getent group 998 | cut -d: -f1)
+fi
+if getent passwd 999; then
+	userdel $(getent passwd 999 | cut -d: -f1)
 fi
 
 if [[ "$APP_UID" -lt 1024 ]]; then
