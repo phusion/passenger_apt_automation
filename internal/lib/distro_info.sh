@@ -8,7 +8,7 @@
 # internal/scripts/regen_distro_info_script.sh
 
 # shellcheck disable=SC2034
-DEFAULT_DISTROS="xenial bionic focal impish stretch buster bullseye"
+DEFAULT_DISTROS="xenial bionic focal jammy stretch buster bullseye"
 
 
 function to_distro_codename()
@@ -208,6 +208,14 @@ function to_distro_codename()
 			return
 		fi
 	
+		if [[ "$INPUT" = "jammy"
+			|| "$INPUT" = "ubuntu22.04"
+			|| "$INPUT" = "ubuntu-22.04" ]]
+		then
+			echo "jammy"
+			return
+		fi
+	
 	
 		if [[ "$INPUT" = "squeeze"
 			|| "$INPUT" = "debian6"
@@ -271,7 +279,7 @@ function to_distro_codename()
 
 function get_buildbox_image()
 {
-	echo "phusion/passenger_apt_automation_buildbox:2.0.3"
+	echo "phusion/passenger_apt_automation_buildbox:2.0.4"
 }
 
 function to_testbox_image()
@@ -471,6 +479,14 @@ function to_testbox_image()
 			return
 		fi
 	
+		if [[ "$INPUT" = "jammy"
+			|| "$INPUT" = "ubuntu22.04"
+			|| "$INPUT" = "ubuntu-22.04" ]]
+		then
+			echo phusion/passenger_apt_automation_testbox_ubuntu_22_04:1.1.3
+			return
+		fi
+	
 	
 		if [[ "$INPUT" = "squeeze"
 			|| "$INPUT" = "debian6"
@@ -578,6 +594,11 @@ function dynamic_module_supported()
 		fi
 	
 		if [[ "$CODENAME" = "impish" ]]; then
+			echo true
+			return
+		fi
+	
+		if [[ "$CODENAME" = "jammy" ]]; then
 			echo true
 			return
 		fi

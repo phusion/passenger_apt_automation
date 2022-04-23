@@ -46,7 +46,7 @@ run create_user app "Passenger APT Automation" 2446
 header "Installing dependencies"
 run apt-get update -q
 run apt-get install -y -q gdebi-core ruby ruby-dev rake \
-	wget curl python libcurl4-openssl-dev libssl-dev \
+	wget curl python3 libcurl4-openssl-dev libssl-dev \
 	ccache reprepro nodejs apt-transport-https ca-certificates \
 	fakeroot libalgorithm-merge-perl less libfile-fcntllock-perl \
 	liblocale-gettext-perl node-request node-express

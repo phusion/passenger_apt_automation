@@ -27,6 +27,7 @@ UBUNTU_DISTRIBUTIONS = {
   "groovy"   => "20.10",
   "hirsute"  => "21.04",
   "impish"   => "21.10",
+  "jammy"    => "22.04",
 }
 
 DEBIAN_DISTRIBUTIONS = {
@@ -45,7 +46,7 @@ DEFAULT_DISTROS = %w(
   xenial
   bionic
   focal
-  impish
+  jammy
 
   stretch
   buster
@@ -70,16 +71,16 @@ end
 def to_distro_codename(input)
   UBUNTU_DISTRIBUTIONS.each_pair do |codename, version|
     if input == codename \
-        || input == "ubuntu-#{version}" \
-        || input == "ubuntu#{version}"
+       || input == "ubuntu-#{version}" \
+       || input == "ubuntu#{version}"
       return codename
     end
   end
 
   DEBIAN_DISTRIBUTIONS.each_pair do |codename, version|
     if input == codename \
-        || input == "debian-#{version}" \
-        || input == "debian#{version}"
+       || input == "debian-#{version}" \
+       || input == "debian#{version}"
       return codename
     end
   end

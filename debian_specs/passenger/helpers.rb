@@ -3,11 +3,14 @@ def ruby_package_dependencies
   when :ubuntu
     if is_distribution?("<= artful")
       "ruby2.3, ruby2.3-dev"
-    elsif is_distribution?(">= focal")
+    elsif is_distribution?("<= eoan")
+      # v18.04 Bionic -> v19.10 Eoan
+      "ruby2.5, ruby2.5-dev"
+    elsif is_distribution?("<= impish")
+      # v20.04 Focal -> v21.10 Impish
       "ruby2.7, ruby2.7-dev"
     else
-      # v18.04 Bionic
-      "ruby2.5, ruby2.5-dev"
+      "ruby3.0, ruby3.0-dev"
     end
   when :debian
     if is_distribution?("<= jessie")
@@ -32,11 +35,12 @@ def distro_ruby_versions
   when :ubuntu
     if is_distribution?("<= artful")
       ["2.3"]
-    elsif is_distribution?(">= focal")
+    elsif is_distribution?("<= eoan")
+      ["2.5"]
+    elsif is_distribution?("<= impish")
       ["2.7"]
     else
-      # v18.04 Bionic
-      ["2.5"]
+      ["3.0"]
     end
   when :debian
     if is_distribution?("<= jessie")
