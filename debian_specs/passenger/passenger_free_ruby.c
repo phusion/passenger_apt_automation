@@ -15,8 +15,11 @@
 int
 main(int argc, const char *argv[]) {
 	try_exec("ruby", argc, argv);
-	try_exec("/usr/bin/ruby2.9", argc, argv);
-	try_exec("/usr/bin/ruby2.8", argc, argv);
+	try_exec("/usr/bin/ruby3.4", argc, argv);
+	try_exec("/usr/bin/ruby3.3", argc, argv);
+	try_exec("/usr/bin/ruby3.2", argc, argv);
+	try_exec("/usr/bin/ruby3.1", argc, argv);
+	try_exec("/usr/bin/ruby3.0", argc, argv);
 	try_exec("/usr/bin/ruby2.7", argc, argv);
 	try_exec("/usr/bin/ruby2.6", argc, argv);
 	try_exec("/usr/bin/ruby2.5", argc, argv);
