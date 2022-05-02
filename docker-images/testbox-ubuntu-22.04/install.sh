@@ -47,17 +47,16 @@ header "Installing dependencies"
 run apt-get update -q
 run apt-get install -y -q gdebi-core ruby ruby-dev rake \
 	wget curl python3 libcurl4-openssl-dev libssl-dev \
-	ccache reprepro nodejs apt-transport-https ca-certificates \
+	ccache reprepro apt-transport-https ca-certificates \
 	fakeroot libalgorithm-merge-perl less libfile-fcntllock-perl \
-	liblocale-gettext-perl node-request node-express
-run apt-get install -y -q --no-install-recommends npm git \
+	liblocale-gettext-perl
+run apt-get install -y -q --no-install-recommends git \
 	build-essential libsqlite3-dev zlib1g-dev ssh-client
-# not installed because of x11: manpages manpages-dev libc-devtools libfile-mimeinfo-perl libnet-dbus-perl libx11-protocol-perl x11-utils x11-xserver-utils
-echo "+ curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor > /usr/share/keyrings/yarn-keyring.gpg"
-curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor > /usr/share/keyrings/yarn-keyring.gpg
-echo '+ echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/yarn-keyring.gpg] https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list'
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/yarn-keyring.gpg] https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
-run apt-get update -q && apt-get install -y -q yarn
+
+header "Node.js"
+curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
+run apt-get install -y nodejs --no-install-recommends
+
 run ln -s /usr/bin/python3 /bin/my_init_python
 run gem install bundler -v 1.17.3 --no-document
 run env BUNDLE_GEMFILE=/paa_build/Gemfile bundle install

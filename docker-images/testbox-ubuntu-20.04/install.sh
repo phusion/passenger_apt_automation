@@ -46,13 +46,13 @@ header "Installing dependencies"
 run apt-get update -q
 run apt-get install -y -q build-essential gdebi-core ruby ruby-dev rake \
 	zlib1g-dev wget curl python libcurl4-openssl-dev libssl-dev \
-	ccache reprepro libsqlite3-dev nodejs apt-transport-https ca-certificates
-run apt-get install -y -q --no-install-recommends npm git
-echo '+ curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -'
-curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-echo '+ echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list'
-echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
-run apt-get update -q && apt-get install -y -q yarn
+	ccache reprepro libsqlite3-dev apt-transport-https ca-certificates
+run apt-get install -y -q --no-install-recommends git
+
+header "Node.js"
+curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
+run apt-get install -y nodejs --no-install-recommends
+
 run ln -s /usr/bin/python3 /bin/my_init_python
 run gem install bundler -v 1.17.3 --no-document
 run env BUNDLE_GEMFILE=/paa_build/Gemfile bundle install

@@ -52,15 +52,9 @@ run ln -s /usr/bin/python3 /bin/my_init_python
 run gem install bundler -v 1.11.2 --no-rdoc --no-ri
 run env BUNDLE_GEMFILE=/paa_build/Gemfile bundle install
 
-run wget https://nodejs.org/dist/v6.11.0/node-v6.11.0-linux-x64.tar.gz -O /tmp/node.tar.gz
-run tar -xzf /tmp/node.tar.gz -C /usr/local
-run ln -s /usr/local/node-*/bin/* /usr/bin/
-
-echo '+ curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -'
-curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-echo '+ echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list'
-echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
-run apt-get update -q && apt-get install -y -q yarn --no-install-recommends
+header "Node.js"
+curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
+run apt-get install -y nodejs --no-install-recommends
 
 header "Miscellaneous"
 run mkdir /etc/container_environment
