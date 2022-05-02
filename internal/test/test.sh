@@ -62,13 +62,20 @@ run rm -rf /tmp/passenger
 if [[ -e /passenger/.git ]]; then
 	run setuser app mkdir /tmp/passenger
 	echo "+ cd /passenger (expecting local git repo to copy from)"
-	git config --global --add safe.directory /passenger
 	cd /passenger
+	echo "+ adding /passenger to git config safe.directory"
+	git config --global --add safe.directory /passenger
+	echo "+ Getting list of submodules"
+	submodules=$(git submodule status | awk '{ print $2 }')
+	for submodule in $submodules; do
+		echo "+ adding /passenger/$submodule to git config safe.directory"
+		git config --global --add safe.directory "/passenger/$submodule"
+	done
 	echo "+ Copying all git committed files to /tmp/passenger"
 	(
 		set -o pipefail
+		echo "+ Creating tar archive of repo, and extracting at /tmp/passenger"
 		git archive --format=tar HEAD | setuser app tar -C /tmp/passenger -x
-		submodules=$(git submodule status | awk '{ print $2 }')
 		for submodule in $submodules; do
 			echo "+ Copying all git committed files from submodule $submodule"
 			pushd "$submodule" >/dev/null
