@@ -62,6 +62,7 @@ run rm -rf /tmp/passenger
 if [[ -e /passenger/.git ]]; then
 	run setuser app mkdir /tmp/passenger
 	echo "+ cd /passenger (expecting local git repo to copy from)"
+	git config --global --add safe.directory /passenger
 	cd /passenger
 	echo "+ Copying all git committed files to /tmp/passenger"
 	(
