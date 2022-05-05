@@ -38,7 +38,7 @@ end
 
 shared_examples_for "Hello world Ruby application" do
   it "works" do
-    if if RUBY_VERSION >= '2.5'
+    if RUBY_VERSION >= '2.5'
       URI.open("http://passenger.test/", "rb") do |io|
         expect(io.read).to eql("Hello Ruby\n")
       end
@@ -52,7 +52,7 @@ end
 
 shared_examples_for "Hello world Python application" do
   it "works" do
-    if if RUBY_VERSION >= '2.5'
+    if RUBY_VERSION >= '2.5'
       URI.open("http://1.passenger.test/", "rb") do |io|
         expect(io.read).to eql("Hello Python\n")
       end
@@ -66,7 +66,7 @@ end
 
 shared_examples_for "Hello world Node.js application" do
   it "works" do
-    if if RUBY_VERSION >= '2.5'
+    if RUBY_VERSION >= '2.5'
       URI.open("http://2.passenger.test/", "rb") do |io|
         expect(io.read).to eql("Hello Node.js\n")
       end
