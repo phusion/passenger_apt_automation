@@ -95,9 +95,14 @@ end
 def fetch_latest_nginx_version_from_launchpad_api(distro)
   ['Updates', 'Security', 'Release'].each do |pocket|
     url = "https://api.launchpad.net/1.0/ubuntu/+archive/primary?ws.op=getPublishedBinaries&binary_name=nginx&exact_match=true&distro_arch_series=https://api.launchpad.net/1.0/ubuntu/#{distro}/amd64&status=Published&pocket=#{pocket}"
-    p url
-    data = open(url) do |io|
-      io.read
+    if RUBY_VERSION >= '2.5'
+      data = URI.open(url) do |io|
+        io.read
+      end
+    else
+      data = open(url) do |io|
+        io.read
+      end
     end
     entry = JSON.parse(data)['entries'][0]
     if entry
@@ -114,8 +119,14 @@ def extract_nginx_version(os, distro, sanitize)
       version = fetch_latest_nginx_version_from_launchpad_api(distro)
     elsif DEBIAN_DISTRIBUTIONS.key?(distro)
       url = "https://packages.debian.org/search?suite=#{distro}&exact=1&searchon=names&keywords=nginx"
-      doc = open(url) do |io|
-        Nokogiri.XML(io)
+      if RUBY_VERSION >= '2.5'
+        doc = URI.open(url) do |io|
+          Nokogiri.XML(io)
+        end
+      else
+        doc = open(url) do |io|
+          Nokogiri.XML(io)
+        end
       end
       version = doc.at_css('#psearchres ul li').text.lines.select{|s|s.include? ": all"}.first.strip.split.first.chomp(':')
     end
