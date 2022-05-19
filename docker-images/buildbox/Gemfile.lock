@@ -7,7 +7,7 @@ GEM
       nokogiri (>= 1.4.0)
       sqlite3
     net-http-persistent (2.9.4)
-    nokogiri (1.13.4)
+    nokogiri (1.13.6)
       mini_portile2 (~> 2.8.0)
       racc (~> 1.4)
     paint (0.9.0)
