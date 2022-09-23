@@ -2,6 +2,7 @@
 set -e
 ROOTDIR=$(dirname "$0")
 ROOTDIR=$(cd "$ROOTDIR/../.." && pwd)
+ARCH=$(dpkg --print-architecture)
 # shellcheck source=../lib/library.sh
 source "$ROOTDIR/internal/lib/library.sh"
 
@@ -29,26 +30,26 @@ echo
 header "Installing packages..."
 run apt-get update -q
 if ls /output/*enterprise* >/dev/null 2>/dev/null; then
-	run gdebi -n -q /output/passenger-enterprise_*_amd64.deb
-	run gdebi -n -q /output/passenger-enterprise-dbg_*_amd64.deb
-	run gdebi -n -q /output/passenger-enterprise-dev_*_amd64.deb
+	run gdebi -n -q /output/passenger-enterprise_*_$ARCH.deb
+	run gdebi -n -q /output/passenger-enterprise-dbg_*_$ARCH.deb
+	run gdebi -n -q /output/passenger-enterprise-dev_*_$ARCH.deb
 	run gdebi -n -q /output/passenger-enterprise-doc_*_all.deb
-	run gdebi -n -q /output/libapache2-mod-passenger-enterprise_*_amd64.deb
+	run gdebi -n -q /output/libapache2-mod-passenger-enterprise_*_$ARCH.deb
 else
-	run gdebi -n -q /output/passenger_*_amd64.deb
-	run gdebi -n -q /output/passenger-dbg_*_amd64.deb
-	run gdebi -n -q /output/passenger-dev_*_amd64.deb
+	run gdebi -n -q /output/passenger_*_$ARCH.deb
+	run gdebi -n -q /output/passenger-dbg_*_$ARCH.deb
+	run gdebi -n -q /output/passenger-dev_*_$ARCH.deb
 	run gdebi -n -q /output/passenger-doc_*_all.deb
-	run gdebi -n -q /output/libapache2-mod-passenger_*_amd64.deb
+	run gdebi -n -q /output/libapache2-mod-passenger_*_$ARCH.deb
 fi
 if ! ls /output/libnginx-mod-http-passenger* >/dev/null 2>/dev/null; then
 	run gdebi -n -q /output/nginx-common_*_all.deb
-	run gdebi -n -q /output/nginx-extras_*_amd64.deb
+	run gdebi -n -q /output/nginx-extras_*_$ARCH.deb
 elif ls /output/*enterprise* >/dev/null 2>/dev/null; then
-	run gdebi -n -q /output/libnginx-mod-http-passenger-enterprise_*_amd64.deb
+	run gdebi -n -q /output/libnginx-mod-http-passenger-enterprise_*_$ARCH.deb
 	run apt-get install -y -q "${NGINX_DEV_PACKAGES[@]}"
 else
-	run gdebi -n -q /output/libnginx-mod-http-passenger_*_amd64.deb
+	run gdebi -n -q /output/libnginx-mod-http-passenger_*_$ARCH.deb
 	run apt-get install -y -q "${NGINX_DEV_PACKAGES[@]}"
 fi
 run apt-get install -y -q "${APACHE2_DEV_PACKAGES[@]}"
