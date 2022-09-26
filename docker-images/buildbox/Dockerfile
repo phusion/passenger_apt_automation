@@ -1,3 +1,3 @@
-FROM phusion/baseimage:impish
+FROM phusion/baseimage:jammy-1.0.1
 ADD . /paa_build
 RUN bash /paa_build/install.sh
