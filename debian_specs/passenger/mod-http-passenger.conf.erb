@@ -1,4 +1,7 @@
 ### Begin automatically installed Phusion Passenger config snippet ###
 passenger_root @RUBYLIBDIR@/phusion_passenger/locations.ini;
 passenger_ruby /usr/bin/passenger_free_ruby;
+<% if systemd_tmpfiles?(@distribution) %>
+passenger_instance_registry_dir /var/run/passenger-instreg;
+<% end %>
 ### End automatically installed Phusion Passenger config snippet ###

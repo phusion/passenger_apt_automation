@@ -142,6 +142,10 @@ def dynamic_module_supported?(distro)
   ubuntu_gte(distro, "artful") || debian_gte(distro, "stretch")
 end
 
+def systemd_tmpfiles?(distro)
+  ubuntu_gte(distro, "bionic") || debian_gte(distro, "stretch")
+end
+
 def latest_nginx_sanitized(distro, sanitized)
   if UBUNTU_DISTRIBUTIONS.key?(distro)
     os = 'ubuntu'
