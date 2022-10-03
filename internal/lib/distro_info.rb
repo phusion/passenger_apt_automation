@@ -28,6 +28,7 @@ UBUNTU_DISTRIBUTIONS = {
   "hirsute"  => "21.04",
   "impish"   => "21.10",
   "jammy"    => "22.04",
+  "kinetic"  => "22.10",
 }
 
 DEBIAN_DISTRIBUTIONS = {
@@ -47,6 +48,7 @@ DEFAULT_DISTROS = %w(
   bionic
   focal
   jammy
+  kinetic
 
   stretch
   buster

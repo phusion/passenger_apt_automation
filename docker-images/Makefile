@@ -4,10 +4,10 @@ BUILDBOX_VERSION = $(shell ../internal/lib/docker_image_info.sh buildbox_version
 TESTBOX_BASE_NAME = $(shell ../internal/lib/docker_image_info.sh testbox_base_name)
 TESTBOX_VERSION = $(shell ../internal/lib/docker_image_info.sh testbox_version)
 
-.PHONY: all buildbox testboxes tag_latest upload tag_latest_buildbox tag_latest_testboxes upload_buildbox upload_testboxes testbox-debian-11 testbox-debian-10 testbox-debian-9 testbox-ubuntu-22.04 testbox-ubuntu-20.04 testbox-ubuntu-18.04 testbox-ubuntu-16.04
+.PHONY: all buildbox testboxes tag_latest upload tag_latest_buildbox tag_latest_testboxes upload_buildbox upload_testboxes testbox-debian-11 testbox-debian-10 testbox-debian-9 testbox-ubuntu-22.10 testbox-ubuntu-22.04 testbox-ubuntu-20.04 testbox-ubuntu-18.04 testbox-ubuntu-16.04
 
 all: buildbox testboxes
-testboxes: testbox-debian-11 testbox-debian-10 testbox-debian-9 testbox-ubuntu-22.04 testbox-ubuntu-20.04 testbox-ubuntu-18.04 testbox-ubuntu-16.04
+testboxes: testbox-debian-11 testbox-debian-10 testbox-debian-9 testbox-ubuntu-22.10 testbox-ubuntu-22.04 testbox-ubuntu-20.04 testbox-ubuntu-18.04 testbox-ubuntu-16.04
 
 buildbox:
 	./setup-buildbox-docker-image "$(BUILDBOX_NAME):$(BUILDBOX_VERSION)"
@@ -20,6 +20,9 @@ testbox-debian-10:
 
 testbox-debian-9:
 	./setup-testbox-docker-image "$(TESTBOX_BASE_NAME)_debian_9:$(TESTBOX_VERSION)" "testbox-debian-9"
+
+testbox-ubuntu-22.10:
+	./setup-testbox-docker-image "$(TESTBOX_BASE_NAME)_ubuntu_22_10:$(TESTBOX_VERSION)" "testbox-ubuntu-22.10"
 
 testbox-ubuntu-22.04:
 	./setup-testbox-docker-image "$(TESTBOX_BASE_NAME)_ubuntu_22_04:$(TESTBOX_VERSION)" "testbox-ubuntu-22.04"
@@ -46,6 +49,8 @@ tag_latest_testboxes:
 	docker tag $(TESTBOX_BASE_NAME)_debian_10:$(TESTBOX_VERSION)-amd64 $(TESTBOX_BASE_NAME)_debian_10:latest-amd64
 	docker tag $(TESTBOX_BASE_NAME)_debian_9:$(TESTBOX_VERSION)-arm64 $(TESTBOX_BASE_NAME)_debian_9:latest-arm64
 	docker tag $(TESTBOX_BASE_NAME)_debian_9:$(TESTBOX_VERSION)-amd64 $(TESTBOX_BASE_NAME)_debian_9:latest-amd64
+	docker tag $(TESTBOX_BASE_NAME)_ubuntu_22_10:$(TESTBOX_VERSION)-arm64 $(TESTBOX_BASE_NAME)_ubuntu_22_10:latest-arm64
+	docker tag $(TESTBOX_BASE_NAME)_ubuntu_22_10:$(TESTBOX_VERSION)-amd64 $(TESTBOX_BASE_NAME)_ubuntu_22_10:latest-amd64
 	docker tag $(TESTBOX_BASE_NAME)_ubuntu_22_04:$(TESTBOX_VERSION)-arm64 $(TESTBOX_BASE_NAME)_ubuntu_22_04:latest-arm64
 	docker tag $(TESTBOX_BASE_NAME)_ubuntu_22_04:$(TESTBOX_VERSION)-amd64 $(TESTBOX_BASE_NAME)_ubuntu_22_04:latest-amd64
 	docker tag $(TESTBOX_BASE_NAME)_ubuntu_20_04:$(TESTBOX_VERSION)-arm64 $(TESTBOX_BASE_NAME)_ubuntu_20_04:latest-arm64
@@ -80,6 +85,10 @@ upload_testboxes: tag_latest_testboxes
 	docker push $(TESTBOX_BASE_NAME)_debian_9:latest-arm64
 	docker push $(TESTBOX_BASE_NAME)_debian_9:$(TESTBOX_VERSION)-amd64
 	docker push $(TESTBOX_BASE_NAME)_debian_9:$(TESTBOX_VERSION)-arm64
+	docker push $(TESTBOX_BASE_NAME)_ubuntu_22_10:latest-amd64
+	docker push $(TESTBOX_BASE_NAME)_ubuntu_22_10:latest-arm64
+	docker push $(TESTBOX_BASE_NAME)_ubuntu_22_10:$(TESTBOX_VERSION)-amd64
+	docker push $(TESTBOX_BASE_NAME)_ubuntu_22_10:$(TESTBOX_VERSION)-arm64
 	docker push $(TESTBOX_BASE_NAME)_ubuntu_22_04:latest-amd64
 	docker push $(TESTBOX_BASE_NAME)_ubuntu_22_04:latest-arm64
 	docker push $(TESTBOX_BASE_NAME)_ubuntu_22_04:$(TESTBOX_VERSION)-amd64
