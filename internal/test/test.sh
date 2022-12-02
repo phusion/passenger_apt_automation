@@ -133,8 +133,8 @@ if ! ls /output/*enterprise* >/dev/null 2>/dev/null; then
 else
 	run setuser app cp "/system/internal/test/misc/config-enterprise$CONFIG_SUFFIX.json" test/config.json
 fi
-find . -print0 /var/{log,lib}/nginx -type d | xargs -0 --no-run-if-empty chmod o+rwx
-find . -print0 /var/{log,lib}/nginx -type f | xargs -0 --no-run-if-empty chmod o+rw
+find . /var/{log,lib}/nginx -print0 -type d | xargs -0 --no-run-if-empty chmod o+rwx
+find . /var/{log,lib}/nginx -print0 -type f | xargs -0 --no-run-if-empty chmod o+rw
 
 if $DEBUG_CONSOLE; then
 	echo
