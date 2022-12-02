@@ -107,6 +107,12 @@ describe "The system's Apache with Passenger enabled" do
     end
   end
 
+  after :each do |t|
+    if t.exception
+      sh('cat /var/log/apache2/error.log')
+    end
+  end
+
   after :all do
     sh('service apache2 stop')
     eventually do
@@ -152,6 +158,12 @@ describe "The system's Nginx with Passenger enabled" do
       instances = list_passenger_instances
       instances.size == 1 &&
         passenger_instance_fully_initialized?(instances[0])
+    end
+  end
+
+  after :each do |t|
+    if t.exception
+      sh('cat /var/log/nginx/error.log')
     end
   end
 
