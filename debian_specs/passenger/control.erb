@@ -6,7 +6,7 @@ Section: ruby
 Priority: optional
 Maintainer: <%= MAINTAINER_NAME %> <<%= MAINTAINER_EMAIL %>>
 Uploaders: <%= MAINTAINER_NAME %> <<%= MAINTAINER_EMAIL %>>
-Build-Depends: debhelper (>= 7.0.50~), rake,
+Build-Depends: debhelper (>= 10~), rake,
  <%= ruby_package_dependencies %>,
  apache2 (>= 2.4), apache2-dev (>= 2.4),
 <% if dynamic_module_supported?(@distribution) -%>

@@ -97,8 +97,6 @@ override_dh_auto_install:
 <% if dynamic_module_supported?(@distribution) -%>
 	mkdir -p debian/tmp/usr/lib/nginx/modules/ && cp debian/ngx_http_passenger_module.so debian/tmp/usr/lib/nginx/modules/
 <% end -%>
-	mkdir -p debian/tmp/usr/lib/tmpfiles.d
-	cp debian/passenger-instreg.conf debian/tmp/usr/lib/tmpfiles.d/
 
 override_dh_auto_clean:
 	/usr/bin/rake clean CLEAN_DOCS=false
