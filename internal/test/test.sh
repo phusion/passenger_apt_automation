@@ -35,12 +35,16 @@ if ls /output/*enterprise* >/dev/null 2>/dev/null; then
 	run gdebi -n -q /output/passenger-enterprise-dev_*_$ARCH.deb
 	run gdebi -n -q /output/passenger-enterprise-doc_*_all.deb
 	run gdebi -n -q /output/libapache2-mod-passenger-enterprise_*_$ARCH.deb
+	# only needed because of docker, real system will have this run by install script
+	run systemd-tmpfiles --create /usr/lib/tmpfiles.d/passenger-enterprise.conf
 else
 	run gdebi -n -q /output/passenger_*_$ARCH.deb
 	run gdebi -n -q /output/passenger-dbg_*_$ARCH.deb
 	run gdebi -n -q /output/passenger-dev_*_$ARCH.deb
 	run gdebi -n -q /output/passenger-doc_*_all.deb
 	run gdebi -n -q /output/libapache2-mod-passenger_*_$ARCH.deb
+	# only needed because of docker, real system will have this run by install script
+	run systemd-tmpfiles --create /usr/lib/tmpfiles.d/passenger.conf
 fi
 if ! ls /output/libnginx-mod-http-passenger* >/dev/null 2>/dev/null; then
 	run gdebi -n -q /output/nginx-common_*_all.deb
