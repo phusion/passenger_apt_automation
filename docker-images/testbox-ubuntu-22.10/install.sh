@@ -54,8 +54,7 @@ run apt-get install -y -q --no-install-recommends git \
 	build-essential libsqlite3-dev zlib1g-dev ssh-client
 
 header "Node.js"
-#curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
-curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
 run apt-get install -y nodejs --no-install-recommends
 
 run ln -s /usr/bin/python3 /bin/my_init_python

@@ -53,7 +53,8 @@ run gem install bundler -v 1.11.2 --no-rdoc --no-ri
 run env BUNDLE_GEMFILE=/paa_build/Gemfile bundle install
 
 header "Node.js"
-curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
+# 18+ uses a too new glibc: https://github.com/nodejs/node/issues/43246
+curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
 run apt-get install -y nodejs --no-install-recommends
 
 header "Miscellaneous"
