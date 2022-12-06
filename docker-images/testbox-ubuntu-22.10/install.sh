@@ -49,7 +49,7 @@ run apt-get install -y -q gdebi-core ruby ruby-dev rake \
 	wget curl python3 libcurl4-openssl-dev libssl-dev \
 	ccache reprepro apt-transport-https ca-certificates \
 	fakeroot libalgorithm-merge-perl less libfile-fcntllock-perl \
-	liblocale-gettext-perl python-is-python3
+	liblocale-gettext-perl python-is-python3 systemd
 run apt-get install -y -q --no-install-recommends git \
 	build-essential libsqlite3-dev zlib1g-dev ssh-client
 

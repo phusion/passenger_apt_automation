@@ -46,7 +46,8 @@ header "Installing dependencies"
 run apt-get update -q
 run apt-get install -y -q build-essential gdebi-core ruby ruby-dev rake \
 	zlib1g-dev wget curl python libcurl4-openssl-dev libssl-dev \
-	ccache reprepro libsqlite3-dev apt-transport-https ca-certificates
+	ccache reprepro libsqlite3-dev apt-transport-https ca-certificates \
+	systemd
 run apt-get install -y -q --no-install-recommends git
 
 header "Node.js"
