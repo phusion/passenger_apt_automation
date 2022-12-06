@@ -44,7 +44,6 @@ DEBIAN_DISTRIBUTIONS = {
 # A list of distribution codenames for which the `build` script
 # will build for, and for which the `test` script will test for.
 DEFAULT_DISTROS = %w(
-  xenial
   bionic
   focal
   jammy
@@ -145,7 +144,7 @@ def dynamic_module_supported?(distro)
 end
 
 def systemd_tmpfiles?(distro)
-  ubuntu_gte(distro, "bionic") || debian_gte(distro, "stretch")
+  ubuntu_gte(distro, "vivid") || debian_gte(distro, "jessie")
 end
 
 def latest_nginx_sanitized(distro, sanitized)
