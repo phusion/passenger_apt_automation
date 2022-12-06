@@ -2,7 +2,7 @@
 set -e
 if [ $# -ne 2 ]; then
 	echo "Please specify 2 arguments: image:version subdir, for example:"
-	echo "phusion/passenger_apt_automation_testbox_ubuntu_16_04:1.0.0 testbox-ubuntu-16.04"
+	echo "phusion/passenger_apt_automation_testbox_ubuntu_18_04:1.0.0 testbox-ubuntu-18.04"
 	exit 1
 fi
 SELFDIR=`dirname "$0"`
