@@ -8,7 +8,7 @@
 # internal/scripts/regen_distro_info_script.sh
 
 # shellcheck disable=SC2034
-DEFAULT_DISTROS="xenial bionic focal jammy kinetic stretch buster bullseye"
+DEFAULT_DISTROS="bionic focal jammy kinetic stretch buster bullseye"
 
 
 function to_distro_codename()
