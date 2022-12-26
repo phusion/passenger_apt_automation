@@ -115,7 +115,7 @@ end
 
 def extract_nginx_version(os, distro, sanitize)
   cache_file = "/tmp/#{distro}_nginx_version.txt"
-  if !File.exists?(cache_file) || ((Time.now - 60*60*24) > File.mtime(cache_file))
+  if !File.exist?(cache_file) || ((Time.now - 60*60*24) > File.mtime(cache_file))
     if UBUNTU_DISTRIBUTIONS.key?(distro)
       version = fetch_latest_nginx_version_from_launchpad_api(distro)
     elsif DEBIAN_DISTRIBUTIONS.key?(distro)
