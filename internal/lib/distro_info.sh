@@ -8,7 +8,7 @@
 # internal/scripts/regen_distro_info_script.sh
 
 # shellcheck disable=SC2034
-DEFAULT_DISTROS="bionic focal jammy kinetic stretch buster bullseye"
+DEFAULT_DISTROS="bionic focal jammy lunar stretch buster bullseye"
 
 
 function to_distro_codename()
@@ -221,6 +221,14 @@ function to_distro_codename()
 			|| "$INPUT" = "ubuntu-22.10" ]]
 		then
 			echo "kinetic"
+			return
+		fi
+	
+		if [[ "$INPUT" = "lunar"
+			|| "$INPUT" = "ubuntu23.04"
+			|| "$INPUT" = "ubuntu-23.04" ]]
+		then
+			echo "lunar"
 			return
 		fi
 	
@@ -503,6 +511,14 @@ function to_testbox_image()
 			return
 		fi
 	
+		if [[ "$INPUT" = "lunar"
+			|| "$INPUT" = "ubuntu23.04"
+			|| "$INPUT" = "ubuntu-23.04" ]]
+		then
+			echo phusion/passenger_apt_automation_testbox_ubuntu_23_04:2.0.8
+			return
+		fi
+	
 	
 		if [[ "$INPUT" = "squeeze"
 			|| "$INPUT" = "debian6"
@@ -620,6 +636,11 @@ function dynamic_module_supported()
 		fi
 	
 		if [[ "$CODENAME" = "kinetic" ]]; then
+			echo true
+			return
+		fi
+	
+		if [[ "$CODENAME" = "lunar" ]]; then
 			echo true
 			return
 		fi

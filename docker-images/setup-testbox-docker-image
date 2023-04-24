@@ -13,5 +13,5 @@ cd "$SELFDIR/$2"
 ARM_IMAGE="${1}-arm64"
 AMD_IMAGE="${1}-amd64"
 
-docker buildx build --platform linux/arm64 --pull --no-cache --force-rm -t $ARM_IMAGE .
 docker buildx build --platform linux/amd64 --pull --no-cache --force-rm -t $AMD_IMAGE .
+docker buildx build --platform linux/arm64 --pull --no-cache --force-rm -t $ARM_IMAGE .

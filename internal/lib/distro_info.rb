@@ -29,6 +29,7 @@ UBUNTU_DISTRIBUTIONS = {
   "impish"   => "21.10",
   "jammy"    => "22.04",
   "kinetic"  => "22.10",
+  "lunar"    => "23.04",
 }
 
 DEBIAN_DISTRIBUTIONS = {
@@ -47,7 +48,7 @@ DEFAULT_DISTROS = %w(
   bionic
   focal
   jammy
-  kinetic
+  lunar
 
   stretch
   buster

@@ -41,10 +41,11 @@ export DEBIAN_FRONTEND=noninteractive
 export HOME=/root
 
 header "Creating users and directories"
+run apt-get update -q
+run apt-get install -y -q adduser
 run create_user app "Passenger APT Automation" 2446
 
 header "Installing dependencies"
-run apt-get update -q
 run apt-get install -y -q gdebi-core ruby ruby-dev rake \
 	wget curl python3 libcurl4-openssl-dev libssl-dev \
 	ccache reprepro apt-transport-https ca-certificates \
