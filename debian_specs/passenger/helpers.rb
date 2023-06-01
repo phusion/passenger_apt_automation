@@ -43,8 +43,10 @@ def distro_ruby_versions
       ["2.5"]
     elsif is_distribution?("<= impish")
       ["2.7"]
-    else
+    elsif is_distribution?("<= kinetic")
       ["3.0"]
+    else
+      ["3.1"]
     end
   when :debian
     if is_distribution?("<= jessie")
