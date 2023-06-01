@@ -91,13 +91,13 @@ When the build script is finished, the output directory (`-o`) will contain one 
 
     output/
       |
-      +-- trusty/
+      +-- bionic/
       |      |
       |      +-- *.deb
       |      |
       |      +-- *.dsc
       |
-      +-- precise/
+      +-- focal/
       |      |
       |      +-- *.deb
       |      |
@@ -120,11 +120,11 @@ If anything goes wrong during a build, please take a look at the various log fil
 
 Once packages have been built, you can test them with the test script. Here is an example invocation:
 
-    ./test -p /passenger -x trusty -d output/trusty -c cache
+    ./test -p /passenger -x bionic -d output/bionic -c cache
 
  * `-p` tells it where the Passenger source code is in order to find the unit tests (those aren't in the debian package). The code / resources / executables under test come from the debian package built by the build script.
  * `-x` tells it which distribution it should use for running the tests. To learn which distributions are supported, run `./test -h`.
- * `-d` tells it where to find the packages that are to be tested. This must point to a subdirectory in the output directory produced by the build script, and the packages must match the test environment as specified by `-x`. For example, if you specified `-x trusty`, and if the build script stored packages in the directory `output`, then you should pass `-d output/trusty`.
+ * `-d` tells it where to find the packages that are to be tested. This must point to a subdirectory in the output directory produced by the build script, and the packages must match the test environment as specified by `-x`. For example, if you specified `-x bionic`, and if the build script stored packages in the directory `output`, then you should pass `-d output/bionic`.
  * `-c` tells it where the cache directory is. The test script caches files into this directory so that subsequent runs will be faster.
 
 #### Vagrant notes
@@ -156,7 +156,7 @@ Prior to changing the buildbox or testbox, you should update their version numbe
 
 ### Adding support for a new distribution
 
-In these instructions, we assume that the new distribution is Ubuntu 16.04 "Xenial". Update the actual parameters accordingly.
+In these instructions, we assume that the new distribution is Ubuntu 20.04 "Focal". Update the actual parameters accordingly.
 
  1. Bump the the buildbox version number's tiny component. Open `internal/lib/docker_image_info.sh` and change the number under `buildbox_version`.
 
@@ -181,24 +181,24 @@ In these instructions, we assume that the new distribution is Ubuntu 16.04 "Xeni
 
     For example:
 
-        ./build -p /passenger -w work -c cache -o output -d xenial pkg:all
+        ./build -p /passenger -w work -c cache -o output -d focal pkg:all
 
  7. Create a test box for this new distribution.
 
-     1. Create `docker-images/testbox-ubuntu-16.04/` (copy of testbox of previous release)
-     2. Set the correct From in `docker-images/testbox-ubuntu-16.04/Dockerfile`
+     1. Create `docker-images/testbox-ubuntu-20.04/` (copy of testbox of previous release)
+     2. Set the correct From in `docker-images/testbox-ubuntu-20.04/Dockerfile`
      3. Edit `docker-images/Makefile` and add entries for this new testbox.
      
-        make -C docker-images testbox-ubuntu-16.04
+        make -C docker-images testbox-ubuntu-20.04
 
     When done, test Passenger under the new testbox:
 
-        ./test -p /passenger -x xenial -d output/xenial -c cache
+        ./test -p /passenger -x focal -d output/focal -c cache
 
  8. Commit and push all changes, then publish the new packages and the updated Docker images by running:
 
         git add docker-images
-        git commit -a -m "Add support for Ubuntu 16.04 Xenial"
+        git commit -a -m "Add support for Ubuntu 20.04 Focal"
         git push
         cd docker-images
         make upload
@@ -216,25 +216,25 @@ In these instructions, we assume that the new distribution is Ubuntu 16.04 "Xeni
 
      3. Commit and push the result:
 
-            git commit -a -m "Add packaging support for Ubuntu 16.04 Xenial"
+            git commit -a -m "Add packaging support for Ubuntu 20.04 Focal"
             git push
 
 ### Removing support for a distribution
 
-In these instructions, we assume that the distribution to be removed is Ubuntu 16.04 "Xenial". Update the actual parameters accordingly.
+In these instructions, we assume that the distribution to be removed is Ubuntu 20.04 "Focal". Update the actual parameters accordingly.
 
  1. Remove the distribution's definition from `internal/lib/distro_info.rb`, `DEFAULT_DISTROS` constant.
  2. Run `./internal/scripts/regen_distro_info_script.sh`.
  3. Update the package definitions in `debian_specs/`. Remove `<% if %>` statements that target only this distribution.
  4. Remove the test box for this distribution.
 
-     1. Remove `docker-images/testbox-ubuntu-16.04/`
+     1. Remove `docker-images/testbox-ubuntu-20.04/`
      2. Edit `docker-images/Makefile` and remove entries for this distribution's testbox.
 
  5. Commit and push all changes:
 
         git add -u docker-images
-        git commit -a -m "Remove support for Ubuntu 16.04 Xenial"
+        git commit -a -m "Remove support for Ubuntu 20.04 Focal"
         git push
 
  6. Inside the [passenger](https://github.com/phusion/passenger) repository:
@@ -250,39 +250,39 @@ In these instructions, we assume that the distribution to be removed is Ubuntu 1
 
      3. Commit and push the result:
 
-            git commit -a -m "Remove packaging support for Ubuntu 16.04 Xenial"
+            git commit -a -m "Remove packaging support for Ubuntu 20.04 Focal"
             git push
 
 ### Updating the build box's APT cache
 
 The package building process works by running `pbuilder-dist` inside a Docker container. `pbuilder-dist`, in turn, is a Debian tool for managing chroots for building packages for specific distributions. Once in a while, the APT cache inside these chroots will get out of date, resulting in HTTP 404 errors while building packages, like this:
 
-    Get: 1 http://security.debian.org/ wheezy/updates/main libtasn1-3 amd64 2.13-2+deb7u2 [67.8 kB]
-    Err http://security.debian.org/ wheezy/updates/main libxml2 amd64 2.8.0+dfsg1-7+wheezy4
+    Get: 1 http://security.debian.org/ buster/updates/main libtasn1-3 amd64 2.13-2+deb7u2 [67.8 kB]
+    Err http://security.debian.org/ buster/updates/main libxml2 amd64 2.8.0+dfsg1-7+buster4
       404  Not Found [IP: 212.211.132.250 80]
 
 When this happens, it is time to update the chroot's APT cache. There are two ways to do this.
 
 The first way is by deleting the pbuilder chroot tarball in the cache directory. It will be recreated next time you run a build process. For example:
 
-    rm ~/cache/base-wheezy-amd64.tgz
+    rm ~/cache/base-buster-amd64.tgz
 
 or
 
-    find /data/jenkins/ -name 'base-stretch-*.tgz' -delete
+    find /data/jenkins/ -name 'base-buster-*.tgz' -delete
 
 The second way is by updating it in-place. For example:
 
  1. Run: `./shell -c ~/cache`. This will drop you into the buildbox shell.
- 2. Run: `initpbuilder wheezy amd64`.
- 3. Run: `pbuilder-dist wheezy amd64 update`.
+ 2. Run: `initpbuilder buster amd64`.
+ 3. Run: `pbuilder-dist buster amd64 update`.
  4. Run `exit` to exit the build box shell.
 
 ### Building Nginx packages only
 
 Sometimes you want to build Nginx packages only, without building the Phusion Passenger packages. You can do this by invoking the build script with the `pkg:nginx:all` task. For example:
 
-    ./build -p /passenger -w work -c cache -o output -d xenial pkg:nginx:all
+    ./build -p /passenger -w work -c cache -o output -d focal pkg:nginx:all
 
 After the build script finishes, you can publish these Nginx packages:
 
@@ -317,12 +317,12 @@ If a packaging test job fails, here's what you should do.
 
  3. Build packages for the distribution for which the test failed.
 
-        ./build -w ~/work -c ~/cache -o ~/output -p /passenger -d xenial -a amd64 -j 2 -R pkg:all
+        ./build -w ~/work -c ~/cache -o ~/output -p /passenger -d focal -a amd64 -j 2 -R pkg:all
 
     Be sure to customize the value passed to `-d` based on the distribution for which the test failed.
  4. Run the tests with the debugging console enabled:
 
-        ./test -p /passenger -x xenial -d ~/output/xenial -c ~/cache -D
+        ./test -p /passenger -x focal -d ~/output/focal -c ~/cache -D
 
     Be sure to customize the values passed to `-x` and `-d` based on the distribution for which the test failed.
 
@@ -334,7 +334,7 @@ Inside the test container, you will be dropped into the directory /tmp/passenger
 
 Packages are built to `output/<distro>`. You can play around manually with examining and installing these in a docker image:
 
-    docker run -v dir/on/host/output/<distro>:/dir/in/docker/img -it ubuntu:16.04
+    docker run -v dir/on/host/output/<distro>:/dir/in/docker/img -it ubuntu:20.04
     apt-get update && apt-get upgrade
     dpkg -I passenger_5.1.x-1~distro1_amd64.deb  # view info
     dpkg -i passenger_5.1.x-1~distro1_amd64.deb  # install passenger (probably need to install a module too)
@@ -346,7 +346,7 @@ Packages are built to `output/<distro>`. You can play around manually with exami
 
 Are you a user who wants to build Debian packages for a Passenger version that hasn't been released yet? Maybe because you want to gain access to a bug fix that isn't part of a release yet? Then this tutorial is for you.
 
-You can follow this tutorial on any OS you want. You do not necessarily have to follow this tutorial on the OS you wish to build packages for. For example, it is possible to build packages for Ubuntu 14.04 while following this tutorial on OS X.
+You can follow this tutorial on any OS you want. You do not necessarily have to follow this tutorial on the OS you wish to build packages for. For example, it is possible to build packages for Ubuntu 20.04 while following this tutorial on OS X.
 
 ### Prerequisites
 
@@ -399,23 +399,23 @@ Replace `<PATH TO PASSENGER>` with one of these:
 
 Replace `<ARCHITECTURE>` with either `i386` or `amd64`. Replace `<DISTRIBUTION>` with the codename of the distribution you want to build for. For example:
 
- * `precise` -- Ubuntu 12.04
- * `trusty` -- Ubuntu 14.04
- * `xenial` -- Ubuntu 16.04
- * `wheezy` -- Debian 7
- * `jessie` -- Debian 8
- * `stretch` -- Debian 9
+ * `bionic` -- Ubuntu 18.04
+ * `focal` -- Ubuntu 20.04
+ * `jammy` -- Ubuntu 22.04
+ * `lunar` -- Ubuntu 23.04
+ * `buster` -- Debian 10
+ * `bullseye` -- Debian 11
 
 You can find the codename of your distribution version on Wikipedia: [Ubuntu codenames](https://en.wikipedia.org/wiki/Ubuntu#Releases), [Debian codenames](https://en.wikipedia.org/wiki/Debian#Release_timeline).
 
-Here is an example invocation for building packages for Ubuntu 14.04, x86_64:
+Here is an example invocation for building packages for Ubuntu 18.04, x86_64:
 
 ```bash
 # If you are on a Linux system:
-./build -p ../.. -w ~/work -c ~/cache -o output -a amd64 -d trusty pkg:all
+./build -p ../.. -w ~/work -c ~/cache -o output -a amd64 -d bionic pkg:all
 
 # If you are on a non-Linux system (and using Vagrant):
-./build -p /passenger -w ~/work -c ~/cache -o output -a amd64 -d trusty pkg:all
+./build -p /passenger -w ~/work -c ~/cache -o output -a amd64 -d bionic pkg:all
 ```
 
 ### Step 4: get packages, clean up

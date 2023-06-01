@@ -50,7 +50,6 @@ DEFAULT_DISTROS = %w(
   jammy
   lunar
 
-  stretch
   buster
   bullseye
 )
