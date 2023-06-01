@@ -9,8 +9,12 @@ def ruby_package_dependencies
     elsif is_distribution?("<= impish")
       # v20.04 Focal -> v21.10 Impish
       "ruby2.7, ruby2.7-dev"
-    else
+    elsif is_distribution?("<= kinetic")
+      # v22.04 Jolly -> v22.10 Kinetic
       "ruby3.0, ruby3.0-dev"
+    else
+      # v23.04 Lunar -> ???
+      "ruby3.1, ruby3.1-dev"
     end
   when :debian
     if is_distribution?("<= jessie")
