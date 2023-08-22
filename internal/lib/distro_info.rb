@@ -52,6 +52,7 @@ DEFAULT_DISTROS = %w(
 
   buster
   bullseye
+  bookworm
 )
 
 ###### Helper methods ######

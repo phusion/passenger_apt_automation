@@ -23,9 +23,11 @@ def ruby_package_dependencies
       "ruby2.3, ruby2.3-dev"
     elsif is_distribution?("<= buster")
       "ruby2.5, ruby2.5-dev"
-    else
-      # bullseye
+    elsif is_distribution?("<= bullseye")
       "ruby2.7, ruby2.7-dev"
+    else
+      # bookworm
+      "ruby3.1, ruby3.1-dev"
     end
   else
     raise "Unknown distribution class"
@@ -55,9 +57,10 @@ def distro_ruby_versions
       ["2.3"]
     elsif is_distribution?("<= buster")
       ["2.5"]
-    else
-      # bullseye
+    elsif is_distribution?("<= bullseye")
       ["2.7"]
+    else
+      ["3.1"]
     end
   else
     raise "Unknown distribution class"
