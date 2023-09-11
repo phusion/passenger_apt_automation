@@ -130,7 +130,7 @@ def extract_nginx_version(os, distro, sanitize)
           Nokogiri.XML(io)
         end
       end
-      version = doc.at_css('#psearchres ul li').text.lines.select{|s|s.include? ": all"}.first.strip.split.first.chomp(':')
+      version = doc.at_css('#psearchres ul li').text.lines.select{|s|(s.include? ": all" or s.include? ": amd64 arm64")}.first.strip.split.first.chomp(':')
     end
     File.write(cache_file,version)
   else
