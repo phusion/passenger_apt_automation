@@ -52,8 +52,15 @@ run apt-get install -y -q --no-install-recommends git
 
 header "Node.js"
 # 18+ uses a too new glibc: https://github.com/nodejs/node/issues/43246
-curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
-run apt-get install -y nodejs --no-install-recommends
+# Define the desired Node.js major version
+NODE_MAJOR=16
+# Create a directory for the new repository's keyring, if it doesn't exist
+run mkdir -p /etc/apt/keyrings
+# Download the new repository's GPG key and save it in the keyring directory
+curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+# Add the new repository's source list with its GPG key for package verification
+echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" > /etc/apt/sources.list.d/nodesource.list
+run apt-get install -y nodejs npm --no-install-recommends
 
 run ln -s /usr/bin/python3 /bin/my_init_python
 run gem install bundler -v 1.16.1 --no-rdoc --no-ri

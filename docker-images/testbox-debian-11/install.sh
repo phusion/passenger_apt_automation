@@ -54,8 +54,15 @@ run gem install bundler -v 1.16.1 --no-document
 run env BUNDLE_GEMFILE=/paa_build/Gemfile bundle install
 
 header "Node.js"
-curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
-run apt-get install -y nodejs --no-install-recommends
+# Define the desired Node.js major version
+NODE_MAJOR=18
+# Create a directory for the new repository's keyring, if it doesn't exist
+run mkdir -p /etc/apt/keyrings
+# Download the new repository's GPG key and save it in the keyring directory
+curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+# Add the new repository's source list with its GPG key for package verification
+echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" > /etc/apt/sources.list.d/nodesource.list
+run apt-get install -y nodejs npm --no-install-recommends
 
 header "Miscellaneous"
 run mkdir /etc/container_environment
