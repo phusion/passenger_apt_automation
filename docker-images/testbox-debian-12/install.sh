@@ -55,7 +55,7 @@ run env BUNDLE_GEMFILE=/paa_build/Gemfile bundle install
 
 header "Node.js"
 # Define the desired Node.js major version
-local NODE_MAJOR=18
+NODE_MAJOR=18
 # Create a directory for the new repository's keyring, if it doesn't exist
 run mkdir -p /etc/apt/keyrings
 # Download the new repository's GPG key and save it in the keyring directory
