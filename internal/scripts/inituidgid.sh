@@ -4,13 +4,13 @@
 set -e
 set -o pipefail
 
-# Hack to make the Passenger Apt packaging tests on our Jenkins infrastructure work. Jenkins has UID 999 and GID 998.
+# Hack to make the Passenger Apt packaging tests on our Jenkins infrastructure work. Jenkins has UID 999/1000 and GID 998.
 
-if getent group 998; then
-	groupdel -f $(getent group 998 | cut -d: -f1)
+if getent group $APP_GID; then
+	groupdel -f $(getent group $APP_GID | cut -d: -f1)
 fi
-if getent passwd 999; then
-	userdel $(getent passwd 999 | cut -d: -f1)
+if getent passwd $APP_UID; then
+	userdel $(getent passwd $APP_UID | cut -d: -f1)
 fi
 
 if [[ "$APP_UID" -lt 1024 ]]; then
