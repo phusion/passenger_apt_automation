@@ -8,7 +8,7 @@
 # internal/scripts/regen_distro_info_script.sh
 
 # shellcheck disable=SC2034
-DEFAULT_DISTROS="bionic focal jammy lunar buster bullseye bookworm"
+DEFAULT_DISTROS="focal jammy lunar buster bullseye bookworm"
 
 
 function to_distro_codename()
