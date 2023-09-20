@@ -23,6 +23,7 @@ function create_user()
 		adduser --uid $id --gid $id --disabled-password --gecos "$full_name" $name
 	fi
 	usermod -L $name
+	chmod o+rx /home/$name
 }
 
 function create_group()
