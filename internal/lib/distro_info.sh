@@ -8,7 +8,7 @@
 # internal/scripts/regen_distro_info_script.sh
 
 # shellcheck disable=SC2034
-DEFAULT_DISTROS="focal jammy lunar buster bullseye bookworm"
+DEFAULT_DISTROS="focal jammy mantic buster bullseye bookworm"
 
 
 function to_distro_codename()
@@ -229,6 +229,14 @@ function to_distro_codename()
 			|| "$INPUT" = "ubuntu-23.04" ]]
 		then
 			echo "lunar"
+			return
+		fi
+	
+		if [[ "$INPUT" = "mantic"
+			|| "$INPUT" = "ubuntu23.10"
+			|| "$INPUT" = "ubuntu-23.10" ]]
+		then
+			echo "mantic"
 			return
 		fi
 	
@@ -519,6 +527,14 @@ function to_testbox_image()
 			return
 		fi
 	
+		if [[ "$INPUT" = "mantic"
+			|| "$INPUT" = "ubuntu23.10"
+			|| "$INPUT" = "ubuntu-23.10" ]]
+		then
+			echo phusion/passenger_apt_automation_testbox_ubuntu_23_10:2.1.1
+			return
+		fi
+	
 	
 		if [[ "$INPUT" = "squeeze"
 			|| "$INPUT" = "debian6"
@@ -641,6 +657,11 @@ function dynamic_module_supported()
 		fi
 	
 		if [[ "$CODENAME" = "lunar" ]]; then
+			echo true
+			return
+		fi
+	
+		if [[ "$CODENAME" = "mantic" ]]; then
 			echo true
 			return
 		fi

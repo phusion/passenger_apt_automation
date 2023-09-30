@@ -30,6 +30,7 @@ UBUNTU_DISTRIBUTIONS = {
   "jammy"    => "22.04",
   "kinetic"  => "22.10",
   "lunar"    => "23.04",
+  "mantic"   => "23.10",
 }
 
 DEBIAN_DISTRIBUTIONS = {
@@ -47,7 +48,7 @@ DEBIAN_DISTRIBUTIONS = {
 DEFAULT_DISTROS = %w(
   focal
   jammy
-  lunar
+  mantic
 
   buster
   bullseye

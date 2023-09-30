@@ -1,3 +1,3 @@
-FROM ubuntu:23.04
+FROM ubuntu:23.10
 ADD . /paa_build
 RUN bash /paa_build/install.sh
