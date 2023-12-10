@@ -64,7 +64,7 @@ curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dea
 # Add the new repository's source list with its GPG key for package verification
 echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" > /etc/apt/sources.list.d/nodesource.list
 run apt-get install -y nodejs npm --no-install-recommends
-run apt uninstall -y fonts-lato
+run apt remove -y fonts-lato
 
 run ln -s /usr/bin/python3 /bin/my_init_python
 run gem install bundler -v 1.17.3 --no-document
