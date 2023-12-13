@@ -9,6 +9,7 @@ set -e
 ROOTDIR=`dirname "$0"`
 ROOTDIR=`cd "$ROOTDIR/../.." && pwd`
 source "$ROOTDIR/internal/lib/library.sh"
+source "$ROOTDIR/internal/lib/distro_info.sh"
 
 require_args_exact 2 "$@"
 DISTRO="$1"
@@ -22,7 +23,8 @@ else
 fi
 
 if [[ ! -e /cache/base-$DISTRO-$ARCH.tgz ]]; then
-	run pbuilder-dist $DISTRO $ARCH create --updates-only
+	echo "+ yes | pbuilder-dist $DISTRO $ARCH create --updates-only"
+	yes | pbuilder-dist $DISTRO $ARCH create --updates-only
 	run mv ~/pbuilder/$BASE_TGZ /cache/base-$DISTRO-$ARCH.tgz
 fi
 if [[ ! -e ~/pbuilder/$BASE_TGZ ]]; then
