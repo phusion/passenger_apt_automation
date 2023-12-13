@@ -1,47 +1,18 @@
 require 'open-uri'
 require 'json'
+require 'csv'
 require 'nokogiri'
 
-UBUNTU_DISTRIBUTIONS = {
-  "lucid"    => "10.04",
-  "maverick" => "10.10",
-  "natty"    => "11.04",
-  "oneiric"  => "11.10",
-  "precise"  => "12.04",
-  "quantal"  => "12.10",
-  "raring"   => "13.04",
-  "saucy"    => "13.10",
-  "trusty"   => "14.04",
-  "utopic"   => "14.10",
-  "vivid"    => "15.04",
-  "wily"     => "15.10",
-  "xenial"   => "16.04",
-  "yakkety"  => "16.10",
-  "zesty"    => "17.04",
-  "artful"   => "17.10",
-  "bionic"   => "18.04",
-  "cosmic"   => "18.10",
-  "disco"    => "19.04",
-  "eoan"     => "19.10",
-  "focal"    => "20.04",
-  "groovy"   => "20.10",
-  "hirsute"  => "21.04",
-  "impish"   => "21.10",
-  "jammy"    => "22.04",
-  "kinetic"  => "22.10",
-  "lunar"    => "23.04",
-  "mantic"   => "23.10",
-}
+def gen_distros(family)
+  throw "must be run from #{family}" unless File.exist?("/usr/share/distro-info/#{family}.csv")
+  CSV.read("/usr/share/distro-info/#{family}.csv", headers: true).each_with_object(Hash.new) { |r, a|
+    a[r["series"]] = r.fetch("version")&.sub(/(\.0|\sLTS)\z/, "")
+  }.compact
+end
 
-DEBIAN_DISTRIBUTIONS = {
-  "squeeze"  => 6,
-  "wheezy"   => 7,
-  "jessie"   => 8,
-  "stretch"  => 9,
-  "buster"   => 10,
-  "bullseye" => 11,
-  "bookworm" => 12,
-}
+UBUNTU_DISTRIBUTIONS = gen_distros("ubuntu")
+
+DEBIAN_DISTRIBUTIONS = gen_distros("debian")
 
 # A list of distribution codenames for which the `build` script
 # will build for, and for which the `test` script will test for.

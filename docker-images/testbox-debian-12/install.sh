@@ -49,7 +49,7 @@ run apt-get install -y -q apt-utils
 run apt-get install -y -q build-essential gdebi-core ruby ruby-dev rake \
 	libcurl4-openssl-dev zlib1g-dev libssl-dev wget curl python3 git \
 	ccache reprepro libsqlite3-dev apt-transport-https systemd \
-	ca-certificates gnupg python-is-python3
+	ca-certificates gnupg python-is-python3 ruby-nokogiri distro-info-data
 
 run ln -s /usr/bin/python3 /bin/my_init_python
 run gem install bundler -v 1.16.1 --no-document

@@ -47,7 +47,7 @@ run apt-get update -q
 run apt-get install -y -q build-essential gdebi-core ruby ruby-dev rake \
 	zlib1g-dev wget curl python libcurl4-openssl-dev libssl-dev \
 	ccache reprepro libsqlite3-dev apt-transport-https ca-certificates \
-	systemd
+	systemd ruby-nokogiri distro-info-data
 run apt-get install -y -q --no-install-recommends git
 
 header "Node.js"

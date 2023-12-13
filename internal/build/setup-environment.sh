@@ -22,6 +22,8 @@ else
 	BASE_TGZ="$DISTRO-$ARCH-base.tgz"
 fi
 
+known_distro $DISTRO
+
 if [[ ! -e /cache/base-$DISTRO-$ARCH.tgz ]]; then
 	echo "+ yes | pbuilder-dist $DISTRO $ARCH create --updates-only"
 	yes | pbuilder-dist $DISTRO $ARCH create --updates-only

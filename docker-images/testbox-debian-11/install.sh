@@ -48,7 +48,7 @@ run apt-get install -y -q apt-utils
 run apt-get install -y -q build-essential gdebi-core ruby ruby-dev rake \
 	libcurl4-openssl-dev zlib1g-dev libssl-dev wget curl python git \
 	ccache reprepro libsqlite3-dev apt-transport-https systemd \
-	ca-certificates
+	ca-certificates ruby-nokogiri distro-info-data
 run ln -s /usr/bin/python3 /bin/my_init_python
 run gem install bundler -v 1.16.1 --no-document
 run env BUNDLE_GEMFILE=/paa_build/Gemfile bundle install
