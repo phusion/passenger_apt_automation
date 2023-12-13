@@ -14,19 +14,19 @@ DEFAULT_DISTROS="focal jammy mantic buster bullseye bookworm"
 function to_distro_codename()
 {
 	local INPUT="$1"
-        INPUT=${INPUT#ubuntu-}
-        INPUT=${INPUT#ubuntu}
-        INPUT=${INPUT#debian-}
-        INPUT=${INPUT#debian}
+	INPUT=${INPUT#ubuntu-}
+	INPUT=${INPUT#ubuntu}
+	INPUT=${INPUT#debian-}
+	INPUT=${INPUT#debian}
 
-        local VERSION=$(cut -d, -f 1,3 /usr/share/distro-info/*.csv | awk -F, "\$2 ~ \"^$INPUT( LTS|\.0)?\$\" {print \$2}")
-        if [ -n "$VERSION" ]; then
+	local VERSION=$(cut -d, -f 1,3 /usr/share/distro-info/*.csv | awk -F, "\$2 ~ \"^$INPUT( LTS|\.0)?\$\" {print \$2}")
+	if [ -n "$VERSION" ]; then
 		echo $VERSION
-                return 0
-        fi
+		return 0
+	fi
 
 	VERSION=$(cut -d, -f 1,3 /usr/share/distro-info/*.csv | awk -F, "\$1 ~ \"^$INPUT( LTS|\.0)?\$\" {print \$2}")
-        if [ -n "$VERSION" ]; then
+	if [ -n "$VERSION" ]; then
 		echo $VERSION
 		return 0
 	fi
@@ -36,29 +36,29 @@ function to_distro_codename()
 
 function get_buildbox_image()
 {
-	echo "phusion/passenger_apt_automation_buildbox:2.0.8"
+	echo "phusion/passenger_apt_automation_buildbox:2.1.0"
 }
 
 function to_testbox_image()
 {
 	local INPUT="$1"
-        INPUT=${INPUT#ubuntu-}
-        INPUT=${INPUT#ubuntu}
-        INPUT=${INPUT#debian-}
-        INPUT=${INPUT#debian}
+	INPUT=${INPUT#ubuntu-}
+	INPUT=${INPUT#ubuntu}
+	INPUT=${INPUT#debian-}
+	INPUT=${INPUT#debian}
 
-        local VERSION=$(cut -d, -f 1,3 /usr/share/distro-info/ubuntu.csv | grep -Ee "(^|,)$INPUT( LTS)?," | cut -d, -f 1)
+	local VERSION=$(cut -d, -f 1,3 /usr/share/distro-info/ubuntu.csv | grep -Ee "(^|,)$INPUT( LTS)?," | cut -d, -f 1)
 	if [ -n "$VERSION" ]; then
-	  VERSION=${VERSION% LTS}
-	  echo phusion/passenger_apt_automation_testbox_ubuntu_${VERSION/./_}:2.1.1
-	  return
+		  VERSION=${VERSION% LTS}
+		  echo phusion/passenger_apt_automation_testbox_ubuntu_${VERSION/./_}:2.1.2
+		  return
 	fi
 
-        VERSION=$(cut -d, -f 1,3 /usr/share/distro-info/debian.csv | grep -Ee "(^|,)$INPUT(\.0)?," | cut -d, -f 1)
+	VERSION=$(cut -d, -f 1,3 /usr/share/distro-info/debian.csv | grep -Ee "(^|,)$INPUT(\.0)?," | cut -d, -f 1)
 	if [ -n "$VERSION" ]; then
-	  VERSION=${VERSION%.0}
-	  echo phusion/passenger_apt_automation_testbox_debian_${VERSION/./_}:2.1.1
-	  return
+		  VERSION=${VERSION%.0}
+		  echo phusion/passenger_apt_automation_testbox_debian_${VERSION/./_}:2.1.2
+		  return
 	fi
 
 	return 1
@@ -67,17 +67,17 @@ function to_testbox_image()
 function ubuntu_gte()
 {
 	local AWK_SCRIPT="\$2 ~ PATTERN || \$1 ~ PATTERN {print \$3}"
-        local REL_1=$(cut -d, -f 1,3,5 /usr/share/distro-info/ubuntu.csv | awk -F, -vPATTERN="^$1( LTS)?\$" "$AWK_SCRIPT")
-        local REL_2=$(cut -d, -f 1,3,5 /usr/share/distro-info/ubuntu.csv | awk -F, -vPATTERN="^$2( LTS)?\$" "$AWK_SCRIPT")
-        echo -e "$REL_1\n$REL_2" | sort -rC
+	local REL_1=$(cut -d, -f 1,3,5 /usr/share/distro-info/ubuntu.csv | awk -F, -vPATTERN="^$1( LTS)?\$" "$AWK_SCRIPT")
+	local REL_2=$(cut -d, -f 1,3,5 /usr/share/distro-info/ubuntu.csv | awk -F, -vPATTERN="^$2( LTS)?\$" "$AWK_SCRIPT")
+	echo -e "$REL_1\n$REL_2" | sort -rC
 }
 
 function debian_gte()
 {
 	local AWK_SCRIPT="\$2 ~ PATTERN || \$1 ~ PATTERN {print \$3}"
-        local REL_1=$(cut -d, -f 1,3,5 /usr/share/distro-info/debian.csv | awk -F, -vPATTERN="^$1(\.0)?\$" "$AWK_SCRIPT")
-        local REL_2=$(cut -d, -f 1,3,5 /usr/share/distro-info/debian.csv | awk -F, -vPATTERN="^$2(\.0)?\$" "$AWK_SCRIPT")
-        echo -e "$REL_1\n$REL_2" | sort -rC
+	local REL_1=$(cut -d, -f 1,3,5 /usr/share/distro-info/debian.csv | awk -F, -vPATTERN="^$1(\.0)?\$" "$AWK_SCRIPT")
+	local REL_2=$(cut -d, -f 1,3,5 /usr/share/distro-info/debian.csv | awk -F, -vPATTERN="^$2(\.0)?\$" "$AWK_SCRIPT")
+	echo -e "$REL_1\n$REL_2" | sort -rC
 }
 
 function dynamic_module_supported()
@@ -85,13 +85,13 @@ function dynamic_module_supported()
 	local CODENAME="$(to_distro_codename "$1")"
 
 	if ubuntu_gte "$CODENAME" artful; then
-	  echo true
-	  return
+		  echo true
+		  return
 	fi
 
 	if debian_gte "$CODENAME" stretch; then
-	  echo true
-	  return
+		  echo true
+		  return
 	fi
 
 	echo false
@@ -99,6 +99,6 @@ function dynamic_module_supported()
 
 function known_distro ()
 {
-  local AWK_SCRIPT="BEGIN {err = 1} \$1 ~ \"^$1( LTS|\.0)?\$\" {err = 0} END {exit err}"
-  cut -d, -f 1,3 /usr/share/distro-info/*.csv | awk -F, "$AWK_SCRIPT"
+	local AWK_SCRIPT="BEGIN {err = 1} \$1 ~ \"^$1( LTS|\.0)?\$\" {err = 0} END {exit err}"
+	cut -d, -f 1,3 /usr/share/distro-info/*.csv | awk -F, "$AWK_SCRIPT"
 }

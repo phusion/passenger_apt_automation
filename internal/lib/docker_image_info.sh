@@ -18,11 +18,11 @@ fi
 if [[ "$1" == "buildbox_name" ]]; then
 	echo -n "phusion/passenger_apt_automation_buildbox"
 elif [[ "$1" == "buildbox_version" ]]; then
-	echo -n "2.0.8"
+	echo -n "2.1.0"
 elif [[ "$1" == "testbox_base_name" ]]; then
 	echo -n "phusion/passenger_apt_automation_testbox"
 elif [[ "$1" == "testbox_version" ]]; then
-	echo -n "2.1.1"
+	echo -n "2.1.2"
 else
 	echo "$USAGE"
 	exit 1
