@@ -193,7 +193,7 @@ namespace :pkg do
       desc "Build Passenger binary package for #{distro} #{arch}"
       task("passenger:#{distro}:#{arch}" => ["spkg:passenger:#{distro}", "env:#{distro}:#{arch}"]) do
         track_task(:pkg, "passenger:#{distro}:#{arch}") do |task|
-          task.sh "cd /work/spkg/passenger/#{distro} && pbuilder-dist #{distro} #{arch} *.dsc"
+          task.sh "cd /work/spkg/passenger/#{distro} && yes | pbuilder-dist #{distro} #{arch} *.dsc"
         end
       end
     end
@@ -218,7 +218,7 @@ namespace :pkg do
       desc "Build Nginx binary package for #{distro} #{arch}"
       task("nginx:#{distro}:#{arch}" => ["spkg:nginx:#{distro}", "env:#{distro}:#{arch}"]) do
         track_task(:pkg, "nginx:#{distro}:#{arch}") do |task|
-          task.sh "cd /work/spkg/nginx/#{distro} && pbuilder-dist #{distro} #{arch} *.dsc"
+          task.sh "cd /work/spkg/nginx/#{distro} && yes | pbuilder-dist #{distro} #{arch} *.dsc"
         end
       end
     end
