@@ -19,13 +19,9 @@ function to_distro_codename()
 	INPUT=${INPUT#debian-}
 	INPUT=${INPUT#debian}
 
-	local VERSION=$(cut -d, -f 1,3 /usr/share/distro-info/*.csv | awk -F, "\$2 ~ \"^$INPUT( LTS|\\\\.0)?\$\" {print \$2}")
-	if [ -n "$VERSION" ]; then
-		echo $VERSION
-		return 0
-	fi
+	local AWK_SCRIPT='$1 ~ PATTERN || $2 ~ PATTERN {print $2}'
 
-	VERSION=$(cut -d, -f 1,3 /usr/share/distro-info/*.csv | awk -F, "\$1 ~ \"^$INPUT( LTS|\\\\.0)?\$\" {print \$2}")
+	local VERSION=$(cut -d, -f 1,3 /usr/share/distro-info/*.csv | awk -F, -vPATTERN="^$INPUT( LTS|\\\\.0)?\$" "$AWK_SCRIPT")
 	if [ -n "$VERSION" ]; then
 		echo $VERSION
 		return 0
@@ -46,15 +42,17 @@ function to_testbox_image()
 	INPUT=${INPUT#ubuntu}
 	INPUT=${INPUT#debian-}
 	INPUT=${INPUT#debian}
+	INPUT=$(to_distro_codename $INPUT)
+	local AWK_SCRIPT='$1 ~ PATTERN || $2 ~ PATTERN {print $1}'
 
-	local VERSION=$(cut -d, -f 1,3 /usr/share/distro-info/ubuntu.csv | grep -Ee "(^|,)$INPUT( LTS)?," | cut -d, -f 1)
+	local VERSION=$(cut -d, -f 1,3 /usr/share/distro-info/ubuntu.csv | awk -F, -vPATTERN="^$INPUT( LTS)?\$" "$AWK_SCRIPT")
 	if [ -n "$VERSION" ]; then
 		  VERSION=${VERSION% LTS}
 		  echo phusion/passenger_apt_automation_testbox_ubuntu_${VERSION/./_}:2.1.2
 		  return
 	fi
 
-	VERSION=$(cut -d, -f 1,3 /usr/share/distro-info/debian.csv | grep -Ee "(^|,)$INPUT(\\.0)?," | cut -d, -f 1)
+	VERSION=$(cut -d, -f 1,3 /usr/share/distro-info/debian.csv | awk -F, -vPATTERN="^$INPUT(\\\\.0)?\$" "$AWK_SCRIPT")
 	if [ -n "$VERSION" ]; then
 		  VERSION=${VERSION%.0}
 		  echo phusion/passenger_apt_automation_testbox_debian_${VERSION/./_}:2.1.2
@@ -66,7 +64,7 @@ function to_testbox_image()
 
 function ubuntu_gte()
 {
-	local AWK_SCRIPT="\$2 ~ PATTERN || \$1 ~ PATTERN {print \$3}"
+	local AWK_SCRIPT='$2 ~ PATTERN || $1 ~ PATTERN {print $3}'
 	local REL_1=$(cut -d, -f 1,3,5 /usr/share/distro-info/ubuntu.csv | awk -F, -vPATTERN="^$1( LTS)?\$" "$AWK_SCRIPT")
 	local REL_2=$(cut -d, -f 1,3,5 /usr/share/distro-info/ubuntu.csv | awk -F, -vPATTERN="^$2( LTS)?\$" "$AWK_SCRIPT")
 	echo -e "$REL_1\n$REL_2" | sort -rC
@@ -74,7 +72,7 @@ function ubuntu_gte()
 
 function debian_gte()
 {
-	local AWK_SCRIPT="\$2 ~ PATTERN || \$1 ~ PATTERN {print \$3}"
+	local AWK_SCRIPT='$2 ~ PATTERN || $1 ~ PATTERN {print $3}'
 	local REL_1=$(cut -d, -f 1,3,5 /usr/share/distro-info/debian.csv | awk -F, -vPATTERN="^$1(\\\\.0)?\$" "$AWK_SCRIPT")
 	local REL_2=$(cut -d, -f 1,3,5 /usr/share/distro-info/debian.csv | awk -F, -vPATTERN="^$2(\\\\.0)?\$" "$AWK_SCRIPT")
 	echo -e "$REL_1\n$REL_2" | sort -rC
@@ -99,6 +97,6 @@ function dynamic_module_supported()
 
 function known_distro ()
 {
-	local AWK_SCRIPT="BEGIN {err = 1} \$2 ~ PATTERN || \$1 ~ PATTERN {err = 0} END {exit err}"
+	local AWK_SCRIPT='BEGIN {err = 1} $2 ~ PATTERN || $1 ~ PATTERN {err = 0} END {exit err}'
 	cut -d, -f 1,3 /usr/share/distro-info/*.csv | awk -F, -vPATTERN="^$1( LTS|\\\\.0)?\$" "$AWK_SCRIPT"
 }
