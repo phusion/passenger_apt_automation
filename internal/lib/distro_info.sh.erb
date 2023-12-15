@@ -20,20 +20,31 @@ DEFAULT_DISTROS="<%= DEFAULT_DISTROS.join(' ') %>"
 
 function to_distro_codename()
 {
-	local INPUT="$1"
+	if [ $# -ge 1 ] && [ -n "$*" ]; then
+	local INPUT="$*"
 	INPUT=${INPUT#ubuntu-}
 	INPUT=${INPUT#ubuntu}
 	INPUT=${INPUT#debian-}
 	INPUT=${INPUT#debian}
 
-	local AWK_SCRIPT='$1 ~ PATTERN || $2 ~ PATTERN {print $2}'
+	local AWK_SCRIPT='
+          BEGIN { oRS=RS; RS=FS }
+          /^version$/ { version_index = FNR; next }
+          /^series$/ { series_index = FNR; next }
+          (version_index > 0 && series_index > 0) { RS = oRS }
+          FNR>1 && ($version_index ~ PATTERN || $series_index ~ PATTERN) {
+            print $series_index
+          }
+        '
 
-	local VERSION=$(cut -d, -f 1,3 /usr/share/distro-info/*.csv | awk -F, -vPATTERN="^$INPUT( LTS|\\\\.0)?\$" "$AWK_SCRIPT")
-	if [ -n "$VERSION" ]; then
-		echo $VERSION
+	local CODENAME=$(awk -F, -vPATTERN="^$INPUT(\\\\.0| LTS)?\$" "$AWK_SCRIPT" /usr/share/distro-info/*.csv)
+
+	if [ -n "$CODENAME" ]; then
+		echo $CODENAME
 		return 0
 	fi
-
+	fi
+	echo UNKNOWN_DISTRO
 	return 1
 }
 
@@ -44,24 +55,28 @@ function get_buildbox_image()
 
 function to_testbox_image()
 {
-	local INPUT="$1"
-	INPUT=${INPUT#ubuntu-}
-	INPUT=${INPUT#ubuntu}
-	INPUT=${INPUT#debian-}
-	INPUT=${INPUT#debian}
-	INPUT=$(to_distro_codename $INPUT)
-	local AWK_SCRIPT='$1 ~ PATTERN || $2 ~ PATTERN {print $1}'
+	local INPUT=$(to_distro_codename $1)
+	local AWK_SCRIPT='
+          BEGIN { oRS=RS; RS=FS }
+          /^version$/ { version_index = FNR; next }
+          /^series$/ { series_index = FNR; next }
+          (version_index > 0 && series_index > 0) { RS = oRS }
+          FNR>1 && ($version_index ~ PATTERN || $series_index ~ PATTERN) {
+            version = $version_index;
+            sub(/\.0$/, "", version);
+            sub(/ LTS$/, "", version);
+            print version
+          }
+        '
 
-	local VERSION=$(cut -d, -f 1,3 /usr/share/distro-info/ubuntu.csv | awk -F, -vPATTERN="^$INPUT( LTS)?\$" "$AWK_SCRIPT")
+	local VERSION=$(awk -F, -vPATTERN="^$INPUT( LTS)?\$" "$AWK_SCRIPT" /usr/share/distro-info/ubuntu.csv)
 	if [ -n "$VERSION" ]; then
-		  VERSION=${VERSION% LTS}
 		  echo <%= TESTBOX_BASE_NAME %>_ubuntu_${VERSION/./_}:<%= TESTBOX_VERSION %>
 		  return
 	fi
 
-	VERSION=$(cut -d, -f 1,3 /usr/share/distro-info/debian.csv | awk -F, -vPATTERN="^$INPUT(\\\\.0)?\$" "$AWK_SCRIPT")
+	VERSION=$(awk -F, -vPATTERN="^$INPUT(\\\\.0)?\$" "$AWK_SCRIPT" /usr/share/distro-info/debian.csv)
 	if [ -n "$VERSION" ]; then
-		  VERSION=${VERSION%.0}
 		  echo <%= TESTBOX_BASE_NAME %>_debian_${VERSION/./_}:<%= TESTBOX_VERSION %>
 		  return
 	fi
@@ -71,30 +86,50 @@ function to_testbox_image()
 
 function ubuntu_gte()
 {
-	local AWK_SCRIPT='$2 ~ PATTERN || $1 ~ PATTERN {print $3}'
-	local REL_1=$(cut -d, -f 1,3,5 /usr/share/distro-info/ubuntu.csv | awk -F, -vPATTERN="^$1( LTS)?\$" "$AWK_SCRIPT")
-	local REL_2=$(cut -d, -f 1,3,5 /usr/share/distro-info/ubuntu.csv | awk -F, -vPATTERN="^$2( LTS)?\$" "$AWK_SCRIPT")
+	local AWK_SCRIPT='
+          BEGIN { oRS=RS; RS=FS }
+          /^version$/ { version_index = FNR; next }
+          /^series$/ { series_index = FNR; next }
+          /^release$/ { release_index = FNR; next }
+          (version_index > 0 && series_index > 0 && release_index > 0) { RS = oRS }
+          FNR>1 && ($version_index ~ PATTERN || $series_index ~ PATTERN) {
+            print $release_index
+          }
+        '
+	local INPUT1=$(to_distro_codename $1)
+	local INPUT2=$(to_distro_codename $2)
+	local REL_1=$(awk -F, -vPATTERN="^$INPUT1( LTS)?\$" "$AWK_SCRIPT" /usr/share/distro-info/ubuntu.csv)
+	local REL_2=$(awk -F, -vPATTERN="^$INPUT2( LTS)?\$" "$AWK_SCRIPT" /usr/share/distro-info/ubuntu.csv)
 	echo -e "$REL_1\n$REL_2" | sort -rC
 }
 
 function debian_gte()
 {
-	local AWK_SCRIPT='$2 ~ PATTERN || $1 ~ PATTERN {print $3}'
-	local REL_1=$(cut -d, -f 1,3,5 /usr/share/distro-info/debian.csv | awk -F, -vPATTERN="^$1(\\\\.0)?\$" "$AWK_SCRIPT")
-	local REL_2=$(cut -d, -f 1,3,5 /usr/share/distro-info/debian.csv | awk -F, -vPATTERN="^$2(\\\\.0)?\$" "$AWK_SCRIPT")
+	local AWK_SCRIPT='
+          BEGIN { oRS=RS; RS=FS }
+          /^version$/ { version_index = FNR; next }
+          /^series$/ { series_index = FNR; next }
+          /^release$/ { release_index = FNR; next }
+          (version_index > 0 && series_index > 0 && release_index > 0) { RS = oRS }
+          FNR>1 && ($version_index ~ PATTERN || $series_index ~ PATTERN) {
+            print $release_index
+          }
+        '
+	local INPUT1=$(to_distro_codename $1)
+	local INPUT2=$(to_distro_codename $2)
+	local REL_1=$(awk -F, -vPATTERN="^$INPUT1(\\\\.0)?\$" "$AWK_SCRIPT" /usr/share/distro-info/debian.csv)
+	local REL_2=$(awk -F, -vPATTERN="^$INPUT2(\\\\.0)?\$" "$AWK_SCRIPT" /usr/share/distro-info/debian.csv)
 	echo -e "$REL_1\n$REL_2" | sort -rC
 }
 
 function dynamic_module_supported()
 {
-	local CODENAME="$(to_distro_codename "$1")"
-
-	if ubuntu_gte "$CODENAME" artful; then
+	if ubuntu_gte "$1" artful; then
 		  echo true
 		  return
 	fi
 
-	if debian_gte "$CODENAME" stretch; then
+	if debian_gte "$1" stretch; then
 		  echo true
 		  return
 	fi
@@ -104,6 +139,14 @@ function dynamic_module_supported()
 
 function known_distro ()
 {
-	local AWK_SCRIPT='BEGIN {err = 1} $2 ~ PATTERN || $1 ~ PATTERN {err = 0} END {exit err}'
-	cut -d, -f 1,3 /usr/share/distro-info/*.csv | awk -F, -vPATTERN="^$1( LTS|\\\\.0)?\$" "$AWK_SCRIPT"
+	local INPUT=$(to_distro_codename $1)
+	local AWK_SCRIPT='
+          BEGIN { oRS=RS; RS=FS; err = 1 }
+          /^version$/ { version_index = FNR; next }
+          /^series$/ { series_index = FNR; next }
+          (version_index > 0 && series_index > 0) { RS = oRS }
+          FNR>1 && ($version_index ~ PATTERN || $series_index ~ PATTERN) { err = 0 }
+          END { exit err }
+        '
+	awk -F, -vPATTERN="^$INPUT( LTS|\\\\.0)?\$" "$AWK_SCRIPT" /usr/share/distro-info/*.csv
 }
