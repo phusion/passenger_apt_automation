@@ -12,7 +12,7 @@ end
 
 UBUNTU_DISTRIBUTIONS = gen_distros("ubuntu")
 
-DEBIAN_DISTRIBUTIONS = gen_distros("debian")
+DEBIAN_DISTRIBUTIONS = gen_distros("debian").transform_values(&:to_i)
 
 # A list of distribution codenames for which the `build` script
 # will build for, and for which the `test` script will test for.
