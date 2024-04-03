@@ -8,7 +8,7 @@
 # internal/scripts/regen_distro_info_script.sh
 
 # shellcheck disable=SC2034
-DEFAULT_DISTROS="focal jammy mantic buster bullseye bookworm"
+DEFAULT_DISTROS="focal jammy noble buster bullseye bookworm"
 
 
 function to_distro_codename()
@@ -64,13 +64,13 @@ function to_testbox_image()
 
 	local VERSION=$(awk -F, -vPATTERN="^$INPUT( LTS)?\$" "$AWK_SCRIPT" /usr/share/distro-info/ubuntu.csv)
 	if [ -n "$VERSION" ]; then
-		  echo phusion/passenger_apt_automation_testbox_ubuntu_${VERSION/./_}:2.1.2
+		  echo phusion/passenger_apt_automation_testbox_ubuntu_${VERSION/./_}:2.2.0
 		  return
 	fi
 
 	VERSION=$(awk -F, -vPATTERN="^$INPUT(\\\\.0)?\$" "$AWK_SCRIPT" /usr/share/distro-info/debian.csv)
 	if [ -n "$VERSION" ]; then
-		  echo phusion/passenger_apt_automation_testbox_debian_${VERSION/./_}:2.1.2
+		  echo phusion/passenger_apt_automation_testbox_debian_${VERSION/./_}:2.2.0
 		  return
 	fi
 

@@ -399,12 +399,12 @@ Replace `<PATH TO PASSENGER>` with one of these:
 
 Replace `<ARCHITECTURE>` with either `i386` or `amd64`. Replace `<DISTRIBUTION>` with the codename of the distribution you want to build for. For example:
 
- * `bionic` -- Ubuntu 18.04
  * `focal` -- Ubuntu 20.04
  * `jammy` -- Ubuntu 22.04
- * `lunar` -- Ubuntu 23.04
+ * `noble` -- Ubuntu 24.04
  * `buster` -- Debian 10
  * `bullseye` -- Debian 11
+ * `bookworm` -- Debian 12
 
 You can find the codename of your distribution version on Wikipedia: [Ubuntu codenames](https://en.wikipedia.org/wiki/Ubuntu#Releases), [Debian codenames](https://en.wikipedia.org/wiki/Debian#Release_timeline).
 

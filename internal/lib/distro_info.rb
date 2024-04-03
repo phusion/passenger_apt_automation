@@ -19,7 +19,7 @@ DEBIAN_DISTRIBUTIONS = gen_distros("debian").transform_values(&:to_i)
 DEFAULT_DISTROS = %w(
   focal
   jammy
-  mantic
+  noble
 
   buster
   bullseye

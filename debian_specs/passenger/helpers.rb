@@ -12,9 +12,12 @@ def ruby_package_dependencies
     elsif is_distribution?("<= kinetic")
       # v22.04 Jolly -> v22.10 Kinetic
       "ruby3.0, ruby3.0-dev"
-    else
-      # v23.04 Lunar -> ???
+    elsif is_distribution?("<= mantic")
+      # v23.04 Lunar -> v23.10 Mantic
       "ruby3.1, ruby3.1-dev"
+    else
+      # v24.04 Noble -> ???
+      "ruby3.2, ruby3.2-dev"
     end
   when :debian
     if is_distribution?("<= jessie")
@@ -47,8 +50,10 @@ def distro_ruby_versions
       ["2.7"]
     elsif is_distribution?("<= kinetic")
       ["3.0"]
-    else
+    elsif is_distribution?("<= mantic")
       ["3.1"]
+    else
+      ["3.2"]
     end
   when :debian
     if is_distribution?("<= jessie")

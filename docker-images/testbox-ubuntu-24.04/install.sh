@@ -4,12 +4,12 @@ set -e
 function header()
 {
 	echo
-	echo "----- $@ -----"
+	echo "----- $* -----"
 }
 
 function run()
 {
-	echo "+ $@"
+	echo "+ $*"
 	"$@"
 }
 
@@ -18,12 +18,12 @@ function create_user()
 	local name="$1"
 	local full_name="$2"
 	local id="$3"
-	create_group $name $id
+	create_group "$name" "$id"
 	if ! grep -q "^$name:" /etc/passwd; then
-		adduser --uid $id --gid $id --disabled-password --gecos "$full_name" $name
+		adduser --uid "$id" --gid "$id" --disabled-password --gecos "$full_name" "$name"
 	fi
-	usermod -L $name
-	chmod o+rx /home/$name
+	usermod -L "$name"
+	chmod o+rx "/home/$name"
 }
 
 function create_group()
@@ -31,7 +31,7 @@ function create_group()
 	local name="$1"
 	local id="$2"
 	if ! grep -q "^$name:" /etc/group >/dev/null; then
-		addgroup --gid $id $name
+		addgroup --gid "$id" "$name"
 	fi
 }
 
@@ -56,7 +56,7 @@ run apt-get install -y -q --no-install-recommends git \
 
 header "Node.js"
 # Define the desired Node.js major version
-NODE_MAJOR=18
+NODE_MAJOR=20
 # Create a directory for the new repository's keyring, if it doesn't exist
 run mkdir -p /etc/apt/keyrings
 # Download the new repository's GPG key and save it in the keyring directory
