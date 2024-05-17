@@ -8,7 +8,7 @@
 # internal/scripts/regen_distro_info_script.sh
 
 # shellcheck disable=SC2034
-DEFAULT_DISTROS="focal jammy buster bullseye bookworm"
+DEFAULT_DISTROS="focal jammy noble buster bullseye bookworm"
 
 
 function to_distro_codename()
