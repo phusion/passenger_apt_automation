@@ -159,8 +159,8 @@ run env BUNDLE_GEMFILE=/paa/Gemfile bundle exec \
 # in /var/lib/nginx. We relax their permissions here because subsequent tests run Nginx
 # as the 'app' user.
 echo "+ Relaxing permissions in /var/lib/nginx"
-find . -print0 /var/lib/nginx -type d | xargs -0 --no-run-if-empty chmod o+rwx
-find . -print0 /var/lib/nginx -type f | xargs -0 --no-run-if-empty chmod o+rw
+find . /var/lib/nginx -print0 -type d | xargs -0 --no-run-if-empty chmod o+rwx
+find . /var/lib/nginx -print0 -type f | xargs -0 --no-run-if-empty chmod o+rw
 
 run passenger-config validate-install --auto --validate-apache2
 run setuser app bundle exec rake "-j$COMPILE_CONCURRENCY" \

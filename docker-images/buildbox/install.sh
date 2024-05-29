@@ -39,6 +39,7 @@ export LC_ALL=C.UTF-8
 export DEBIAN_FRONTEND=noninteractive
 export HOME=/root
 
+run sed -e 's/deb/& deb-src/g' -i'' /etc/apt/sources.list.d/ubuntu.sources
 run apt-get update -q
 run apt-get install -y -q sudo
 

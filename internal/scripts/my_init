@@ -64,7 +64,7 @@ def import_envvars(clear_existing_environment = True, override_existing_environm
 			# Text files often end with a trailing newline, which we
 			# don't want to include in the env variable value. See
 			# https://github.com/phusion/baseimage-docker/pull/49
-			value = re.sub('\n\Z', '', f.read())
+			value = re.sub(r'\n\Z', '', f.read())
 		new_env[name] = value
 	if clear_existing_environment:
 		os.environ.clear()
