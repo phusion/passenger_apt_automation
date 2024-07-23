@@ -91,7 +91,7 @@ When the build script is finished, the output directory (`-o`) will contain one 
 
     output/
       |
-      +-- bionic/
+      +-- noble/
       |      |
       |      +-- *.deb
       |      |
@@ -120,11 +120,11 @@ If anything goes wrong during a build, please take a look at the various log fil
 
 Once packages have been built, you can test them with the test script. Here is an example invocation:
 
-    ./test -p /passenger -x bionic -d output/bionic -c cache
+    ./test -p /passenger -x noble -d output/noble -c cache
 
  * `-p` tells it where the Passenger source code is in order to find the unit tests (those aren't in the debian package). The code / resources / executables under test come from the debian package built by the build script.
  * `-x` tells it which distribution it should use for running the tests. To learn which distributions are supported, run `./test -h`.
- * `-d` tells it where to find the packages that are to be tested. This must point to a subdirectory in the output directory produced by the build script, and the packages must match the test environment as specified by `-x`. For example, if you specified `-x bionic`, and if the build script stored packages in the directory `output`, then you should pass `-d output/bionic`.
+ * `-d` tells it where to find the packages that are to be tested. This must point to a subdirectory in the output directory produced by the build script, and the packages must match the test environment as specified by `-x`. For example, if you specified `-x noble`, and if the build script stored packages in the directory `output`, then you should pass `-d output/noble`.
  * `-c` tells it where the cache directory is. The test script caches files into this directory so that subsequent runs will be faster.
 
 #### Vagrant notes
@@ -257,25 +257,25 @@ In these instructions, we assume that the distribution to be removed is Ubuntu 2
 
 The package building process works by running `pbuilder-dist` inside a Docker container. `pbuilder-dist`, in turn, is a Debian tool for managing chroots for building packages for specific distributions. Once in a while, the APT cache inside these chroots will get out of date, resulting in HTTP 404 errors while building packages, like this:
 
-    Get: 1 http://security.debian.org/ buster/updates/main libtasn1-3 amd64 2.13-2+deb7u2 [67.8 kB]
-    Err http://security.debian.org/ buster/updates/main libxml2 amd64 2.8.0+dfsg1-7+buster4
+    Get: 1 http://security.debian.org/ noble/updates/main libtasn1-3 amd64 2.13-2+deb7u2 [67.8 kB]
+    Err http://security.debian.org/ noble/updates/main libxml2 amd64 2.8.0+dfsg1-7+noble4
       404  Not Found [IP: 212.211.132.250 80]
 
 When this happens, it is time to update the chroot's APT cache. There are two ways to do this.
 
 The first way is by deleting the pbuilder chroot tarball in the cache directory. It will be recreated next time you run a build process. For example:
 
-    rm ~/cache/base-buster-amd64.tgz
+    rm ~/cache/base-noble-amd64.tgz
 
 or
 
-    find /data/jenkins/ -name 'base-buster-*.tgz' -delete
+    find /data/jenkins/ -name 'base-noble-*.tgz' -delete
 
 The second way is by updating it in-place. For example:
 
  1. Run: `./shell -c ~/cache`. This will drop you into the buildbox shell.
- 2. Run: `initpbuilder buster amd64`.
- 3. Run: `pbuilder-dist buster amd64 update`.
+ 2. Run: `initpbuilder noble amd64`.
+ 3. Run: `pbuilder-dist noble amd64 update`.
  4. Run `exit` to exit the build box shell.
 
 ### Building Nginx packages only
@@ -397,25 +397,24 @@ Replace `<PATH TO PASSENGER>` with one of these:
  * If you are on a Linux system, it should be `../..`.
  * If you are on a non-Linux system (and using Vagrant), it should be `/passenger`.
 
-Replace `<ARCHITECTURE>` with either `i386` or `amd64`. Replace `<DISTRIBUTION>` with the codename of the distribution you want to build for. For example:
+Replace `<ARCHITECTURE>` with either `arm64` or `amd64`. Replace `<DISTRIBUTION>` with the codename of the distribution you want to build for. For example:
 
  * `focal` -- Ubuntu 20.04
  * `jammy` -- Ubuntu 22.04
  * `noble` -- Ubuntu 24.04
- * `buster` -- Debian 10
  * `bullseye` -- Debian 11
  * `bookworm` -- Debian 12
 
 You can find the codename of your distribution version on Wikipedia: [Ubuntu codenames](https://en.wikipedia.org/wiki/Ubuntu#Releases), [Debian codenames](https://en.wikipedia.org/wiki/Debian#Release_timeline).
 
-Here is an example invocation for building packages for Ubuntu 18.04, x86_64:
+Here is an example invocation for building packages for Ubuntu 24.04, x86_64:
 
 ```bash
 # If you are on a Linux system:
-./build -p ../.. -w ~/work -c ~/cache -o output -a amd64 -d bionic pkg:all
+./build -p ../.. -w ~/work -c ~/cache -o output -a amd64 -d noble pkg:all
 
 # If you are on a non-Linux system (and using Vagrant):
-./build -p /passenger -w ~/work -c ~/cache -o output -a amd64 -d bionic pkg:all
+./build -p /passenger -w ~/work -c ~/cache -o output -a amd64 -d noble pkg:all
 ```
 
 ### Step 4: get packages, clean up

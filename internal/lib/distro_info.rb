@@ -21,7 +21,6 @@ DEFAULT_DISTROS = %w(
   jammy
   noble
 
-  buster
   bullseye
   bookworm
 )
