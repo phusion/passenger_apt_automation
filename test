@@ -28,6 +28,7 @@ function usage()
 	echo "             $DEFAULT_DISTROS"
 	echo "  -d DIR     Path to built packages"
 	echo "  -c DIR     Path to cache directory"
+	echo "  -a ARCH    Test only given architecture: amd64 or arm64"
 	echo
 	echo "Optional options:"
 	echo "  -O         Open debugging console instead of running test script"
@@ -42,10 +43,14 @@ function parse_options()
 {
 	local OPTIND=1
 	local opt
-	while getopts "p:x:d:c:ODe:jh" opt; do
+	while getopts "p:a:x:d:c:ODe:jh" opt; do
 		case "$opt" in
 		p)
 			PASSENGER_DIR="$OPTARG"
+			;;
+
+		a)
+			ARCH="$OPTARG"
 			;;
 		x)
 			DISTRIBUTION="$OPTARG"
@@ -83,6 +88,10 @@ function parse_options()
 
 	if [[ "$PASSENGER_DIR" = "" ]]; then
 		echo "ERROR: please specify a Passenger source directory with -p."
+		exit 1
+	fi
+	if [[ "$ARCH" = "" ]]; then
+		echo "ERROR: please specify a machine architecture with -a."
 		exit 1
 	fi
 	if [[ "$DISTRIBUTION" = "" ]]; then
@@ -126,6 +135,7 @@ run mkdir -p "$CACHE_DIR/test-$DISTRIBUTION/aptlist/partial"
 echo "-------- Entering Docker container --------"
 exec docker run \
 	--rm \
+	--platform "linux/$ARCH" \
 	-v "$SELFDIR/internal:/system/internal:ro" \
 	-v "$PASSENGER_DIR:/passenger:ro" \
 	-v "$OUTPUT_DIR:/output:ro" \
@@ -133,6 +143,7 @@ exec docker run \
 	-v "$CACHE_DIR/test-$DISTRIBUTION/aptcache:/var/cache/apt" \
 	-v "$CACHE_DIR/test-$DISTRIBUTION/aptlist:/var/lib/apt/lists" \
 	"${EXTRA_ARGS[@]}" \
+	-e "ARCHITECTURE=$ARCH" \
 	-e "DISTRIBUTION=$DISTRIBUTION" \
 	-e "DYNAMIC_MODULE_SUPPORTED=$DYNAMIC_MODULE_SUPPORTED" \
 	-e "DEBUG_CONSOLE=$DEBUG_CONSOLE" \

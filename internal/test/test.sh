@@ -2,7 +2,7 @@
 set -e
 ROOTDIR=$(dirname "$0")
 ROOTDIR=$(cd "$ROOTDIR/../.." && pwd)
-ARCH=$(dpkg --print-architecture)
+ARCH="$ARCHITECTURE"
 # shellcheck source=../lib/library.sh
 source "$ROOTDIR/internal/lib/library.sh"
 
