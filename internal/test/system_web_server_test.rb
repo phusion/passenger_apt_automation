@@ -147,7 +147,13 @@ describe "The system's Nginx with Passenger enabled" do
     cp('/system/internal/test/nginx/vhost.conf', '/etc/nginx/sites-enabled/001-testapp.conf')
     chmod(0644, '/etc/nginx/sites-enabled/001-testapp.conf')
     sh("sed -i 's|# include /etc/nginx/passenger.conf|include /etc/nginx/passenger.conf|' /etc/nginx/nginx.conf")
-    sh('service nginx start')
+    begin
+      sh('service nginx start')
+    rescue RuntimeError => e
+      `cat /var/log/nginx/error.log`
+      throw e
+    end
+
     eventually do
       ping_tcp_socket('127.0.0.1', 80)
     end
