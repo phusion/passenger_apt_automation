@@ -149,9 +149,8 @@ describe "The system's Nginx with Passenger enabled" do
     sh("sed -i 's|# include /etc/nginx/passenger.conf|include /etc/nginx/passenger.conf|' /etc/nginx/nginx.conf")
     begin
       sh('service nginx start')
-    rescue RuntimeError => e
-      `cat /var/log/nginx/error.log`
-      throw e
+    ensure
+      sh('cat /var/log/nginx/error.log')
     end
 
     eventually do
