@@ -67,7 +67,7 @@ run apt-get install -y nodejs npm --no-install-recommends
 run apt remove -y fonts-lato
 
 run ln -s /usr/bin/python3 /bin/my_init_python
-run gem install bundler -v 1.17.3 --no-document
+run gem install bundler -v '~>1.0' --no-document
 run env BUNDLE_GEMFILE=/paa_build/Gemfile bundle install
 
 header "Miscellaneous"

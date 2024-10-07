@@ -52,7 +52,7 @@ run apt-get install -y -q build-essential gdebi-core ruby ruby-dev rake \
 	ca-certificates gnupg python-is-python3 ruby-nokogiri distro-info-data
 
 run ln -s /usr/bin/python3 /bin/my_init_python
-run gem install bundler -v 1.16.1 --no-document
+run gem install bundler -v '~>1.0' --no-document
 run env BUNDLE_GEMFILE=/paa_build/Gemfile bundle install
 
 header "Node.js"
