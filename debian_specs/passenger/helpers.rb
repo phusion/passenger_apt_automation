@@ -15,9 +15,12 @@ def ruby_package_dependencies
     elsif is_distribution?("<= mantic")
       # v23.04 Lunar -> v23.10 Mantic
       "ruby3.1, ruby3.1-dev"
-    else
-      # v24.04 Noble -> ???
+    elsif is_distribution?("== noble")
+      # v24.04 Noble
       "ruby3.2, ruby3.2-dev"
+    else
+      # v24.10 Oracular -> ???
+      "ruby3.3, ruby3.3-dev"
     end
   when :debian
     if is_distribution?("<= jessie")
@@ -52,8 +55,10 @@ def distro_ruby_versions
       ["3.0"]
     elsif is_distribution?("<= mantic")
       ["3.1"]
-    else
+    elsif is_distribution?("== noble")
       ["3.2"]
+    else
+      ["3.3"]
     end
   when :debian
     if is_distribution?("<= jessie")
