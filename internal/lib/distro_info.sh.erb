@@ -12,6 +12,8 @@ require File.absolute_path(File.dirname(__FILE__)) + '/distro_info'
 
 # shellcheck disable=SC2034
 DEFAULT_DISTROS="<%= DEFAULT_DISTROS.join(' ') %>"
+DEBIAN_DISTROS="<%= DEFAULT_DISTROS.filter_map{|d| DEBIAN_DISTRIBUTIONS[d]}.join(' ') %>"
+UBUNTU_DISTROS="<%= DEFAULT_DISTROS.filter_map{|d| UBUNTU_DISTRIBUTIONS[d]}.join(' ') %>"
 <% BUILDBOX_NAME=`internal/lib/docker_image_info.sh buildbox_name`
    BUILDBOX_VERSION=`internal/lib/docker_image_info.sh buildbox_version`
 

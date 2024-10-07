@@ -4,12 +4,12 @@ BUILDBOX_VERSION = $(shell ../internal/lib/docker_image_info.sh buildbox_version
 TESTBOX_BASE_NAME = $(shell ../internal/lib/docker_image_info.sh testbox_base_name)
 TESTBOX_VERSION = $(shell ../internal/lib/docker_image_info.sh testbox_version)
 
-UBUNTUS          := 24.10 24.04 22.04 20.04
-UBUNTU_TESTBOXES := $(foreach image, $(UBUNTUS), testbox-ubuntu-$(subst .,_,$(image)))
+UBUNTUS          := $(shell source ../internal/lib/distro_info.sh; echo $$UBUNTU_DISTROS)
+UBUNTU_TESTBOXES := $(foreach image, $(UBUNTUS), testbox-ubuntu-$(image))
 UBUNTU_TAGGING   := $(foreach image, $(UBUNTUS), tag_latest_ubuntu_$(subst .,_,$(image))_testboxes)
 UBUNTU_UPLOAD    := $(foreach image, $(UBUNTUS), upload_ubuntu_$(subst .,_,$(image))_testboxes)
 UBUNTU_RELEASE   := $(foreach image, $(UBUNTUS), release_ubuntu_$(subst .,_,$(image))_testboxes)
-DEBIANS          := 12 11 10
+DEBIANS          := $(shell source ../internal/lib/distro_info.sh; echo $$DEBIAN_DISTROS)
 DEBIAN_TESTBOXES := $(foreach image, $(DEBIANS), testbox-debian-$(image))
 DEBIAN_TAGGING   := $(foreach image, $(DEBIANS), tag_latest_debian_$(image)_testboxes)
 DEBIAN_UPLOAD    := $(foreach image, $(DEBIANS), upload_debian_$(image)_testboxes)

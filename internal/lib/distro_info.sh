@@ -9,6 +9,8 @@
 
 # shellcheck disable=SC2034
 DEFAULT_DISTROS="focal jammy noble oracular bullseye bookworm"
+DEBIAN_DISTROS="11 12"
+UBUNTU_DISTROS="20.04 22.04 24.04 24.10"
 
 
 function to_distro_codename()
