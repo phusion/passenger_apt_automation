@@ -4,34 +4,28 @@ BUILDBOX_VERSION = $(shell ../internal/lib/docker_image_info.sh buildbox_version
 TESTBOX_BASE_NAME = $(shell ../internal/lib/docker_image_info.sh testbox_base_name)
 TESTBOX_VERSION = $(shell ../internal/lib/docker_image_info.sh testbox_version)
 
-.PHONY: all buildbox testboxes tag_latest upload tag_latest_buildbox tag_latest_testboxes upload_buildbox upload_testboxes testbox-debian-12 testbox-debian-11 testbox-debian-10 testbox-ubuntu-24.10 testbox-ubuntu-24.04 testbox-ubuntu-22.04 testbox-ubuntu-20.04
+UBUNTUS          := 24.10 24.04 22.04 20.04
+UBUNTU_TESTBOXES := $(foreach image, $(UBUNTUS), testbox-ubuntu-$(subst .,_,$(image)))
+UBUNTU_TAGGING   := $(foreach image, $(UBUNTUS), tag_latest_ubuntu_$(subst .,_,$(image))_testboxes)
+UBUNTU_UPLOAD    := $(foreach image, $(UBUNTUS), upload_ubuntu_$(subst .,_,$(image))_testboxes)
+UBUNTU_RELEASE   := $(foreach image, $(UBUNTUS), release_ubuntu_$(subst .,_,$(image))_testboxes)
+DEBIANS          := 12 11 10
+DEBIAN_TESTBOXES := $(foreach image, $(DEBIANS), testbox-debian-$(image))
+DEBIAN_TAGGING   := $(foreach image, $(DEBIANS), tag_latest_debian_$(image)_testboxes)
+DEBIAN_UPLOAD    := $(foreach image, $(DEBIANS), upload_debian_$(image)_testboxes)
+DEBIAN_RELEASE   := $(foreach image, $(DEBIANS), release_debian_$(image)_testboxes)
+
+.PHONY: all testboxes buildbox tag_latest tag_latest_buildbox tag_latest_testboxes upload upload_buildbox upload_testboxes release_buildbox release_testboxes release
+FORCE:
 
 all: buildbox testboxes
-testboxes: testbox-debian-12 testbox-debian-11 testbox-debian-10 testbox-ubuntu-24.10 testbox-ubuntu-24.04 testbox-ubuntu-22.04 testbox-ubuntu-20.04
+testboxes: $(DEBIAN_TESTBOXES) $(UBUNTU_TESTBOXES)
 
 buildbox:
 	./setup-buildbox-docker-image "$(BUILDBOX_NAME):$(BUILDBOX_VERSION)"
 
-testbox-debian-12:
-	./setup-testbox-docker-image "$(TESTBOX_BASE_NAME)_debian_12:$(TESTBOX_VERSION)" "testbox-debian-12"
-
-testbox-debian-11:
-	./setup-testbox-docker-image "$(TESTBOX_BASE_NAME)_debian_11:$(TESTBOX_VERSION)" "testbox-debian-11"
-
-testbox-debian-10:
-	./setup-testbox-docker-image "$(TESTBOX_BASE_NAME)_debian_10:$(TESTBOX_VERSION)" "testbox-debian-10"
-
-testbox-ubuntu-24.10:
-	./setup-testbox-docker-image "$(TESTBOX_BASE_NAME)_ubuntu_24_10:$(TESTBOX_VERSION)" "testbox-ubuntu-24.10"
-
-testbox-ubuntu-24.04:
-	./setup-testbox-docker-image "$(TESTBOX_BASE_NAME)_ubuntu_24_04:$(TESTBOX_VERSION)" "testbox-ubuntu-24.04"
-
-testbox-ubuntu-22.04:
-	./setup-testbox-docker-image "$(TESTBOX_BASE_NAME)_ubuntu_22_04:$(TESTBOX_VERSION)" "testbox-ubuntu-22.04"
-
-testbox-ubuntu-20.04:
-	./setup-testbox-docker-image "$(TESTBOX_BASE_NAME)_ubuntu_20_04:$(TESTBOX_VERSION)" "testbox-ubuntu-20.04"
+testbox-%: FORCE
+	./setup-testbox-docker-image "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)" "testbox-$*"
 
 tag_latest: tag_latest_buildbox tag_latest_testboxes
 
@@ -39,39 +33,11 @@ tag_latest_buildbox:
 	docker tag $(BUILDBOX_NAME):$(BUILDBOX_VERSION)-arm64 $(BUILDBOX_NAME):latest-arm64
 	docker tag $(BUILDBOX_NAME):$(BUILDBOX_VERSION)-amd64 $(BUILDBOX_NAME):latest-amd64
 
-tag_latest_testboxes: tag_latest_ubuntu_testboxes tag_latest_debian_testboxes
+tag_latest_testboxes: $(DEBIAN_TAGGING) $(UBUNTU_TAGGING)
 
-tag_latest_debian_testboxes: tag_latest_debian_12_testboxes tag_latest_debian_11_testboxes tag_latest_debian_10_testboxes
-
-tag_latest_debian_12_testboxes:
-	docker tag $(TESTBOX_BASE_NAME)_debian_12:$(TESTBOX_VERSION)-arm64 $(TESTBOX_BASE_NAME)_debian_12:latest-arm64
-	docker tag $(TESTBOX_BASE_NAME)_debian_12:$(TESTBOX_VERSION)-amd64 $(TESTBOX_BASE_NAME)_debian_12:latest-amd64
-
-tag_latest_debian_11_testboxes:
-	docker tag $(TESTBOX_BASE_NAME)_debian_11:$(TESTBOX_VERSION)-arm64 $(TESTBOX_BASE_NAME)_debian_11:latest-arm64
-	docker tag $(TESTBOX_BASE_NAME)_debian_11:$(TESTBOX_VERSION)-amd64 $(TESTBOX_BASE_NAME)_debian_11:latest-amd64
-
-tag_latest_debian_10_testboxes:
-	docker tag $(TESTBOX_BASE_NAME)_debian_10:$(TESTBOX_VERSION)-arm64 $(TESTBOX_BASE_NAME)_debian_10:latest-arm64
-	docker tag $(TESTBOX_BASE_NAME)_debian_10:$(TESTBOX_VERSION)-amd64 $(TESTBOX_BASE_NAME)_debian_10:latest-amd64
-
-tag_latest_ubuntu_testboxes: tag_latest_ubuntu_24_10_testboxes tag_latest_ubuntu_24_04_testboxes tag_latest_ubuntu_22_04_testboxes tag_latest_ubuntu_20_04_testboxes
-
-tag_latest_ubuntu_24_10_testboxes:
-	docker tag $(TESTBOX_BASE_NAME)_ubuntu_24_10:$(TESTBOX_VERSION)-arm64 $(TESTBOX_BASE_NAME)_ubuntu_24_10:latest-arm64
-	docker tag $(TESTBOX_BASE_NAME)_ubuntu_24_10:$(TESTBOX_VERSION)-amd64 $(TESTBOX_BASE_NAME)_ubuntu_24_10:latest-amd64
-
-tag_latest_ubuntu_24_04_testboxes:
-	docker tag $(TESTBOX_BASE_NAME)_ubuntu_24_04:$(TESTBOX_VERSION)-arm64 $(TESTBOX_BASE_NAME)_ubuntu_24_04:latest-arm64
-	docker tag $(TESTBOX_BASE_NAME)_ubuntu_24_04:$(TESTBOX_VERSION)-amd64 $(TESTBOX_BASE_NAME)_ubuntu_24_04:latest-amd64
-
-tag_latest_ubuntu_22_04_testboxes:
-	docker tag $(TESTBOX_BASE_NAME)_ubuntu_22_04:$(TESTBOX_VERSION)-arm64 $(TESTBOX_BASE_NAME)_ubuntu_22_04:latest-arm64
-	docker tag $(TESTBOX_BASE_NAME)_ubuntu_22_04:$(TESTBOX_VERSION)-amd64 $(TESTBOX_BASE_NAME)_ubuntu_22_04:latest-amd64
-
-tag_latest_ubuntu_20_04_testboxes:
-	docker tag $(TESTBOX_BASE_NAME)_ubuntu_20_04:$(TESTBOX_VERSION)-arm64 $(TESTBOX_BASE_NAME)_ubuntu_20_04:latest-arm64
-	docker tag $(TESTBOX_BASE_NAME)_ubuntu_20_04:$(TESTBOX_VERSION)-amd64 $(TESTBOX_BASE_NAME)_ubuntu_20_04:latest-amd64
+tag_latest_%_testboxes: FORCE
+	docker tag "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)-arm64" "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):latest-arm64"
+	docker tag "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)-amd64" "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):latest-amd64"
 
 upload: upload_buildbox upload_testboxes
 
@@ -88,107 +54,21 @@ release_buildbox: upload_buildbox
 	docker manifest push $(BUILDBOX_NAME):$(BUILDBOX_VERSION)
 	docker manifest push --purge $(BUILDBOX_NAME):latest
 
-upload_testboxes: upload_debian_testboxes upload_ubuntu_testboxes
+upload_testboxes: $(DEBIAN_UPLOAD) $(UBUNTU_UPLOAD)
 
-upload_debian_testboxes: upload_debian_12_testboxes upload_debian_11_testboxes upload_debian_10_testboxes
+upload_%_testboxes: tag_latest_%_testboxes FORCE
+	docker push "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):latest-amd64"
+	docker push "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):latest-arm64"
+	docker push "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)-amd64"
+	docker push "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)-arm64"
 
-upload_debian_12_testboxes: tag_latest_debian_12_testboxes
-	docker push $(TESTBOX_BASE_NAME)_debian_12:latest-amd64
-	docker push $(TESTBOX_BASE_NAME)_debian_12:latest-arm64
-	docker push $(TESTBOX_BASE_NAME)_debian_12:$(TESTBOX_VERSION)-amd64
-	docker push $(TESTBOX_BASE_NAME)_debian_12:$(TESTBOX_VERSION)-arm64
+release_testboxes: $(DEBIAN_RELEASE) $(UBUNTU_RELEASE)
 
-upload_debian_11_testboxes: tag_latest_debian_11_testboxes
-	docker push $(TESTBOX_BASE_NAME)_debian_11:latest-amd64
-	docker push $(TESTBOX_BASE_NAME)_debian_11:latest-arm64
-	docker push $(TESTBOX_BASE_NAME)_debian_11:$(TESTBOX_VERSION)-amd64
-	docker push $(TESTBOX_BASE_NAME)_debian_11:$(TESTBOX_VERSION)-arm64
-
-upload_debian_10_testboxes: tag_latest_debian_10_testboxes
-	docker push $(TESTBOX_BASE_NAME)_debian_10:latest-amd64
-	docker push $(TESTBOX_BASE_NAME)_debian_10:latest-arm64
-	docker push $(TESTBOX_BASE_NAME)_debian_10:$(TESTBOX_VERSION)-amd64
-	docker push $(TESTBOX_BASE_NAME)_debian_10:$(TESTBOX_VERSION)-arm64
-
-upload_ubuntu_testboxes: upload_ubuntu_24_10_testboxes upload_ubuntu_24_04_testboxes upload_ubuntu_22_04_testboxes upload_ubuntu_20_04_testboxes
-
-upload_ubuntu_24_10_testboxes: tag_latest_ubuntu_24_10_testboxes
-	docker push $(TESTBOX_BASE_NAME)_ubuntu_24_10:latest-amd64
-	docker push $(TESTBOX_BASE_NAME)_ubuntu_24_10:latest-arm64
-	docker push $(TESTBOX_BASE_NAME)_ubuntu_24_10:$(TESTBOX_VERSION)-amd64
-	docker push $(TESTBOX_BASE_NAME)_ubuntu_24_10:$(TESTBOX_VERSION)-arm64
-
-upload_ubuntu_24_04_testboxes: tag_latest_ubuntu_24_04_testboxes
-	docker push $(TESTBOX_BASE_NAME)_ubuntu_24_04:latest-amd64
-	docker push $(TESTBOX_BASE_NAME)_ubuntu_24_04:latest-arm64
-	docker push $(TESTBOX_BASE_NAME)_ubuntu_24_04:$(TESTBOX_VERSION)-amd64
-	docker push $(TESTBOX_BASE_NAME)_ubuntu_24_04:$(TESTBOX_VERSION)-arm64
-
-upload_ubuntu_22_04_testboxes: tag_latest_ubuntu_22_04_testboxes
-	docker push $(TESTBOX_BASE_NAME)_ubuntu_22_04:latest-amd64
-	docker push $(TESTBOX_BASE_NAME)_ubuntu_22_04:latest-arm64
-	docker push $(TESTBOX_BASE_NAME)_ubuntu_22_04:$(TESTBOX_VERSION)-amd64
-	docker push $(TESTBOX_BASE_NAME)_ubuntu_22_04:$(TESTBOX_VERSION)-arm64
-
-upload_ubuntu_20_04_testboxes: tag_latest_ubuntu_20_04_testboxes
-	docker push $(TESTBOX_BASE_NAME)_ubuntu_20_04:latest-amd64
-	docker push $(TESTBOX_BASE_NAME)_ubuntu_20_04:latest-arm64
-	docker push $(TESTBOX_BASE_NAME)_ubuntu_20_04:$(TESTBOX_VERSION)-amd64
-	docker push $(TESTBOX_BASE_NAME)_ubuntu_20_04:$(TESTBOX_VERSION)-arm64
-
-release_testboxes: release_debian_testboxes release_ubuntu_testboxes
-
-release_debian_testboxes: release_debian_12_testboxes release_debian_11_testboxes release_debian_10_testboxes
-
-release_debian_12_testboxes: upload_debian_12_testboxes
-	docker manifest rm $(TESTBOX_BASE_NAME)_debian_12:latest || true
-	docker manifest create $(TESTBOX_BASE_NAME)_debian_12:latest		 $(TESTBOX_BASE_NAME)_debian_12:latest-amd64		 $(TESTBOX_BASE_NAME)_debian_12:latest-arm64
-	docker manifest create $(TESTBOX_BASE_NAME)_debian_12:$(TESTBOX_VERSION) $(TESTBOX_BASE_NAME)_debian_12:$(TESTBOX_VERSION)-amd64 $(TESTBOX_BASE_NAME)_debian_12:$(TESTBOX_VERSION)-arm64
-	docker manifest push --purge $(TESTBOX_BASE_NAME)_debian_12:latest
-	docker manifest push $(TESTBOX_BASE_NAME)_debian_12:$(TESTBOX_VERSION)
-
-release_debian_11_testboxes: upload_debian_11_testboxes
-	docker manifest rm $(TESTBOX_BASE_NAME)_debian_11:latest || true
-	docker manifest create $(TESTBOX_BASE_NAME)_debian_11:latest		 $(TESTBOX_BASE_NAME)_debian_11:latest-amd64		 $(TESTBOX_BASE_NAME)_debian_11:latest-arm64
-	docker manifest create $(TESTBOX_BASE_NAME)_debian_11:$(TESTBOX_VERSION) $(TESTBOX_BASE_NAME)_debian_11:$(TESTBOX_VERSION)-amd64 $(TESTBOX_BASE_NAME)_debian_11:$(TESTBOX_VERSION)-arm64
-	docker manifest push --purge $(TESTBOX_BASE_NAME)_debian_11:latest
-	docker manifest push $(TESTBOX_BASE_NAME)_debian_11:$(TESTBOX_VERSION)
-
-release_debian_10_testboxes: upload_debian_10_testboxes
-	docker manifest rm $(TESTBOX_BASE_NAME)_debian_10:latest || true
-	docker manifest create $(TESTBOX_BASE_NAME)_debian_10:latest		 $(TESTBOX_BASE_NAME)_debian_10:latest-amd64		 $(TESTBOX_BASE_NAME)_debian_10:latest-arm64
-	docker manifest create $(TESTBOX_BASE_NAME)_debian_10:$(TESTBOX_VERSION) $(TESTBOX_BASE_NAME)_debian_10:$(TESTBOX_VERSION)-amd64 $(TESTBOX_BASE_NAME)_debian_10:$(TESTBOX_VERSION)-arm64
-	docker manifest push --purge $(TESTBOX_BASE_NAME)_debian_10:latest
-	docker manifest push $(TESTBOX_BASE_NAME)_debian_10:$(TESTBOX_VERSION)
-
-release_ubuntu_testboxes: release_ubuntu_24_10_testboxes release_ubuntu_24_04_testboxes release_ubuntu_22_04_testboxes release_ubuntu_20_04_testboxes
-
-release_ubuntu_24_10_testboxes: upload_ubuntu_24_10_testboxes
-	docker manifest rm $(TESTBOX_BASE_NAME)_ubuntu_24_10:latest || true
-	docker manifest create $(TESTBOX_BASE_NAME)_ubuntu_24_10:latest		    $(TESTBOX_BASE_NAME)_ubuntu_24_10:latest-amd64	       $(TESTBOX_BASE_NAME)_ubuntu_24_10:latest-arm64
-	docker manifest create $(TESTBOX_BASE_NAME)_ubuntu_24_10:$(TESTBOX_VERSION) $(TESTBOX_BASE_NAME)_ubuntu_24_10:$(TESTBOX_VERSION)-amd64 $(TESTBOX_BASE_NAME)_ubuntu_24_10:$(TESTBOX_VERSION)-arm64
-	docker manifest push --purge $(TESTBOX_BASE_NAME)_ubuntu_24_10:latest
-	docker manifest push $(TESTBOX_BASE_NAME)_ubuntu_24_10:$(TESTBOX_VERSION)
-
-release_ubuntu_24_04_testboxes: upload_ubuntu_24_04_testboxes
-	docker manifest rm $(TESTBOX_BASE_NAME)_ubuntu_24_04:latest || true
-	docker manifest create $(TESTBOX_BASE_NAME)_ubuntu_24_04:latest		    $(TESTBOX_BASE_NAME)_ubuntu_24_04:latest-amd64	       $(TESTBOX_BASE_NAME)_ubuntu_24_04:latest-arm64
-	docker manifest create $(TESTBOX_BASE_NAME)_ubuntu_24_04:$(TESTBOX_VERSION) $(TESTBOX_BASE_NAME)_ubuntu_24_04:$(TESTBOX_VERSION)-amd64 $(TESTBOX_BASE_NAME)_ubuntu_24_04:$(TESTBOX_VERSION)-arm64
-	docker manifest push --purge $(TESTBOX_BASE_NAME)_ubuntu_24_04:latest
-	docker manifest push $(TESTBOX_BASE_NAME)_ubuntu_24_04:$(TESTBOX_VERSION)
-
-release_ubuntu_22_04_testboxes: upload_ubuntu_22_04_testboxes
-	docker manifest rm $(TESTBOX_BASE_NAME)_ubuntu_22_04:latest || true
-	docker manifest create $(TESTBOX_BASE_NAME)_ubuntu_22_04:latest		    $(TESTBOX_BASE_NAME)_ubuntu_22_04:latest-amd64	       $(TESTBOX_BASE_NAME)_ubuntu_22_04:latest-arm64
-	docker manifest create $(TESTBOX_BASE_NAME)_ubuntu_22_04:$(TESTBOX_VERSION) $(TESTBOX_BASE_NAME)_ubuntu_22_04:$(TESTBOX_VERSION)-amd64 $(TESTBOX_BASE_NAME)_ubuntu_22_04:$(TESTBOX_VERSION)-arm64
-	docker manifest push --purge $(TESTBOX_BASE_NAME)_ubuntu_22_04:latest
-	docker manifest push $(TESTBOX_BASE_NAME)_ubuntu_22_04:$(TESTBOX_VERSION)
-
-release_ubuntu_20_04_testboxes: upload_ubuntu_20_04_testboxes
-	docker manifest rm $(TESTBOX_BASE_NAME)_ubuntu_20_04:latest || true
-	docker manifest create $(TESTBOX_BASE_NAME)_ubuntu_20_04:latest		    $(TESTBOX_BASE_NAME)_ubuntu_20_04:latest-amd64	       $(TESTBOX_BASE_NAME)_ubuntu_20_04:latest-arm64
-	docker manifest create $(TESTBOX_BASE_NAME)_ubuntu_20_04:$(TESTBOX_VERSION) $(TESTBOX_BASE_NAME)_ubuntu_20_04:$(TESTBOX_VERSION)-amd64 $(TESTBOX_BASE_NAME)_ubuntu_20_04:$(TESTBOX_VERSION)-arm64
-	docker manifest push --purge $(TESTBOX_BASE_NAME)_ubuntu_20_04:latest
-	docker manifest push $(TESTBOX_BASE_NAME)_ubuntu_20_04:$(TESTBOX_VERSION)
+release_%_testboxes: upload_%_testboxes FORCE
+	docker manifest rm           "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):latest" || true
+	docker manifest create       "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):latest"             "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):latest-amd64"             "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):latest-arm64"
+	docker manifest create       "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)" "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)-amd64" "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)-arm64"
+	docker manifest push --purge "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):latest"
+	docker manifest push         "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)"
 
 release: release_buildbox release_testboxes
