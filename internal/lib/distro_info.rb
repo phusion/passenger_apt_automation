@@ -20,6 +20,7 @@ DEFAULT_DISTROS = %w(
   focal
   jammy
   noble
+  oracular
 
   bullseye
   bookworm
