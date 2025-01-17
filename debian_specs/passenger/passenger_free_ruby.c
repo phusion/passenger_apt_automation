@@ -48,6 +48,6 @@ main(int argc, const char *argv[]) {
 	try_exec("/usr/bin/ruby1.9.1", argc, argv);
 	try_exec("/usr/bin/ruby1.8", argc, argv);
 
-	fprintf(stderr, "passenger_free_ruby: cannot find suitable Ruby interpreter\n");
+	fprintf(stderr, PROGRAM_NAME ": cannot find suitable Ruby interpreter\n");
 	return 1;
 }
