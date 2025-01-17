@@ -31,8 +31,27 @@ all_ruby_versions_to_try.uniq!
 #define PROGRAM_NAME "passenger_system_ruby"
 #include "passenger_ruby_utils.c"
 
+static void
+try_unset(const char* s){
+	if (0 != unsetenv(s)) {
+		int e = errno;
+		fprintf(stderr, PROGRAM_NAME ": cannot unset '%s': %s\n",s, strerror(e));
+		exit(1);
+	}
+}
+
+static void
+reset_env() {
+	try_unset("GEM_HOME");
+	try_unset("GEM_PATH");
+	try_unset("RUBYOPT");
+	try_unset("RUBYPATH");
+	try_unset("RUBYLIB");
+}
+
 int
 main(int argc, const char *argv[]) {
+	reset_env();
 	<% for ruby_version in all_ruby_versions_to_try.reverse -%>
 		try_exec("/usr/bin/ruby<%= ruby_version %>", argc, argv);
 	<% end -%>

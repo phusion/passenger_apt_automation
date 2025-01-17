@@ -10,25 +10,6 @@
 #include <unistd.h>
 #include <errno.h>
 
-static void
-try_unset(const char* s){
-	if (0 != unsetenv(s)) {
-		int e = errno;
-		fprintf(stderr, PROGRAM_NAME ": cannot unset '%s': %s\n",s, strerror(e));
-		_exit(1);
-	}
-}
-
-static void
-reset_env() {
-	try_unset("GEM_HOME");
-	try_unset("GEM_PATH");
-	try_unset("LOAD_PATH");
-	try_unset("RUBYOPT");
-	try_unset("RUBYPATH");
-	try_unset("RUBYLIB");
-}
-
 static const char **
 construct_forwarding_argv(const char *ruby, int argc, const char *argv[]) {
 	const char **result = malloc(sizeof(const char *) * (argc + 1));

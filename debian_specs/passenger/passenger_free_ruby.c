@@ -14,7 +14,6 @@
 
 int
 main(int argc, const char *argv[]) {
-	reset_env();
 	try_exec("ruby", argc, argv);
 	try_exec("/usr/bin/ruby4.10", argc, argv);
 	try_exec("/usr/bin/ruby4.9", argc, argv);
