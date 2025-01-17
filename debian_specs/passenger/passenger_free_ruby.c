@@ -15,38 +15,14 @@
 int
 main(int argc, const char *argv[]) {
 	try_exec("ruby", argc, argv);
-	try_exec("/usr/bin/ruby4.10", argc, argv);
-	try_exec("/usr/bin/ruby4.9", argc, argv);
-	try_exec("/usr/bin/ruby4.8", argc, argv);
-	try_exec("/usr/bin/ruby4.7", argc, argv);
-	try_exec("/usr/bin/ruby4.6", argc, argv);
-	try_exec("/usr/bin/ruby4.5", argc, argv);
-	try_exec("/usr/bin/ruby4.4", argc, argv);
-	try_exec("/usr/bin/ruby4.3", argc, argv);
-	try_exec("/usr/bin/ruby4.2", argc, argv);
-	try_exec("/usr/bin/ruby4.1", argc, argv);
-	try_exec("/usr/bin/ruby4.0", argc, argv);
-	try_exec("/usr/bin/ruby3.10", argc, argv);
-	try_exec("/usr/bin/ruby3.9", argc, argv);
-	try_exec("/usr/bin/ruby3.8", argc, argv);
-	try_exec("/usr/bin/ruby3.7", argc, argv);
-	try_exec("/usr/bin/ruby3.6", argc, argv);
-	try_exec("/usr/bin/ruby3.5", argc, argv);
-	try_exec("/usr/bin/ruby3.4", argc, argv);
-	try_exec("/usr/bin/ruby3.3", argc, argv);
-	try_exec("/usr/bin/ruby3.2", argc, argv);
-	try_exec("/usr/bin/ruby3.1", argc, argv);
-	try_exec("/usr/bin/ruby3.0", argc, argv);
-	try_exec("/usr/bin/ruby2.7", argc, argv);
-	try_exec("/usr/bin/ruby2.6", argc, argv);
-	try_exec("/usr/bin/ruby2.5", argc, argv);
-	try_exec("/usr/bin/ruby2.4", argc, argv);
-	try_exec("/usr/bin/ruby2.3", argc, argv);
-	try_exec("/usr/bin/ruby2.2", argc, argv);
-	try_exec("/usr/bin/ruby2.1", argc, argv);
-	try_exec("/usr/bin/ruby2.0", argc, argv);
+	char* exe = "/usr/bin/rubyX.XX";
+	for(int m = 4; m > 0; m--) {
+		for(int n = 10; n > -1; n--) {
+			sprintf(exe,"/usr/bin/ruby%i.%i", m, n);
+			try_exec(exe, argc, argv);
+		}
+	}
 	try_exec("/usr/bin/ruby1.9.1", argc, argv);
-	try_exec("/usr/bin/ruby1.8", argc, argv);
 
 	fprintf(stderr, PROGRAM_NAME ": cannot find suitable Ruby interpreter\n");
 	return 1;
