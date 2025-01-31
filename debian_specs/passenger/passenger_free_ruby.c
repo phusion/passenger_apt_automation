@@ -15,10 +15,11 @@
 int
 main(int argc, const char *argv[]) {
 	try_exec("ruby", argc, argv);
-	char* exe = "/usr/bin/rubyX.XX";
+
+	char exe[] = "/usr/bin/rubyX.XX";
 	for(int m = 4; m > 0; m--) {
 		for(int n = 10; n > -1; n--) {
-			snprintf(exe, 18, "/usr/bin/ruby%i.%i", m, n);
+			snprintf(exe, sizeof(exe), "/usr/bin/ruby%i.%i", m, n);
 			try_exec(exe, argc, argv);
 		}
 	}
