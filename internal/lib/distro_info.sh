@@ -8,9 +8,9 @@
 # internal/scripts/regen_distro_info_script.sh
 
 # shellcheck disable=SC2034
-DEFAULT_DISTROS="focal jammy noble oracular bullseye bookworm"
+DEFAULT_DISTROS="focal jammy noble plucky bullseye bookworm"
 DEBIAN_DISTROS="11 12"
-UBUNTU_DISTROS="20.04 22.04 24.04 24.10"
+UBUNTU_DISTROS="20.04 22.04 24.04 25.04"
 
 
 function to_distro_codename()
