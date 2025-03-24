@@ -44,7 +44,7 @@ jobs:
           echo "BUILDBOX_IMAGE_VERSION=$(./internal/lib/docker_image_info.sh buildbox_version)" >> $GITHUB_ENV
           echo "BUILDBOX_IMAGE_NAME=$(./internal/lib/docker_image_info.sh buildbox_name)" >> $GITHUB_ENV
         env:
-          platform: ${{ matrix.arch.name }}
+          platform: ${{ matrix.arch.platform }}
 
       - name: Docker meta
         id: meta
@@ -96,9 +96,9 @@ jobs:
       matrix:
         distro: ${{ fromJSON(needs.define-matrix.outputs.ubuntus) }}
         arch:
-          - name: amd64
+          - platform: linux/amd64
             runner: ubuntu-24.04
-          - name: arm64
+          - platform: linux/arm64
             runner: ubuntu-24.04-arm
     runs-on: ${{ matrix.arch.runner }}
     steps:
@@ -113,7 +113,7 @@ jobs:
           echo "TESTBOX_BASE_NAME=$(./internal/lib/docker_image_info.sh testbox_base_name)" >> $GITHUB_ENV
           echo "TESTBOX_IMAGE_NAME=${TESTBOX_BASE_NAME}_testbox_ubuntu_${{ matrix.distro }}" >> $GITHUB_ENV
         env:
-          platform: linux/${{ matrix.arch.name }}
+          platform: linux/${{ matrix.arch.platform }}
 
       - name: Docker meta
         id: meta
@@ -165,10 +165,10 @@ jobs:
       matrix:
         distro: ${{ fromJSON(needs.define-matrix.outputs.debians) }}
         arch:
-          - name: amd64
-            runner: debian-24.04
-          - name: arm64
-            runner: debian-24.04-arm
+          - platform: linux/amd64
+            runner: ubuntu-24.04
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
     runs-on: ${{ matrix.arch.runner }}
     steps:
       - uses: actions/checkout@v4
@@ -182,7 +182,7 @@ jobs:
           echo "TESTBOX_BASE_NAME=$(./internal/lib/docker_image_info.sh testbox_base_name)" >> $GITHUB_ENV
           echo "TESTBOX_IMAGE_NAME=${TESTBOX_BASE_NAME}_testbox_debian_${{ matrix.distro }}" >> $GITHUB_ENV
         env:
-          platform: linux/${{ matrix.arch.name }}
+          platform: linux/${{ matrix.arch.platform }}
 
       - name: Docker meta
         id: meta
