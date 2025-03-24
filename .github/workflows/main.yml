@@ -1,0 +1,218 @@
+name: Build all images
+
+on:
+  push:
+    branches: [ master ]
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  define-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      ubuntus: ${{ steps.distros.outputs.ubuntus }}
+      debians: ${{ steps.distros.outputs.debians }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Define Distros
+        id: distros
+        run: |
+          echo "ubuntus=[$(awk -F= '/UBUNTU_DISTROS/{print $2}' ./internal/lib/distro_info.sh | sed -e 's/ /", "/g')]" >> "$GITHUB_OUTPUT"
+          echo "debians=[$(awk -F= '/DEBIAN_DISTROS/{print $2}' ./internal/lib/distro_info.sh | sed -e 's/ /", "/g')]" >> "$GITHUB_OUTPUT"
+
+  build-buildbox:
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: ${{ fromJSON(needs.define-matrix.outputs.ubuntus) }}
+        arch:
+          - platform: linux/amd64
+            runner: ubuntu-24.04
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.arch.runner }}
+    steps:
+      - name: Prepare
+        run: |
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+          echo "BUILDBOX_IMAGE_VERSION=$(./internal/lib/docker_image_info.sh buildbox_version)" >> $GITHUB_ENV
+          echo "BUILDBOX_IMAGE_NAME=$(./internal/lib/docker_image_info.sh buildbox_name)" >> $GITHUB_ENV
+        env:
+          platform: ${{ matrix.arch.name }}
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.BUILDBOX_IMAGE_NAME }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          file: ./docker_images/buildbox/Dockerfile
+          platforms: ${{ matrix.arch.platform }}
+          labels: ${{ steps.meta.outputs.labels }}
+          outputs: "type=image,name=${{ env.GHCR_REPO }},push-by-digest=true,name-canonical=true,push=true"
+
+      - name: Export digest
+        run: |
+          mkdir -p /tmp/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/${digest#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ env.PLATFORM_PAIR }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  build-ubuntus:
+    needs: define-matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: ${{ fromJSON(needs.define-matrix.outputs.ubuntus) }}
+        arch:
+          - name: amd64
+            runner: ubuntu-24.04
+          - name: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.arch.runner }}
+    steps:
+      - name: Prepare
+        run: |
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+          echo "TESTBOX_IMAGE_VERSION=$(./internal/lib/docker_image_info.sh testbox_version)" >> $GITHUB_ENV
+          echo "TESTBOX_BASE_NAME=$(./internal/lib/docker_image_info.sh testbox_base_name)" >> $GITHUB_ENV
+          echo "TESTBOX_IMAGE_NAME=${TESTBOX_BASE_NAME}_testbox_ubuntu_${{ matrix.distro }}" >> $GITHUB_ENV
+        env:
+          platform: linux/${{ matrix.arch.name }}
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.TESTBOX_IMAGE_NAME }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          file: ./docker_images/testbox-ubuntu-${{ matrix.distro }}/Dockerfile
+          platforms: ${{ matrix.arch.platform }}
+          labels: ${{ steps.meta.outputs.labels }}
+          outputs: "type=image,name=${{ env.GHCR_REPO }},push-by-digest=true,name-canonical=true,push=true"
+
+      - name: Export digest
+        run: |
+          mkdir -p /tmp/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/${digest#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ env.PLATFORM_PAIR }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  build-debians:
+    needs: define-matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: ${{ fromJSON(needs.define-matrix.outputs.debians) }}
+        arch:
+          - name: amd64
+            runner: debian-24.04
+          - name: arm64
+            runner: debian-24.04-arm
+    runs-on: ${{ matrix.arch.runner }}
+    steps:
+      - name: Prepare
+        run: |
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+          echo "TESTBOX_IMAGE_VERSION=$(./internal/lib/docker_image_info.sh testbox_version)" >> $GITHUB_ENV
+          echo "TESTBOX_BASE_NAME=$(./internal/lib/docker_image_info.sh testbox_base_name)" >> $GITHUB_ENV
+          echo "TESTBOX_IMAGE_NAME=${TESTBOX_BASE_NAME}_testbox_debian_${{ matrix.distro }}" >> $GITHUB_ENV
+        env:
+          platform: linux/${{ matrix.arch.name }}
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.TESTBOX_IMAGE_NAME }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          file: ./docker_images/testbox-debian-${{ matrix.distro }}/Dockerfile
+          platforms: ${{ matrix.arch.platform }}
+          labels: ${{ steps.meta.outputs.labels }}
+          outputs: "type=image,name=${{ env.GHCR_REPO }},push-by-digest=true,name-canonical=true,push=true"
+
+      - name: Export digest
+        run: |
+          mkdir -p /tmp/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/${digest#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ env.PLATFORM_PAIR }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
