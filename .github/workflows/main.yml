@@ -28,7 +28,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        distro: ${{ fromJSON(needs.define-matrix.outputs.ubuntus) }}
         arch:
           - platform: linux/amd64
             runner: ubuntu-24.04
@@ -36,6 +35,9 @@ jobs:
             runner: ubuntu-24.04-arm
     runs-on: ${{ matrix.arch.runner }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
       - name: Prepare
         run: |
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
@@ -100,6 +102,10 @@ jobs:
             runner: ubuntu-24.04-arm
     runs-on: ${{ matrix.arch.runner }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
       - name: Prepare
         run: |
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
@@ -165,6 +171,10 @@ jobs:
             runner: debian-24.04-arm
     runs-on: ${{ matrix.arch.runner }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
       - name: Prepare
         run: |
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
