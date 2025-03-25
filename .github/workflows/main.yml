@@ -33,6 +33,7 @@ jobs:
             runner: ubuntu-24.04
           - name: arm64
             runner: ubuntu-24.04-arm
+    name: build buildbox-${{ matrix.arch.name }}
     runs-on: ${{ matrix.arch.runner }}
     steps:
       - uses: actions/checkout@v4
@@ -107,6 +108,7 @@ jobs:
             runner: ubuntu-24.04
           - name: arm64
             runner: ubuntu-24.04-arm
+    name: build testbox ubuntu-${{ matrix.distro }}-${{ matrix.arch.name }}
     runs-on: ${{ matrix.arch.runner }}
     steps:
       - uses: actions/checkout@v4
@@ -119,7 +121,7 @@ jobs:
           echo "TESTBOX_IMAGE_VERSION=$(./internal/lib/docker_image_info.sh testbox_version)" >> $GITHUB_ENV
           export "TESTBOX_BASE_NAME=$(./internal/lib/docker_image_info.sh testbox_base_name)"
           echo "TESTBOX_BASE_NAME=$TESTBOX_BASE_NAME" >> $GITHUB_ENV
-          echo "TESTBOX_IMAGE_NAME=${TESTBOX_BASE_NAME}_testbox_ubuntu_${{ matrix.distro }}" >> $GITHUB_ENV
+          echo "TESTBOX_IMAGE_NAME=${TESTBOX_BASE_NAME}_ubuntu_${{ matrix.distro }}" >> $GITHUB_ENV
         env:
           platform: linux/${{ matrix.arch.name }}
 
@@ -184,6 +186,7 @@ jobs:
           - name: arm64
             runner: ubuntu-24.04-arm
     runs-on: ${{ matrix.arch.runner }}
+    name: build testbox debian-${{ matrix.distro }}-${{ matrix.arch.name }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -195,7 +198,7 @@ jobs:
           echo "TESTBOX_IMAGE_VERSION=$(./internal/lib/docker_image_info.sh testbox_version)" >> $GITHUB_ENV
           export "TESTBOX_BASE_NAME=$(./internal/lib/docker_image_info.sh testbox_base_name)"
           echo "TESTBOX_BASE_NAME=$TESTBOX_BASE_NAME" >> $GITHUB_ENV
-          echo "TESTBOX_IMAGE_NAME=${TESTBOX_BASE_NAME}_testbox_debian_${{ matrix.distro }}" >> $GITHUB_ENV
+          echo "TESTBOX_IMAGE_NAME=${TESTBOX_BASE_NAME}_debian_${{ matrix.distro }}" >> $GITHUB_ENV
         env:
           platform: linux/${{ matrix.arch.name }}
 
