@@ -44,7 +44,7 @@ jobs:
           echo "BUILDBOX_IMAGE_VERSION=$(./internal/lib/docker_image_info.sh buildbox_version)" >> $GITHUB_ENV
           echo "BUILDBOX_IMAGE_NAME=$(./internal/lib/docker_image_info.sh buildbox_name)" >> $GITHUB_ENV
         env:
-          platform: linux${{ matrix.arch.name }}
+          platform: linux/${{ matrix.arch.name }}
 
       - name: Docker meta
         id: meta
@@ -55,6 +55,7 @@ jobs:
           tags: |
             type=ref,event=branch
             type=ref,event=pr
+            type=raw,value=${{ env.BUILDBOX_IMAGE_VERSION }}-${{ matrix.arch.name }}
             type=edge,enable=true,priority=700,prefix=,suffix=${{ matrix.arch.name }},branch=$repo.default_branch
 
       - name: Login to GHCR
@@ -77,6 +78,7 @@ jobs:
           file: ./docker-images/buildbox/Dockerfile
           platforms: linux/${{ matrix.arch.name }}
           labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta.outputs.tags }}
           outputs: "type=image,name=${{ env.GHCR_REPO }},push-by-digest=true,name-canonical=true,push=true"
 
       - name: Export digest
@@ -150,6 +152,7 @@ jobs:
           file: ./docker-images/testbox-ubuntu-${{ matrix.distro }}/Dockerfile
           platforms: linux/${{ matrix.arch.name }}
           labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta.outputs.tags }}
           outputs: "type=image,name=${{ env.GHCR_REPO }},push-by-digest=true,name-canonical=true,push=true"
 
       - name: Export digest
@@ -223,6 +226,7 @@ jobs:
           file: ./docker-images/testbox-debian-${{ matrix.distro }}/Dockerfile
           platforms: linux/${{ matrix.arch.name }}
           labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta.outputs.tags }}
           outputs: "type=image,name=${{ env.GHCR_REPO }},push-by-digest=true,name-canonical=true,push=true"
 
       - name: Export digest
