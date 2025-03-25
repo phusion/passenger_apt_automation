@@ -75,6 +75,7 @@ jobs:
         id: build
         uses: docker/build-push-action@v6
         with:
+          context: ./docker-images/buildbox
           file: ./docker-images/buildbox/Dockerfile
           platforms: linux/${{ matrix.arch.name }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -149,6 +150,7 @@ jobs:
         id: build
         uses: docker/build-push-action@v6
         with:
+          context: ./docker-images/testbox-ubuntu-${{ matrix.distro }}
           file: ./docker-images/testbox-ubuntu-${{ matrix.distro }}/Dockerfile
           platforms: linux/${{ matrix.arch.name }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -223,6 +225,7 @@ jobs:
         id: build
         uses: docker/build-push-action@v6
         with:
+          context: ./docker-images/testbox-debian-${{ matrix.distro }}
           file: ./docker-images/testbox-debian-${{ matrix.distro }}/Dockerfile
           platforms: linux/${{ matrix.arch.name }}
           labels: ${{ steps.meta.outputs.labels }}
