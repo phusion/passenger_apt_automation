@@ -117,7 +117,8 @@ jobs:
         run: |
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
           echo "TESTBOX_IMAGE_VERSION=$(./internal/lib/docker_image_info.sh testbox_version)" >> $GITHUB_ENV
-          echo "TESTBOX_BASE_NAME=$(./internal/lib/docker_image_info.sh testbox_base_name)" >> $GITHUB_ENV
+          export "TESTBOX_BASE_NAME=$(./internal/lib/docker_image_info.sh testbox_base_name)"
+          echo "TESTBOX_BASE_NAME=$TESTBOX_BASE_NAME" >> $GITHUB_ENV
           echo "TESTBOX_IMAGE_NAME=${TESTBOX_BASE_NAME}_testbox_ubuntu_${{ matrix.distro }}" >> $GITHUB_ENV
         env:
           platform: linux/${{ matrix.arch.name }}
@@ -192,7 +193,8 @@ jobs:
         run: |
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
           echo "TESTBOX_IMAGE_VERSION=$(./internal/lib/docker_image_info.sh testbox_version)" >> $GITHUB_ENV
-          echo "TESTBOX_BASE_NAME=$(./internal/lib/docker_image_info.sh testbox_base_name)" >> $GITHUB_ENV
+          export "TESTBOX_BASE_NAME=$(./internal/lib/docker_image_info.sh testbox_base_name)"
+          echo "TESTBOX_BASE_NAME=$TESTBOX_BASE_NAME" >> $GITHUB_ENV
           echo "TESTBOX_IMAGE_NAME=${TESTBOX_BASE_NAME}_testbox_debian_${{ matrix.distro }}" >> $GITHUB_ENV
         env:
           platform: linux/${{ matrix.arch.name }}
