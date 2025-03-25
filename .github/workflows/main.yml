@@ -54,8 +54,6 @@ jobs:
           images: |
             ghcr.io/${{ env.BUILDBOX_IMAGE_NAME }}
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
             type=raw,value=${{ env.BUILDBOX_IMAGE_VERSION }}-${{ matrix.arch.name }}
             type=edge,enable=true,priority=700,prefix=,suffix=${{ matrix.arch.name }},branch=$repo.default_branch
 
@@ -121,9 +119,10 @@ jobs:
           echo "TESTBOX_IMAGE_VERSION=$(./internal/lib/docker_image_info.sh testbox_version)" >> $GITHUB_ENV
           export "TESTBOX_BASE_NAME=$(./internal/lib/docker_image_info.sh testbox_base_name)"
           echo "TESTBOX_BASE_NAME=$TESTBOX_BASE_NAME" >> $GITHUB_ENV
-          echo "TESTBOX_IMAGE_NAME=${TESTBOX_BASE_NAME}_ubuntu_${{ matrix.distro }}" >> $GITHUB_ENV
+          echo "TESTBOX_IMAGE_NAME=${TESTBOX_BASE_NAME}_ubuntu_${distro//\./_}" >> $GITHUB_ENV
         env:
           platform: linux/${{ matrix.arch.name }}
+          distro: ${{ matrix.distro }}
 
       - name: Docker meta
         id: meta
@@ -132,8 +131,7 @@ jobs:
           images: |
             ghcr.io/${{ env.TESTBOX_IMAGE_NAME }}
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
+            type=raw,value=${{ env.TESTBOX_IMAGE_VERSION }}-${{ matrix.arch.name }}
             type=edge,enable=true,priority=700,prefix=,suffix=${{ matrix.arch.name }},branch=$repo.default_branch
 
       - name: Login to GHCR
@@ -209,8 +207,7 @@ jobs:
           images: |
             ghcr.io/${{ env.TESTBOX_IMAGE_NAME }}
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
+            type=raw,value=${{ env.TESTBOX_IMAGE_VERSION }}-${{ matrix.arch.name }}
             type=edge,enable=true,priority=700,prefix=,suffix=-${{ matrix.arch.name }},branch=$repo.default_branch
 
       - name: Login to GHCR
