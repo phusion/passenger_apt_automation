@@ -51,7 +51,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ env.BUILDBOX_IMAGE_NAME }}
+            ghcr.io/${{ env.BUILDBOX_IMAGE_NAME }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -128,7 +128,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ env.TESTBOX_IMAGE_NAME }}
+            ghcr.io/${{ env.TESTBOX_IMAGE_NAME }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -204,7 +204,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ env.TESTBOX_IMAGE_NAME }}
+            ghcr.io/${{ env.TESTBOX_IMAGE_NAME }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
