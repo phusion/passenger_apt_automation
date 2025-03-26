@@ -16,8 +16,6 @@ jobs:
       debians: ${{ steps.distros.outputs.debians }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: true
       - name: Define Distros
         id: distros
         run: |
@@ -37,8 +35,6 @@ jobs:
     runs-on: ${{ matrix.arch.runner }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: true
       - name: Prepare
         run: |
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
@@ -79,7 +75,7 @@ jobs:
           platforms: linux/${{ matrix.arch.name }}
           labels: ${{ steps.meta.outputs.labels }}
           tags: ${{ steps.meta.outputs.tags }}
-          outputs: "type=image,name=${{ env.GHCR_REPO }},push-by-digest=false,name-canonical=true,push=true"
+          outputs: "type=image,name=ghcr.io/${{ env.BUILDBOX_IMAGE_NAME }},push-by-digest=false,name-canonical=true,push=true"
 
       - name: Export digest
         run: |
@@ -110,9 +106,6 @@ jobs:
     runs-on: ${{ matrix.arch.runner }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: true
-
       - name: Prepare
         run: |
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
@@ -156,7 +149,7 @@ jobs:
           platforms: linux/${{ matrix.arch.name }}
           labels: ${{ steps.meta.outputs.labels }}
           tags: ${{ steps.meta.outputs.tags }}
-          outputs: "type=image,name=${{ env.GHCR_REPO }},push-by-digest=false,name-canonical=true,push=true"
+          outputs: "type=image,name=ghcr.io/${{ env.TESTBOX_IMAGE_NAME }},push-by-digest=false,name-canonical=true,push=true"
 
       - name: Export digest
         run: |
@@ -187,9 +180,6 @@ jobs:
     name: build testbox debian-${{ matrix.distro }}-${{ matrix.arch.name }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: true
-
       - name: Prepare
         run: |
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
@@ -232,7 +222,7 @@ jobs:
           platforms: linux/${{ matrix.arch.name }}
           labels: ${{ steps.meta.outputs.labels }}
           tags: ${{ steps.meta.outputs.tags }}
-          outputs: "type=image,name=${{ env.GHCR_REPO }},push-by-digest=false,name-canonical=true,push=true"
+          outputs: "type=image,name=ghcr.io/${{ env.TESTBOX_IMAGE_NAME }},push-by-digest=false,name-canonical=true,push=true"
 
       - name: Export digest
         run: |
