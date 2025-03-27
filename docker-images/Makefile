@@ -27,6 +27,12 @@ buildbox:
 testbox-%: FORCE
 	./setup-testbox-docker-image "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)" "testbox-$*"
 
+pull_testbox_%: FORCE
+	docker pull --platform linux/arm64 "ghcr.io/$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)-arm64"
+	docker pull --platform linux/amd64 "ghcr.io/$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)-amd64"
+	docker tag ghcr.io/"$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)-arm64" "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)-arm64"
+	docker tag ghcr.io/"$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)-amd64" "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)-amd64"
+
 tag_latest: tag_latest_buildbox tag_latest_testboxes
 
 tag_latest_buildbox:
