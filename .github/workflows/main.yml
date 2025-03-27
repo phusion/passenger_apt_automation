@@ -286,15 +286,29 @@ jobs:
 
 
   merge-ubuntus:
+    name: Merge Ubuntu ${{ matrix.distro }} Testbox images
     runs-on: ubuntu-latest
     needs:
+      - define-matrix
       - build-ubuntus
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: ${{ fromJSON(needs.define-matrix.outputs.ubuntus) }}
+        arch:
+          - name: amd64
+            runner: ubuntu-24.04
+          - name: arm64
+            runner: ubuntu-24.04-arm
+
     steps:
       - uses: actions/checkout@v4
       - name: Prepare env
         run: |
           echo "TESTBOX_IMAGE_VERSION=$(./internal/lib/docker_image_info.sh testbox_version)" >> $GITHUB_ENV
           echo "TESTBOX_IMAGE_NAME=$(./internal/lib/docker_image_info.sh testbox_base_name)_ubuntu_${distro//\./_}" >> $GITHUB_ENV
+        env:
+          distro: ${{ matrix.distro }}
 
       - name: Login to GHCR
         uses: docker/login-action@v3
