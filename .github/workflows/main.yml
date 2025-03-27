@@ -295,11 +295,6 @@ jobs:
       fail-fast: false
       matrix:
         distro: ${{ fromJSON(needs.define-matrix.outputs.ubuntus) }}
-        arch:
-          - name: amd64
-            runner: ubuntu-24.04
-          - name: arm64
-            runner: ubuntu-24.04-arm
 
     steps:
       - uses: actions/checkout@v4
