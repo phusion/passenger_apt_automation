@@ -40,6 +40,7 @@ function to_distro_codename()
 	fi
 	fi
 	echo UNKNOWN_DISTRO
+	echo "distro $* unknown to buildbox" >&2
 	return 1
 }
 

@@ -6,16 +6,18 @@ TESTBOX_VERSION = $(shell ../internal/lib/docker_image_info.sh testbox_version)
 
 UBUNTUS          := $(shell source ../internal/lib/distro_info.sh; echo $$UBUNTU_DISTROS)
 UBUNTU_TESTBOXES := $(foreach image, $(UBUNTUS), testbox-ubuntu-$(image))
+UBUNTU_PULL      := $(foreach image, $(UBUNTUS), pull_testbox_ubuntu-$(image))
 UBUNTU_TAGGING   := $(foreach image, $(UBUNTUS), tag_latest_ubuntu_$(subst .,_,$(image))_testboxes)
 UBUNTU_UPLOAD    := $(foreach image, $(UBUNTUS), upload_ubuntu_$(subst .,_,$(image))_testboxes)
 UBUNTU_RELEASE   := $(foreach image, $(UBUNTUS), release_ubuntu_$(subst .,_,$(image))_testboxes)
 DEBIANS          := $(shell source ../internal/lib/distro_info.sh; echo $$DEBIAN_DISTROS)
 DEBIAN_TESTBOXES := $(foreach image, $(DEBIANS), testbox-debian-$(image))
+DEBIAN_PULL      := $(foreach image, $(DEBIANS), pull_testbox_debian-$(image))
 DEBIAN_TAGGING   := $(foreach image, $(DEBIANS), tag_latest_debian_$(image)_testboxes)
 DEBIAN_UPLOAD    := $(foreach image, $(DEBIANS), upload_debian_$(image)_testboxes)
 DEBIAN_RELEASE   := $(foreach image, $(DEBIANS), release_debian_$(image)_testboxes)
 
-.PHONY: all testboxes buildbox tag_latest tag_latest_buildbox tag_latest_testboxes upload upload_buildbox upload_testboxes release_buildbox release_testboxes release
+.PHONY: all testboxes buildbox tag_latest tag_latest_buildbox tag_latest_testboxes upload upload_buildbox upload_testboxes release_buildbox release_testboxes release pull pull_buildbox pull_testboxes
 FORCE:
 
 all: buildbox testboxes
@@ -26,6 +28,16 @@ buildbox:
 
 testbox-%: FORCE
 	./setup-testbox-docker-image "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)" "testbox-$*"
+
+pull: pull_buildbox pull_testboxes
+
+pull_buildbox: FORCE
+	docker pull --platform linux/arm64 "ghcr.io/$(BUILDBOX_NAME):$(BUILDBOX_VERSION)-arm64"
+	docker pull --platform linux/amd64 "ghcr.io/$(BUILDBOX_NAME):$(BUILDBOX_VERSION)-amd64"
+	docker tag "ghcr.io/$(BUILDBOX_NAME):$(BUILDBOX_VERSION)-arm64" "$(BUILDBOX_NAME):$(BUILDBOX_VERSION)-arm64"
+	docker tag "ghcr.io/$(BUILDBOX_NAME):$(BUILDBOX_VERSION)-amd64" "$(BUILDBOX_NAME):$(BUILDBOX_VERSION)-amd64"
+
+pull_testboxes: $(DEBIAN_PULL) $(UBUNTU_PULL)
 
 pull_testbox_%: FORCE
 	docker pull --platform linux/arm64 "ghcr.io/$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)-arm64"
