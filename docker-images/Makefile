@@ -83,6 +83,7 @@ upload_%_testboxes: tag_latest_%_testboxes FORCE
 release_testboxes: $(DEBIAN_RELEASE) $(UBUNTU_RELEASE)
 
 release_%_testboxes: upload_%_testboxes FORCE
+	docker manifest rm           "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)" || true
 	docker manifest rm           "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):latest" || true
 	docker manifest create       "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):latest"             "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):latest-amd64"             "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):latest-arm64"
 	docker manifest create       "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)" "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)-amd64" "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)-arm64"
