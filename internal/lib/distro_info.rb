@@ -68,15 +68,22 @@ end
 def fetch_latest_nginx_version_from_launchpad_api(distro)
   ['Updates', 'Security', 'Release'].each do |pocket|
     url = "https://api.launchpad.net/1.0/ubuntu/+archive/primary?ws.op=getPublishedBinaries&binary_name=nginx&exact_match=true&distro_arch_series=https://api.launchpad.net/1.0/ubuntu/#{distro}/amd64&status=Published&pocket=#{pocket}"
-    if RUBY_VERSION >= '2.5'
-      data = URI.open(url) do |io|
-        io.read
-      end
-    else
-      data = open(url) do |io|
-        io.read
-      end
-    end
+    retries = 0
+    data = begin
+             if RUBY_VERSION >= '2.5'
+               URI.open(url, &:read)
+             else
+               open(url, &:read)
+             end
+           rescue
+             if (retries += 1) <= 3
+               sleep(retries)
+               retry
+             else
+               raise
+             end
+           end
+
     entry = JSON.parse(data)['entries'][0]
     if entry
       return entry['binary_package_version']
@@ -92,15 +99,26 @@ def extract_nginx_version(os, distro, sanitize)
       version = fetch_latest_nginx_version_from_launchpad_api(distro)
     elsif DEBIAN_DISTRIBUTIONS.key?(distro)
       url = "https://packages.debian.org/search?suite=#{distro}&exact=1&searchon=names&keywords=nginx"
-      if RUBY_VERSION >= '2.5'
-        doc = URI.open(url) do |io|
-          Nokogiri.XML(io)
-        end
-      else
-        doc = open(url) do |io|
-          Nokogiri.XML(io)
-        end
-      end
+      retries = 0
+      doc = begin
+              if RUBY_VERSION >= '2.5'
+                URI.open(url) do |io|
+                  Nokogiri.XML(io)
+                end
+              else
+                open(url) do |io|
+                  Nokogiri.XML(io)
+                end
+              end
+            rescue
+              if (retries += 1) <= 3
+                sleep(retries)
+                retry
+              else
+                raise
+              end
+            end
+
       version = doc.at_css('#psearchres ul li').text.lines.select{|s|s.include? ": all" or s.include? ": amd64 arm64"}.first.strip.split.first.chomp(':')
     end
     File.write(cache_file,version)
