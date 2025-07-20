@@ -3,6 +3,9 @@ require 'json'
 require 'csv'
 require 'nokogiri'
 
+# After editing this file regenerate distro_info.sh by running:
+# internal/scripts/regen_distro_info_script.sh
+
 def gen_distros(family)
   throw "must be run from #{family}" unless File.exist?("/usr/share/distro-info/#{family}.csv")
   CSV.read("/usr/share/distro-info/#{family}.csv", headers: true).each_with_object(Hash.new) { |r, a|
@@ -24,6 +27,7 @@ DEFAULT_DISTROS = %w(
 
   bullseye
   bookworm
+  trixie
 )
 
 ###### Helper methods ######
