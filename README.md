@@ -23,7 +23,6 @@ The goal of this project is twofold:
    - [Adding support for a new distribution](#adding-support-for-a-new-distribution)
    - [Removing support for a distribution](#removing-support-for-a-distribution)
    - [Updating the build box's APT cache](#updating-the-build-boxs-apt-cache)
-   - [Building Nginx packages only](#building-nginx-packages-only)
    - [Updating SSL certificates](#updating-ssl-certificates)
  * [Jenkins integration](#jenkins-integration)
    - [Debugging a packaging test failure](#debugging-a-packaging-test-failure)
@@ -46,7 +45,6 @@ Debian package definitions are located in the `debian_specs` directory:
 
  * `debian_specs/passenger` -- Package definitions for Passenger, open source edition.
  * `debian_specs/passenger-enterprise` -- Package definitions for [Passenger Enterprise](https://www.phusionpassenger.com/enterprise).
- * `debian_specs/nginx` -- Package definitions for Nginx, with Passenger compiled in.
 
 Other noteworthy tools:
 
@@ -277,16 +275,6 @@ The second way is by updating it in-place. For example:
  2. Run: `initpbuilder noble amd64`.
  3. Run: `pbuilder-dist noble amd64 update`.
  4. Run `exit` to exit the build box shell.
-
-### Building Nginx packages only
-
-Sometimes you want to build Nginx packages only, without building the Phusion Passenger packages. You can do this by invoking the build script with the `pkg:nginx:all` task. For example:
-
-    ./build -p /passenger -w work -c cache -o output -d focal pkg:nginx:all
-
-After the build script finishes, you can publish these Nginx packages:
-
-    ./publish -d output -u phusion -c ~/token_file -r passenger-testing publish:all
 
 ### Updating SSL certificates
 

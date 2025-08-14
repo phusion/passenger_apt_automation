@@ -1,2 +1,0 @@
-mod debian/build-extras/objs/ndk_http_module.so
-mod debian/libnginx-mod.conf/mod-http-ndk.conf 10
