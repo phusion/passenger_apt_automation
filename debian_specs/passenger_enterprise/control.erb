@@ -12,8 +12,12 @@ Build-Depends: debhelper (>= 10~), rake,
 <% if dynamic_module_supported?(@distribution) -%>
  libxslt-dev, libgd-dev, libgeoip-dev,
 <% end -%>
- libapr1-dev, libcurl4-openssl-dev, zlib1g-dev, libpcre3-dev,
- libssl-dev
+ libapr1-dev, libcurl4-openssl-dev, zlib1g-dev, libssl-dev,
+<% if Gem::Version.new(latest_nginx_sanitized(@distribution, true)) >= Gem::Version.new('1.21.5') -%>
+ libpcre2-dev
+<% else -%>
+ libpcre3-dev
+<% end -%>
 Standards-Version: 3.9.3
 Homepage: https://www.phusionpassenger.com/
 Vcs-Git: https://github.com/phusion/passenger.git
