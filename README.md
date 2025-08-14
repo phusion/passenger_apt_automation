@@ -24,7 +24,7 @@ The goal of this project is twofold:
    - [Removing support for a distribution](#removing-support-for-a-distribution)
    - [Updating the build box's APT cache](#updating-the-build-boxs-apt-cache)
    - [Updating SSL certificates](#updating-ssl-certificates)
- * [Jenkins integration](#jenkins-integration)
+ * [CI integration](#ci-integration)
    - [Debugging a packaging test failure](#debugging-a-packaging-test-failure)
  * [Tutorial: building your own packages](#tutorial-building-your-own-packages)
  * [Related projects](#related-projects)
@@ -49,19 +49,13 @@ Debian package definitions are located in the `debian_specs` directory:
 Other noteworthy tools:
 
  * `shell` -- Open a shell in a new buildbox container for debugging purposes.
- * `jenkins/` -- Scripts to be run by our Jenkins continuous integration jobs, either after every commit or during release time.
+ * `jenkins/` -- Scripts to be run by our continuous integration jobs, either after every commit or during release time.
 
-This project utilizes Docker for isolation. Because of the usage of Docker, these tools can be run on any 64-bit Linux system, including non-Debian-based systems. Though in practice, we've only tested on Ubuntu.
+This project utilizes Docker for isolation. Because of the usage of Docker, these tools can be run on any 64-bit Linux system, though you do need the debian distro-info package installed.
 
 ## Development
 
 This repository is included as a git submodule in the Passenger git repository, under the directory `packaging/debian`. Instead of cloning the `passenger_apt_automation` repository directly, you should clone the Passenger git repository, and work in the `packaging/debian` directory instead. This scheme allows each Passenger version to lock down to a specific version of `passenger_apt_automation`.
-
-A Vagrantfile is provided so that you can develop this project in a VM. To get started, run:
-
-    host$ vagrant up
-
-The Passenger source directory (`../..`) will be automatically mounted inside the VM under `/passenger`.
 
 ## Package building process
 
@@ -103,10 +97,6 @@ When the build script is finished, the output directory (`-o`) will contain one 
       |
      ...
 
-#### Vagrant notes
-
-When using Vagrant, the directories referred to by `-w` and `-c` must be native filesystem directories. That is, they may not be located inside /vagrant, because /vagrant is a remote filesystem. I typically use `-w ~/work -c ~/cache` when developing with Vagrant.
-
 #### Troubleshooting
 
 If anything goes wrong during a build, please take a look at the various log files in the work directory. Of interest are:
@@ -124,12 +114,6 @@ Once packages have been built, you can test them with the test script. Here is a
  * `-x` tells it which distribution it should use for running the tests. To learn which distributions are supported, run `./test -h`.
  * `-d` tells it where to find the packages that are to be tested. This must point to a subdirectory in the output directory produced by the build script, and the packages must match the test environment as specified by `-x`. For example, if you specified `-x noble`, and if the build script stored packages in the directory `output`, then you should pass `-d output/noble`.
  * `-c` tells it where the cache directory is. The test script caches files into this directory so that subsequent runs will be faster.
-
-#### Vagrant notes
-
-When using Vagrant, the directory referred to by `-c` must be a native filesystem directory. That is, it may not be located inside /vagrant, because /vagrant is a remote filesystem. I typically use `-c ~/cache` when developing with Vagrant.
-
-The Vagrant VM uses 2 GB of RAM, so make sure your host has at least 4 GB.
 
 ### The publish script
 
@@ -160,9 +144,8 @@ In these instructions, we assume that the new distribution is Ubuntu 20.04 "Foca
 
  2. Add a definition for this new distribution to `internal/lib/distro_info.rb`.
 
-     1. Add to either the `UBUNTU_DISTRIBUTIONS` or the `DEBIAN_DISTRIBUTIONS` constant.
-     2. Add to the `DEFAULT_DISTROS` constant.
-     3. If it's a debian release you'll likely have to add the signing key to the buildbox's install.sh. (If debootstrap complains about a key in step 6).
+     1. Add to the `DEFAULT_DISTROS` constant.
+     2. If it's a debian release you'll likely have to add the signing key to the buildbox's install.sh. (If debootstrap complains about a key in step 6).
 
  3. Run `internal/scripts/regen_distro_info_script.sh`.
 
@@ -171,10 +154,10 @@ In these instructions, we assume that the new distribution is Ubuntu 20.04 "Foca
         make -C docker-images buildbox
 
  5. Update the package definitions in `debian_specs/`.
- 
+
      1. Check if new ruby is available in distro update versions or comments in `debian_specs/passenger/helpers.rb`
      2. Add `<% if %>` statements accordingly to output the appropriate content for the target distribution. (e.g. in `debian_specs/passenger/control.erb`)
- 
+
  6. Build publish packages for this distribution only. You can do that by running the build script with the `-d` option.
 
     For example:
@@ -186,7 +169,7 @@ In these instructions, we assume that the new distribution is Ubuntu 20.04 "Foca
      1. Create `docker-images/testbox-ubuntu-20.04/` (copy of testbox of previous release)
      2. Set the correct From in `docker-images/testbox-ubuntu-20.04/Dockerfile`
      3. Edit `docker-images/Makefile` and add entries for this new testbox.
-     
+
         make -C docker-images testbox-ubuntu-20.04
 
     When done, test Passenger under the new testbox:
@@ -210,9 +193,7 @@ In these instructions, we assume that the new distribution is Ubuntu 20.04 "Foca
             git pull
             cd ../..
 
-     2. Update `dev/ci/tests/debian/Jenkinsfile` and add this new distro under the `parameters` section.
-
-     3. Commit and push the result:
+     2. Commit and push the result:
 
             git commit -a -m "Add packaging support for Ubuntu 20.04 Focal"
             git push
@@ -244,9 +225,7 @@ In these instructions, we assume that the distribution to be removed is Ubuntu 2
             git pull
             cd ../..
 
-     2. Update `dev/ci/tests/debian/Jenkinsfile` and remove the deprecated distro under the `params` section.
-
-     3. Commit and push the result:
+     2. Commit and push the result:
 
             git commit -a -m "Remove packaging support for Ubuntu 20.04 Focal"
             git push
@@ -265,10 +244,6 @@ The first way is by deleting the pbuilder chroot tarball in the cache directory.
 
     rm ~/cache/base-noble-amd64.tgz
 
-or
-
-    find /data/jenkins/ -name 'base-noble-*.tgz' -delete
-
 The second way is by updating it in-place. For example:
 
  1. Run: `./shell -c ~/cache`. This will drop you into the buildbox shell.
@@ -278,13 +253,13 @@ The second way is by updating it in-place. For example:
 
 ### Updating SSL certificates
 
-The Jenkins publishing script posts to some HTTPS servers. For security reasons, we pin the certificates, but these certificates expire after a while. You can update them by running:
+The publishing script posts to some HTTPS servers. For security reasons, we pin the certificates, but these certificates expire after a while. You can update them by running:
 
     ./internal/scripts/pin_certificates
 
-## Jenkins integration
+## CI integration
 
-The `jenkins` directory contains scripts which are invoked from jobs in the Phusion Jenkins CI server.
+The `jenkins` directory contains scripts which are invoked from jobs in the Phusion CI server.
 
 ## Troubleshooting
 
@@ -298,17 +273,12 @@ If a packaging test job fails, here's what you should do.
         git reset --hard <COMMIT FOR WHICH THE TEST FAILED>
         cd packaging/debian
 
- 2. If you're not on Linux, setup the Vagrant development environment and login to the VM:
-
-        vagrant up
-        vagrant ssh
-
- 3. Build packages for the distribution for which the test failed.
+ 2. Build packages for the distribution for which the test failed.
 
         ./build -w ~/work -c ~/cache -o ~/output -p /passenger -d focal -a amd64 -j 2 -R pkg:all
 
     Be sure to customize the value passed to `-d` based on the distribution for which the test failed.
- 4. Run the tests with the debugging console enabled:
+ 3. Run the tests with the debugging console enabled:
 
         ./test -p /passenger -x focal -d ~/output/focal -c ~/cache -D
 
@@ -327,8 +297,8 @@ Packages are built to `output/<distro>`. You can play around manually with exami
     dpkg -I passenger_5.1.x-1~distro1_amd64.deb  # view info
     dpkg -i passenger_5.1.x-1~distro1_amd64.deb  # install passenger (probably need to install a module too)
     apt --fix-broken install  # to install dependencies
-    
-    
+
+
 
 ## Tutorial: building your own packages
 
@@ -340,9 +310,7 @@ You can follow this tutorial on any OS you want. You do not necessarily have to 
 
 If you are following this tutorial on a Linux system, then you must [install Docker](https://www.docker.com/).
 
-If you are following this tutorial on any other OS, then you must install [Vagrant](https://www.vagrantup.com/) and [VirtualBox](https://www.virtualbox.org/).
-
-NOTE: If you are on macOS, installing Docker for Mac is NOT enough. You MUST use Vagrant+VirtualBox.
+NOTE: If you are on macOS, installing Docker for Mac is NOT enough. You MUST use a virtual machine with docker installed there.
 
 ### Step 1: Checkout out the desired source code
 
@@ -360,21 +328,7 @@ Then go to the directory `packaging/debian`:
 
     cd packaging/debian
 
-### Step 2 (non-Linux only): spin up Vagrant VM
-
-If you are on a Linux system, then you can skip to step 3.
-
-If you are not on a Linux system, then you must spin up the Vagrant VM. Type:
-
-    vagrant up
-
-Wait until the VM has booted, then run:
-
-    vagrant ssh
-
-You will now be dropped in an SSH session inside the VM. Any futher steps must be followed inside this SSH session.
-
-### Step 3: build packages
+### Step 2: build packages
 
 Use the `./build` script to build packages. You must tell the build script which distribution and architecture it should build for. Run:
 
@@ -383,7 +337,6 @@ Use the `./build` script to build packages. You must tell the build script which
 Replace `<PATH TO PASSENGER>` with one of these:
 
  * If you are on a Linux system, it should be `../..`.
- * If you are on a non-Linux system (and using Vagrant), it should be `/passenger`.
 
 Replace `<ARCHITECTURE>` with either `arm64` or `amd64`. Replace `<DISTRIBUTION>` with the codename of the distribution you want to build for. For example:
 
@@ -398,22 +351,12 @@ You can find the codename of your distribution version on Wikipedia: [Ubuntu cod
 Here is an example invocation for building packages for Ubuntu 24.04, x86_64:
 
 ```bash
-# If you are on a Linux system:
 ./build -p ../.. -w ~/work -c ~/cache -o output -a amd64 -d noble pkg:all
-
-# If you are on a non-Linux system (and using Vagrant):
-./build -p /passenger -w ~/work -c ~/cache -o output -a amd64 -d noble pkg:all
 ```
 
-### Step 4: get packages, clean up
+### Step 3: get packages, clean up
 
 When the build is finished, you can find the packages in the `output` directory.
-
-If you are on a non-Linux OS (and thus using Vagrant), you should know that this `output` directory is accessible from your host OS too. It is a subdirectory inside `<PASSENGER REPO>/packaging/debian`.
-
-If you are not on a Linux system, then you should spin down the Vagrant VM. Run this on your host OS, inside the `packaging/debian` subdirectory:
-
-    vagrant halt
 
 ## Related projects
 
