@@ -8,9 +8,9 @@
 # internal/scripts/regen_distro_info_script.sh
 
 # shellcheck disable=SC2034
-DEFAULT_DISTROS="focal jammy noble plucky bullseye bookworm trixie"
+DEFAULT_DISTROS="focal jammy noble questing bullseye bookworm trixie"
 DEBIAN_DISTROS="11 12 13"
-UBUNTU_DISTROS="20.04 22.04 24.04 25.04"
+UBUNTU_DISTROS="20.04 22.04 24.04 25.10"
 
 
 function to_distro_codename()
@@ -46,7 +46,7 @@ function to_distro_codename()
 
 function get_buildbox_image()
 {
-	echo "phusion/passenger_apt_automation_buildbox:2.2.3"
+	echo "phusion/passenger_apt_automation_buildbox:2.2.4"
 }
 
 function to_testbox_image()
