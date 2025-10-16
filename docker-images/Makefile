@@ -34,6 +34,8 @@ pull: pull_buildbox pull_testboxes
 pull_buildbox: FORCE
 	docker pull --platform linux/arm64 "ghcr.io/$(BUILDBOX_NAME):$(BUILDBOX_VERSION)-arm64"
 	docker pull --platform linux/amd64 "ghcr.io/$(BUILDBOX_NAME):$(BUILDBOX_VERSION)-amd64"
+	docker buildx imagetools inspect "ghcr.io/$(BUILDBOX_NAME):$(BUILDBOX_VERSION)-arm64" | awk '/@sha/{print $$NF}' | xargs -n1 docker pull || true
+	docker buildx imagetools inspect "ghcr.io/$(BUILDBOX_NAME):$(BUILDBOX_VERSION)-amd64" | awk '/@sha/{print $$NF}' | xargs -n1 docker pull || true
 	docker tag "ghcr.io/$(BUILDBOX_NAME):$(BUILDBOX_VERSION)-arm64" "$(BUILDBOX_NAME):$(BUILDBOX_VERSION)-arm64"
 	docker tag "ghcr.io/$(BUILDBOX_NAME):$(BUILDBOX_VERSION)-amd64" "$(BUILDBOX_NAME):$(BUILDBOX_VERSION)-amd64"
 
@@ -42,6 +44,8 @@ pull_testboxes: $(DEBIAN_PULL) $(UBUNTU_PULL)
 pull_testbox_%: FORCE
 	docker pull --platform linux/arm64 "ghcr.io/$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)-arm64"
 	docker pull --platform linux/amd64 "ghcr.io/$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)-amd64"
+	docker buildx imagetools inspect "ghcr.io/$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)-arm64" | awk '/@sha/{print $$NF}' | xargs -n1 docker pull || true
+	docker buildx imagetools inspect "ghcr.io/$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)-amd64" | awk '/@sha/{print $$NF}' | xargs -n1 docker pull || true
 	docker tag ghcr.io/"$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)-arm64" "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)-arm64"
 	docker tag ghcr.io/"$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)-amd64" "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)-amd64"
 
