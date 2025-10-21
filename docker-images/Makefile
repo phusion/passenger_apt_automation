@@ -70,11 +70,8 @@ upload_buildbox: tag_latest_buildbox
 	docker push $(BUILDBOX_NAME):$(BUILDBOX_VERSION)-arm64
 
 release_buildbox: upload_buildbox
-	docker manifest rm  $(BUILDBOX_NAME):latest || true
-	docker manifest create $(BUILDBOX_NAME):$(BUILDBOX_VERSION) $(BUILDBOX_NAME):$(BUILDBOX_VERSION)-amd64 $(BUILDBOX_NAME):$(BUILDBOX_VERSION)-arm64
-	docker manifest create $(BUILDBOX_NAME):latest              $(BUILDBOX_NAME):latest-amd64              $(BUILDBOX_NAME):latest-arm64
-	docker manifest push $(BUILDBOX_NAME):$(BUILDBOX_VERSION)
-	docker manifest push --purge $(BUILDBOX_NAME):latest
+	docker buildx imagetools create --tag $(BUILDBOX_NAME):$(BUILDBOX_VERSION) $(BUILDBOX_NAME):$(BUILDBOX_VERSION)-amd64 $(BUILDBOX_NAME):$(BUILDBOX_VERSION)-arm64
+	docker buildx imagetools create --tag $(BUILDBOX_NAME):latest $(BUILDBOX_NAME):latest-amd64 $(BUILDBOX_NAME):latest-arm64
 
 upload_testboxes: $(DEBIAN_UPLOAD) $(UBUNTU_UPLOAD)
 
@@ -87,11 +84,7 @@ upload_%_testboxes: tag_latest_%_testboxes FORCE
 release_testboxes: $(DEBIAN_RELEASE) $(UBUNTU_RELEASE)
 
 release_%_testboxes: upload_%_testboxes FORCE
-	docker manifest rm           "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)" || true
-	docker manifest rm           "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):latest" || true
-	docker manifest create       "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):latest"             "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):latest-amd64"             "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):latest-arm64"
-	docker manifest create       "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)" "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)-amd64" "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)-arm64"
-	docker manifest push --purge "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):latest"
-	docker manifest push         "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)"
+	docker buildx imagetools create --tag "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):latest"             "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):latest-amd64"             "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):latest-arm64"
+	docker buildx imagetools create --tag "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)" "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)-amd64" "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)-arm64"
 
 release: release_buildbox release_testboxes
