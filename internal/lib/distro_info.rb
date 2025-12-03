@@ -102,28 +102,8 @@ def extract_nginx_version(os, distro, sanitize)
     if UBUNTU_DISTRIBUTIONS.key?(distro)
       version = fetch_latest_nginx_version_from_launchpad_api(distro)
     elsif DEBIAN_DISTRIBUTIONS.key?(distro)
-      url = "https://packages.debian.org/search?suite=#{distro}&exact=1&searchon=names&keywords=nginx"
-      retries = 0
-      doc = begin
-              if RUBY_VERSION >= '2.5'
-                URI.open(url) do |io|
-                  Nokogiri.XML(io)
-                end
-              else
-                open(url) do |io|
-                  Nokogiri.XML(io)
-                end
-              end
-            rescue
-              if (retries += 1) <= 3
-                sleep(retries)
-                retry
-              else
-                raise
-              end
-            end
-
-      version = doc.at_css('#psearchres ul li').text.lines.select{|s|s.include? ": all" or s.include? ": amd64 arm64"}.first.strip.split.first.chomp(':')
+      output=`docker run debian:#{distro} bash -c 'apt-get update >/dev/null && apt-cache policy nginx'`
+      version = output.lines.filter_map{|l| $' if l =~ /Candidate:/}.first.strip
     end
     File.write(cache_file,version)
   else
