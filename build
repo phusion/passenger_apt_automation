@@ -154,6 +154,12 @@ else
     TTY_ARGS=
 fi
 
+DISTRO_NGINXS=()
+for distro in $DISTRIBUTIONS; do
+    version=$(docker run "debian:$distro" bash -c 'apt-get update >/dev/null && apt-cache policy nginx' | awk '/Candidate:/{print $NF}')
+    DISTRO_NGINXS+=("$distro:$version")
+done
+
 if $SHOW_TASKS; then
     exec docker run \
      --rm $TTY_ARGS \
@@ -203,6 +209,7 @@ else
          -v "$OUTPUT_DIR:/output" \
          -v "$CACHE_DIR/pbuilder:/var/cache/pbuilder" \
          -e "DISTRIBUTIONS=$DISTRIBUTIONS" \
+         -e "DISTRO_NGINXS=${DISTRO_NGINXS[*]}" \
          -e "ARCHITECTURES=$ARCH" \
          -e "SHOW_OVERVIEW_PERIODICALLY=$SHOW_OVERVIEW_PERIODICALLY" \
          -e "FETCH_PASSENGER_TARBALL_FROM_CACHE=$FETCH_PASSENGER_TARBALL_FROM_CACHE" \

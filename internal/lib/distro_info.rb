@@ -69,6 +69,10 @@ def valid_distro_name?(name)
   UBUNTU_DISTRIBUTIONS.key?(name) || DEBIAN_DISTRIBUTIONS.key?(name)
 end
 
+def fetch_latest_nginx_version_from_debian(distro)
+  ENV['DISTRO_NGINXS'].split.map{|dv|dv.split(":")}.to_h[distro.to_s]
+end
+
 def fetch_latest_nginx_version_from_launchpad_api(distro)
   ['Updates', 'Security', 'Release'].each do |pocket|
     url = "https://api.launchpad.net/1.0/ubuntu/+archive/primary?ws.op=getPublishedBinaries&binary_name=nginx&exact_match=true&distro_arch_series=https://api.launchpad.net/1.0/ubuntu/#{distro}/amd64&status=Published&pocket=#{pocket}"
@@ -102,8 +106,7 @@ def extract_nginx_version(os, distro, sanitize)
     if UBUNTU_DISTRIBUTIONS.key?(distro)
       version = fetch_latest_nginx_version_from_launchpad_api(distro)
     elsif DEBIAN_DISTRIBUTIONS.key?(distro)
-      output=`docker run debian:#{distro} bash -c 'apt-get update >/dev/null && apt-cache policy nginx'`
-      version = output.lines.filter_map{|l| $' if l =~ /Candidate:/}.first.strip
+      version = fetch_latest_nginx_version_from_debian(distro)
     end
     File.write(cache_file,version)
   else
