@@ -23,7 +23,7 @@ DEFAULT_DISTROS = %w(
   focal
   jammy
   noble
-  questing
+  resolute
 
   bullseye
   bookworm
