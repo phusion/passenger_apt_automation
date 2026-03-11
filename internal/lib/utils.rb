@@ -32,11 +32,11 @@ module Utils
     minutes = minutes - (hours * 60)
     seconds = dist - (hours * 3600) - (minutes * 60)
 
-    words = ''
-    words << "#{hours} #{hours > 1 ? 'hours' : 'hour' } " if hours > 0
-    words << "#{minutes} min " if minutes > 0
+    words = []
+    words << "#{hours} #{hours > 1 ? 'hours' : 'hour' }" if hours > 0
+    words << "#{minutes} min" if minutes > 0
     words << "#{seconds} sec"
-    words
+    words.join(" ")
   end
 
   def format_time(time)
@@ -44,22 +44,17 @@ module Utils
   end
 
   def recursive_copy_files(files, destination_dir, preprocess = false, variables = {})
-    if !STDOUT.tty?
-      puts "Copying files..."
-    end
+    puts "Copying files..." unless STDOUT.tty?
     files.each_with_index do |filename, i|
       next if filename =~ /\.in(\.erb)?$/ || File.basename(filename) == "helpers.rb"
-      dir = File.dirname(filename)
-      if !File.exist?("#{destination_dir}/#{dir}")
-        FileUtils.mkdir_p("#{destination_dir}/#{dir}")
-      end
-      if !File.directory?(filename)
-        if preprocess && filename =~ /\.erb$/
-          real_filename = filename.sub(/\.erb$/, '')
-          Preprocessor.new.start(filename, "#{destination_dir}/#{real_filename}",
-            variables)
+      dirpath = "#{destination_dir}/#{File.dirname(filename)}"
+      FileUtils.mkdir_p(dirpath) unless File.exist?(dirpath)
+      unless File.directory?(filename)
+        if preprocess && filename.end_with?('.erb')
+          real_filename = filename.delete_suffix('.erb')
+          Preprocessor.new.start(filename, "#{destination_dir}/#{real_filename}", variables)
         else
-          FileUtils.install(filename, "#{destination_dir}/#{filename}", :preserve => true)
+          FileUtils.install(filename, "#{destination_dir}/#{filename}", preserve: true)
         end
       end
       if STDOUT.tty?

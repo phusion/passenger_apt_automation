@@ -29,16 +29,12 @@ require_relative '../lib/utils'
 
 def sh(command)
   puts "+ #{command}"
-  if !system(command)
-    exit 1
-  end
+  exit 1 unless system(command)
 end
 
 def fetch_env(name)
   value = ENV[name.to_s]
-  if !value
-    abort "Environment variable #{name} required"
-  end
+  abort "Environment variable #{name} required" if value.nil?
   Kernel.const_set(name.to_sym, value)
   value
 end
@@ -77,8 +73,7 @@ end
 puts "--> Preprocessing Debian spec files"
 puts "+ cd #{SPECDIR}"
 Dir.chdir(SPECDIR)
-Utils.recursive_copy_files(Dir["**/*"], "#{SPKG_DIR}/#{SOURCENAME}/debian", true,
-  :distribution => DISTRIBUTION)
+Utils.recursive_copy_files(Dir["**/*"], "#{SPKG_DIR}/#{SOURCENAME}/debian", true, distribution: DISTRIBUTION)
 
 if DEBIAN_NAME =~ /nginx/
   puts "--> Copying Passenger files into Debian directory"

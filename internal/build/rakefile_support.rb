@@ -14,7 +14,7 @@ def initialize_rakefile!
   STDOUT.sync = true
   STDERR.sync = true
   DISTROS.each do |distro|
-    if !valid_distro_name?(distro)
+    unless valid_distro_name?(distro)
       abort "'#{distro}' is not a valid Debian or Ubuntu distribution name. " +
         "If this is a new distribution that passenger_apt_automation doesn't " +
         "know about, please edit internal/lib/distro_info.rb."

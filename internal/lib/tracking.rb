@@ -6,7 +6,7 @@ def initialize_tracking_database!(show_overview_periodically)
   db = TrackingDatabase.new("/work")
   Kernel.const_set(:TRACKING_DB, db)
 
-  if !SHOW_TASKS
+  unless SHOW_TASKS
     db.thread = Thread.new do
       Thread.current.abort_on_exception = true
       begin

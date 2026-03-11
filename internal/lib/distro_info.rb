@@ -41,7 +41,7 @@ def debian_gte(codename, compare)
 end
 
 def generic_gte(hash, codename, compare)
-  return nil if !hash.key?(codename)
+  return nil unless hash.key?(codename)
   hash[codename] >= hash[compare]
 end
 

@@ -107,8 +107,8 @@ private
 
         table1 = _infer_distro_table(@distribution)
         table2 = _infer_distro_table(name)
-        raise "Distribution name #{@distribution.inspect} not recognized" if !table1
-        raise "Distribution name #{name.inspect} not recognized" if !table2
+        raise "Distribution name #{@distribution.inspect} not recognized" if table1.nil?
+        raise "Distribution name #{name.inspect} not recognized" if table2.nil?
         return false if table1 != table2
         v1 = table1[@distribution]
         v2 = table2[name]
