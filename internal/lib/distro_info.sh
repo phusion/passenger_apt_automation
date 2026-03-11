@@ -46,7 +46,7 @@ function to_distro_codename()
 
 function get_buildbox_image()
 {
-	echo "phusion/passenger_apt_automation_buildbox:2.2.4"
+	echo "phusion/passenger_apt_automation_buildbox:2.2.5"
 }
 
 function to_testbox_image()
@@ -67,13 +67,13 @@ function to_testbox_image()
 
 	local VERSION=$(awk -F, -vPATTERN="^$INPUT( LTS)?\$" "$AWK_SCRIPT" /usr/share/distro-info/ubuntu.csv)
 	if [ -n "$VERSION" ]; then
-		  echo phusion/passenger_apt_automation_testbox_ubuntu_${VERSION/./_}:2.2.1
+		  echo phusion/passenger_apt_automation_testbox_ubuntu_${VERSION/./_}:2.2.2
 		  return
 	fi
 
 	VERSION=$(awk -F, -vPATTERN="^$INPUT(\\\\.0)?\$" "$AWK_SCRIPT" /usr/share/distro-info/debian.csv)
 	if [ -n "$VERSION" ]; then
-		  echo phusion/passenger_apt_automation_testbox_debian_${VERSION/./_}:2.2.1
+		  echo phusion/passenger_apt_automation_testbox_debian_${VERSION/./_}:2.2.2
 		  return
 	fi
 

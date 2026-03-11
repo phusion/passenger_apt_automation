@@ -154,12 +154,6 @@ else
     TTY_ARGS=
 fi
 
-DISTRO_NGINXS=()
-for distro in $DISTRIBUTIONS; do
-    version=$(docker run "debian:$distro" bash -c 'apt-get update >/dev/null && apt-cache policy nginx' | awk '/Candidate:/{print $NF}')
-    DISTRO_NGINXS+=("$distro:$version")
-done
-
 if $SHOW_TASKS; then
     exec docker run \
      --rm $TTY_ARGS \
@@ -173,6 +167,18 @@ if $SHOW_TASKS; then
      /sbin/my_init --quiet --skip-runit --skip-startup-files -- \
      rake -f /system/internal/build/Rakefile -T --trace
 else
+    DISTRO_NGINXS=()
+    for distro in $DISTRIBUTIONS; do
+        export DOCKER_CLI_EXPERIMENTAL=enabled
+        if docker manifest inspect "debian:$distro" >/dev/null 2>&1; then
+            kind="debian"
+        else
+            kind="ubuntu"
+        fi
+        version=$(docker run "$kind:$distro" bash -c 'apt-get update >/dev/null && apt-cache policy nginx' | awk '/Candidate:/{print $NF}')
+        DISTRO_NGINXS+=("$distro:$version")
+    done
+
     PASSENGER_DIR=$(absolute_path "$PASSENGER_DIR")
     WORK_DIR=$(absolute_path "$WORK_DIR")
     CACHE_DIR=$(absolute_path "$CACHE_DIR")
