@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 BUILDBOX_NAME = $(shell ../internal/lib/docker_image_info.sh buildbox_name)
 BUILDBOX_VERSION = $(shell ../internal/lib/docker_image_info.sh buildbox_version)
 
