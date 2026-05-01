@@ -12,26 +12,17 @@ SOURCE_TASKS = ['source:passenger', 'source:nginx']
 register_tracking_category(:preparation, 'Preparation')
 
 namespace :source do
-  DISTROS.each do |distro|
-      register_tracking_task(:preparation, "passenger:#{distro}")
-      desc "Create Passenger orig tarball"
-      task("passenger:#{distro}" => :nginx) do
-        track_task(:preparation, "passenger:#{distro}") do |task|
-          if FETCH_PASSENGER_TARBALL_FROM_CACHE && File.exist?("/cache/#{distro}_#{PASSENGER_TARBALL}")
-            task.sh "cp /cache/#{distro}_#{PASSENGER_TARBALL} /work/#{PASSENGER_TARBALL}"
-          else
-            available_nginx_version = latest_nginx_available(distro)
-            if File.exist?("/cache/nginx_#{available_nginx_version}.orig.tar.gz")
-               task.sh "cp /cache/nginx_#{available_nginx_version}.orig.tar.gz /work/"
-             else
-               task.sh "./download-nginx-orig-tarball.sh #{available_nginx_version} /work/nginx_#{available_nginx_version}.orig.tar.gz"
-               task.sh "cp /work/nginx_#{available_nginx_version}.orig.tar.gz /cache/"
-             end
-            task.sh "./build-passenger-orig-tarball.sh /work/#{PASSENGER_TARBALL} #{available_nginx_version}"
-            task.sh "cp /work/#{PASSENGER_TARBALL} /cache/#{distro}_#{PASSENGER_TARBALL}"
-          end
-        end
+  register_tracking_task(:preparation, 'passenger')
+  desc "Create Passenger orig tarball"
+  task :passenger => :nginx do
+    track_task(:preparation, 'passenger') do |task|
+      if FETCH_PASSENGER_TARBALL_FROM_CACHE && File.exist?("/cache/#{PASSENGER_TARBALL}")
+        task.sh "cp /cache/#{PASSENGER_TARBALL} /work/#{PASSENGER_TARBALL}"
+      else
+        task.sh "./build-passenger-orig-tarball.sh /work/#{PASSENGER_TARBALL}"
+        task.sh "cp /work/#{PASSENGER_TARBALL} /cache/#{PASSENGER_TARBALL}"
       end
+    end
   end
 
   register_tracking_task(:preparation, 'nginx')
@@ -41,7 +32,7 @@ namespace :source do
       if File.exist?("/cache/#{NGINX_TARBALL}")
         task.sh "cp /cache/#{NGINX_TARBALL} /work/#{NGINX_TARBALL}"
       else
-        task.sh "./download-nginx-orig-tarball.sh #{NGINX_VERSION} /work/#{NGINX_TARBALL}"
+        task.sh "./download-nginx-orig-tarball.sh /work/#{NGINX_TARBALL}"
         task.sh "cp /work/#{NGINX_TARBALL} /cache/#{NGINX_TARBALL}"
       end
       # This second Nginx is specifically for when we're stuck at a lower version (e.g. due to distro module
@@ -49,7 +40,7 @@ namespace :source do
       if File.exist?("/cache/#{PACKAGING_NGINX_TARBALL}")
         task.sh "cp /cache/#{PACKAGING_NGINX_TARBALL} /work/#{PACKAGING_NGINX_TARBALL}"
       else
-        task.sh "./download-nginx-orig-tarball.sh #{PACKAGING_NGINX_VERSION} /work/#{PACKAGING_NGINX_TARBALL}"
+        task.sh "./download-nginx-orig-tarball.sh /work/#{PACKAGING_NGINX_TARBALL}"
         task.sh "cp /work/#{PACKAGING_NGINX_TARBALL} /cache/#{PACKAGING_NGINX_TARBALL}"
       end
     end
@@ -76,14 +67,14 @@ namespace :spkg do
 
     register_tracking_task(:spkg, "passenger:#{distro}")
     desc "Build Passenger source package for #{distro}"
-    task("passenger:#{distro}" => ["source:passenger:#{distro}"]) do
+    task("passenger:#{distro}" => ["source:passenger"]) do
       track_task(:spkg, "passenger:#{distro}") do |task|
         task.sh "mkdir -p /work/spkg/passenger"
         task.sh "mkdir /work/spkg/passenger/#{distro}"
         task.sh "./build-source-package.rb",
                 :SPECDIR      => "/system/debian_specs/#{PASSENGER_SPECDIR}",
                 :DISTRIBUTION => distro,
-                :TARBALL      => "#{PASSENGER_TARBALL}",
+                :TARBALL      => PASSENGER_TARBALL,
                 :SOURCENAME   => "#{PASSENGER_PACKAGE_NAME}-#{PASSENGER_VERSION}",
                 :SPKG_DIR     => "/work/spkg/passenger/#{distro}",
                 :PACKAGE_VERSION  => PASSENGER_VERSION,

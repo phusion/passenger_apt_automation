@@ -1,5 +1,5 @@
 #!/bin/bash
-# Usage: download-nginx-orig-tarball.sh <NGINX_VERSION> <OUTPUT>
+# Usage: download-nginx-orig-tarball.sh <OUTPUT>
 # Downloads the Nginx source tarball.
 #
 # Required environment variables:
@@ -11,8 +11,7 @@ ROOTDIR=`dirname "$0"`
 ROOTDIR=`cd "$ROOTDIR/../.." && pwd`
 source "$ROOTDIR/internal/lib/library.sh"
 
-require_args_exact 2 "$@"
-NGINX_VERSION="$1"
-NGINX_TARBALL="$2"
+require_args_exact 1 "$@"
+require_envvar NGINX_VERSION "$NGINX_VERSION"
 
-run curl --fail -L -o "$NGINX_TARBALL" "https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz"
+run curl --fail -L -o "$1" "https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz"

@@ -125,21 +125,6 @@ function debian_gte()
 	echo -e "$REL_1\n$REL_2" | sort -rC
 }
 
-function dynamic_module_supported()
-{
-	if ubuntu_gte "$1" artful; then
-		  echo true
-		  return
-	fi
-
-	if debian_gte "$1" stretch; then
-		  echo true
-		  return
-	fi
-
-	echo false
-}
-
 function known_distro ()
 {
 	local INPUT=$(to_distro_codename $1)

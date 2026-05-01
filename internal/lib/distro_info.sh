@@ -46,7 +46,7 @@ function to_distro_codename()
 
 function get_buildbox_image()
 {
-	echo "phusion/passenger_apt_automation_buildbox:2.2.5"
+	echo "phusion/passenger_apt_automation_buildbox:2.2.6"
 }
 
 function to_testbox_image()
@@ -116,21 +116,6 @@ function debian_gte()
 	local REL_1=$(awk -F, -vPATTERN="^$INPUT1(\\\\.0)?\$" "$AWK_SCRIPT" /usr/share/distro-info/debian.csv)
 	local REL_2=$(awk -F, -vPATTERN="^$INPUT2(\\\\.0)?\$" "$AWK_SCRIPT" /usr/share/distro-info/debian.csv)
 	echo -e "$REL_1\n$REL_2" | sort -rC
-}
-
-function dynamic_module_supported()
-{
-	if ubuntu_gte "$1" artful; then
-		  echo true
-		  return
-	fi
-
-	if debian_gte "$1" stretch; then
-		  echo true
-		  return
-	fi
-
-	echo false
 }
 
 function known_distro ()

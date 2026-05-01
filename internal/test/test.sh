@@ -127,11 +127,8 @@ run setuser app mkdir -p "/cache/test-$DISTRIBUTION/bundle"
 run setuser app mkdir -p "/cache/test-$DISTRIBUTION/node_modules"
 run setuser app ln -s "/cache/test-$DISTRIBUTION/node_modules" node_modules
 run setuser app rake test:install_deps DOCTOOLS=no DEPS_TARGET="/cache/test-$DISTRIBUTION/bundle" BUNDLE_ARGS="-j 4"
-if [[ $DYNAMIC_MODULE_SUPPORTED == true ]]; then
-	CONFIG_SUFFIX="-dynamic"
-else
-	CONFIG_SUFFIX=""
-fi
+CONFIG_SUFFIX="-dynamic"
+
 if ! ls /output/*enterprise* >/dev/null 2>/dev/null; then
 	run setuser app cp "/system/internal/test/misc/config-oss$CONFIG_SUFFIX.json" test/config.json
 else

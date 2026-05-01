@@ -9,15 +9,9 @@ Uploaders: <%= MAINTAINER_NAME %> <<%= MAINTAINER_EMAIL %>>
 Build-Depends: debhelper (>= 10~), rake,
  <%= ruby_package_dependencies %>,
  apache2 (>= 2.4), apache2-dev (>= 2.4),
-<% if dynamic_module_supported?(@distribution) -%>
- libxslt-dev, libgd-dev, libgeoip-dev,
-<% end -%>
+ libxslt-dev, libgd-dev, libgeoip-dev, dh-sequence-nginx,
  libapr1-dev, libcurl4-openssl-dev, zlib1g-dev, libssl-dev,
-<% if Gem::Version.new(latest_nginx_sanitized(@distribution, true)) >= Gem::Version.new('1.21.5') -%>
  libpcre2-dev
-<% else -%>
- libpcre3-dev
-<% end -%>
 Standards-Version: 3.9.3
 Homepage: https://www.phusionpassenger.com/
 Vcs-Git: https://github.com/phusion/passenger.git
@@ -85,20 +79,16 @@ Description: Apache integration for Passenger application server
  .
  This package contains the Apache 2 module for integration with Passenger.
 
-<% if dynamic_module_supported?(@distribution) -%>
 Package: libnginx-mod-http-passenger
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends},
- passenger (= ${binary:Version}),
- nginx-common (>= <%= latest_nginx_unsanitized(@distribution) %>),
- nginx-common (<< <%= next_nginx_tiny_version(@distribution) %>)
+ passenger (= ${binary:Version})
 Description: Nginx integration for Passenger application server 
  Passenger is an application server for Ruby, Node.js, Python, Meteor. 
  It makes deployment of web apps very easy and robust. Passenger is a 
  Phusion product.
  .
  This package contains the Nginx module for integration with Passenger.
-<% end -%>
 
 Package: passenger-doc
 Section: doc
