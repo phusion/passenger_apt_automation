@@ -15,7 +15,7 @@ namespace :source do
   DISTROS.each do |distro|
     register_tracking_task(:preparation, "passenger:#{distro}")
     desc "Create Passenger orig tarball"
-    task("passenger:#{distro}" => :nginx) do
+    task "passenger:#{distro}" do
       track_task(:preparation, "passenger:#{distro}") do |task|
         if FETCH_PASSENGER_TARBALL_FROM_CACHE && File.exist?("/cache/#{distro}_#{PASSENGER_TARBALL}")
           task.sh "cp /cache/#{distro}_#{PASSENGER_TARBALL} /work/#{PASSENGER_TARBALL}"
