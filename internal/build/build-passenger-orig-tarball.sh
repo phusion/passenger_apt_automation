@@ -11,8 +11,8 @@
 #   NGINX_VERSION
 
 set -e
-ROOTDIR=`dirname "$0"`
-ROOTDIR=`cd "$ROOTDIR/../.." && pwd`
+ROOTDIR=$(dirname "$0")
+ROOTDIR=$(cd "$ROOTDIR/../.." && pwd)
 source "$ROOTDIR/internal/lib/library.sh"
 
 require_args_exact 2 "$@"
@@ -33,7 +33,7 @@ if [[ -e /passenger/.git ]]; then
 	echo "+ cd /passenger (expecting local git repo to copy from)"
 	cd /passenger
 	echo "+ Getting list of submodules"
-	submodules=`git submodule status | awk '{ print $2 }'`
+	submodules=$(git submodule status | awk '{ print $2 }')
 	echo "+ adding /passenger to git config safe.directory"
 	git config --global --add safe.directory /passenger
 	for submodule in $submodules; do
@@ -47,9 +47,9 @@ if [[ -e /passenger/.git ]]; then
 		git archive --format=tar HEAD | tar -C /tmp/passenger -x
 		for submodule in $submodules; do
 			echo "+ Copying all git committed files from submodule $submodule"
-			pushd $submodule >/dev/null
-			mkdir -p /tmp/passenger/$submodule
-			git archive --format=tar HEAD | tar -C /tmp/passenger/$submodule -x
+			pushd "$submodule" >/dev/null
+			mkdir -p "/tmp/passenger/$submodule"
+			git archive --format=tar HEAD | tar -C "/tmp/passenger/$submodule" -x
 			popd >/dev/null
 		done
 	)
@@ -67,8 +67,8 @@ run rake package:set_official package:tarball CACHING=false PKG_DIR=~/pkg
 header "Extracting Passenger tarball"
 echo "+ cd ~/pkg"
 cd ~/pkg
-run tar xzf $PASSENGER_PACKAGE_NAME-$PASSENGER_VERSION.tar.gz
-run rm -f $PASSENGER_PACKAGE_NAME-$PASSENGER_VERSION.tar.gz
+run tar xzf "$PASSENGER_PACKAGE_NAME-$PASSENGER_VERSION.tar.gz"
+run rm -f "$PASSENGER_PACKAGE_NAME-$PASSENGER_VERSION.tar.gz"
 
 echo "+ cd $PASSENGER_PACKAGE_NAME-$PASSENGER_VERSION"
 cd "$PASSENGER_PACKAGE_NAME-$PASSENGER_VERSION"
@@ -76,7 +76,7 @@ cd "$PASSENGER_PACKAGE_NAME-$PASSENGER_VERSION"
 header "Extracting Nginx into Passenger directory"
 run tar xzf "/work/${NGINX_DEBIAN_NAME}_${NGINX_VERSION}.orig.tar.gz"
 
-if ! ubuntu_gte "$distro" "noble" && ! debian_gte "$distro" "bookworm"; then
+if { is_ubuntu "$distro" && ! ubuntu_gte "$distro" "noble"; } || { is_debian "$distro" && ! debian_gte "$distro" "bookworm"; }; then
     header "Moving Nginx into Passenger directory for Module"
     run cp "/work/${NGINX_DEBIAN_NAME}_${distro}.orig.tar.gz" .
 fi
@@ -84,7 +84,7 @@ fi
 header "Packaging up"
 cd ..
 echo "+ Normalizing timestamps"
-find $PASSENGER_PACKAGE_NAME-$PASSENGER_VERSION -print0 | xargs -0 touch -d '2013-10-27 00:00:00 UTC'
+find "$PASSENGER_PACKAGE_NAME-$PASSENGER_VERSION" -print0 | xargs -0 touch -d '2013-10-27 00:00:00 UTC'
 echo "+ Creating final orig tarball"
-tar -c $PASSENGER_PACKAGE_NAME-$PASSENGER_VERSION | gzip --no-name --best > "$1"
+tar -c "$PASSENGER_PACKAGE_NAME-$PASSENGER_VERSION" | gzip --no-name --best > "$1"
 run rm -rf ~/pkg
