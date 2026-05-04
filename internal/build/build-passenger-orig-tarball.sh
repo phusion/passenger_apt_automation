@@ -15,13 +15,13 @@ ROOTDIR=`dirname "$0"`
 ROOTDIR=`cd "$ROOTDIR/../.." && pwd`
 source "$ROOTDIR/internal/lib/library.sh"
 
-require_args_exact 1 "$@"
+require_args_exact 2 "$@"
 require_envvar PASSENGER_VERSION "$PASSENGER_VERSION"
 require_envvar PASSENGER_PACKAGE_NAME "$PASSENGER_PACKAGE_NAME"
 require_envvar PASSENGER_DEBIAN_NAME "$PASSENGER_DEBIAN_NAME"
 require_envvar NGINX_DEBIAN_NAME "$NGINX_DEBIAN_NAME"
 require_envvar NGINX_VERSION "$NGINX_VERSION"
-
+distro="$2"
 
 header "Creating Passenger official tarball"
 # /passenger is mounted read-only, but 'rake' may have to create files, e.g.
@@ -70,10 +70,14 @@ cd ~/pkg
 run tar xzf $PASSENGER_PACKAGE_NAME-$PASSENGER_VERSION.tar.gz
 run rm -f $PASSENGER_PACKAGE_NAME-$PASSENGER_VERSION.tar.gz
 
-header "Extracting Nginx into Passenger directory"
 echo "+ cd $PASSENGER_PACKAGE_NAME-$PASSENGER_VERSION"
-cd $PASSENGER_PACKAGE_NAME-$PASSENGER_VERSION
-run tar xzf /work/${NGINX_DEBIAN_NAME}_$NGINX_VERSION.orig.tar.gz
+cd "$PASSENGER_PACKAGE_NAME-$PASSENGER_VERSION"
+
+header "Extracting Nginx into Passenger directory"
+run tar xzf "/work/${NGINX_DEBIAN_NAME}_${NGINX_VERSION}.orig.tar.gz"
+
+header "Extracting Nginx into Passenger directory for Module"
+run tar xzf "/work/${NGINX_DEBIAN_NAME}_${distro}.orig.tar.gz"
 
 header "Packaging up"
 cd ..

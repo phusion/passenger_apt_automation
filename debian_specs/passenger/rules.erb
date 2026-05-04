@@ -57,12 +57,9 @@ override_dh_auto_build:
 		cp -r /usr/share/nginx/src ./nginx-distro && \
 		source ./nginx-distro/conf_flags && \
 <% else -%>
-		sed -Ee 's/# (deb-src)/\1/g' -i'' /etc/apt/sources.list && \
-		apt-get update && \
-		apt-get source nginx && \
 		tar -xf nginx_*.orig.tar.gz && \
-		mv nginx-* ./nginx-distro && \
-		source <(nginx -V 2>&1 | grep 'configure arguments: ' | cut -d: -f 2- | awk '{print "NGX_CONF_FLAGS=(\"",$$0,"\")"}') && \
+		mv "nginx-$$(tar --exclude='*/*' -t -f nginx_j*.orig.tar.gz | tr -d / | cut -d- -f2)" ./nginx-distro && \
+		readarray -t NGX_CONF_FLAGS < <(nginx -V 2>&1 | awk -F: '/configure arguments/ {print $$2}' | xargs -n1) && \
 <% end -%>
 		cd ./nginx-distro && \
 		./configure "$${NGX_CONF_FLAGS[@]}" --add-dynamic-module="../src/nginx_module" && \

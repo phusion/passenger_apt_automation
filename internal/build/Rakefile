@@ -7,46 +7,32 @@ initialize_tracking_database!(SHOW_OVERVIEW_PERIODICALLY)
 
 ##### Source tarballs and build environment initialization #####
 
-SOURCE_TASKS = ['source:passenger', 'source:nginx']
+SOURCE_TASKS = ['source:passenger']
 
 register_tracking_category(:preparation, 'Preparation')
 
 namespace :source do
-  register_tracking_task(:preparation, 'passenger')
+  register_tracking_task(:preparation, "passenger:#{distro}")
   desc "Create Passenger orig tarball"
-  task :passenger => :nginx do
-    track_task(:preparation, 'passenger') do |task|
-      if FETCH_PASSENGER_TARBALL_FROM_CACHE && File.exist?("/cache/#{PASSENGER_TARBALL}")
-        task.sh "cp /cache/#{PASSENGER_TARBALL} /work/#{PASSENGER_TARBALL}"
+  task("passenger:#{distro}" => :nginx) do
+    track_task(:preparation, "passenger:#{distro}") do |task|
+      if FETCH_PASSENGER_TARBALL_FROM_CACHE && File.exist?("/cache/#{distro}_#{PASSENGER_TARBALL}")
+        task.sh "cp /cache/#{distro}_#{PASSENGER_TARBALL} /work/#{PASSENGER_TARBALL}"
       else
-        task.sh "./build-passenger-orig-tarball.sh /work/#{PASSENGER_TARBALL}"
-        task.sh "cp /work/#{PASSENGER_TARBALL} /cache/#{PASSENGER_TARBALL}"
-      end
-    end
-  end
-
-  register_tracking_task(:preparation, 'nginx')
-  desc "Create Nginx orig tarball"
-  task :nginx do
-    track_task(:preparation, 'nginx') do |task|
-      if File.exist?("/cache/#{NGINX_TARBALL}")
-        task.sh "cp /cache/#{NGINX_TARBALL} /work/#{NGINX_TARBALL}"
-      else
-        task.sh "./download-nginx-orig-tarball.sh /work/#{NGINX_TARBALL}"
-        task.sh "cp /work/#{NGINX_TARBALL} /cache/#{NGINX_TARBALL}"
-      end
-      # This second Nginx is specifically for when we're stuck at a lower version (e.g. due to distro module
-      # list containing modules that are incompatible with the above Nginx version).
-      if File.exist?("/cache/#{PACKAGING_NGINX_TARBALL}")
-        task.sh "cp /cache/#{PACKAGING_NGINX_TARBALL} /work/#{PACKAGING_NGINX_TARBALL}"
-      else
-        task.sh "./download-nginx-orig-tarball.sh /work/#{PACKAGING_NGINX_TARBALL}"
-        task.sh "cp /work/#{PACKAGING_NGINX_TARBALL} /cache/#{PACKAGING_NGINX_TARBALL}"
+        if ubuntu_gte(@distribution, "noble") || debian_gte(@distribution, "bookworm")
+          if File.exist?("/cache/nginx_#{distro}.orig.tar.gz")
+            task.sh "cp /cache/nginx_#{distro}.orig.tar.gz /work/"
+          else
+            task.sh "./download-nginx-distro-tarball.sh #{distro} /work/nginx_#{distro}.orig.tar.gz"
+            task.sh "cp /work/nginx_#{distro}.orig.tar.gz /cache/"
+          end
+        end
+        task.sh "./build-passenger-orig-tarball.sh /work/#{PASSENGER_TARBALL} ${distro}"
+        task.sh "cp /work/#{PASSENGER_TARBALL} /cache/#{distro}_#{PASSENGER_TARBALL}"
       end
     end
   end
 end
-
 
 ##### Source packages #####
 
