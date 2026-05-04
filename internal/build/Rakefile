@@ -28,7 +28,7 @@ namespace :source do
               task.sh "cp /work/nginx_#{distro}.orig.tar.gz /cache/"
             end
           end
-          task.sh "./build-passenger-orig-tarball.sh /work/#{PASSENGER_TARBALL} ${distro}"
+          task.sh "./build-passenger-orig-tarball.sh /work/#{PASSENGER_TARBALL} #{distro}"
           task.sh "cp /work/#{PASSENGER_TARBALL} /cache/#{distro}_#{PASSENGER_TARBALL}"
         end
       end

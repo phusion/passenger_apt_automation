@@ -1,5 +1,5 @@
 #!/bin/bash
-# Usage: build-passenger-orig-tarball.sh <OUTPUT>
+# Usage: build-passenger-orig-tarball.sh <OUTPUT> <DISTRO>
 # Builds the Passenger orig tarball from a Passenger source directory.
 #
 # Required environment variables:
