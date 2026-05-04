@@ -9,7 +9,10 @@ Uploaders: <%= MAINTAINER_NAME %> <<%= MAINTAINER_EMAIL %>>
 Build-Depends: debhelper (>= 10~), rake,
  <%= ruby_package_dependencies %>,
  apache2 (>= 2.4), apache2-dev (>= 2.4),
- libxslt-dev, libgd-dev, libgeoip-dev, nginx-dev,
+ libxslt-dev, libgd-dev, libgeoip-dev,
+<% if ubuntu_gte(@distribution, "noble") || debian_gte(@distribution, "bookworm") %>
+ nginx-dev,
+<% end %>
  libapr1-dev, libcurl4-openssl-dev, zlib1g-dev, libssl-dev,
  libpcre2-dev
 Standards-Version: 3.9.3
@@ -82,6 +85,7 @@ Description: Apache integration for Passenger application server
 Package: libnginx-mod-http-passenger
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends},
+ nginx-common,
  passenger (= ${binary:Version})
 Description: Nginx integration for Passenger application server 
  Passenger is an application server for Ruby, Node.js, Python, Meteor. 
