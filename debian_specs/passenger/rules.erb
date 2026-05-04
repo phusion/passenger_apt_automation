@@ -27,7 +27,7 @@ override_dh_auto_configure:
 	# Do nothing
 
 override_dh_auto_build:
-	vendordir=`/usr/bin/ruby<%= distro_ruby_versions[0] %> -rrbconfig -e 'puts RbConfig::CONFIG["vendordir"]'` && \
+	vendordir=`/usr/bin/ruby<%= distro_ruby_versions.first %> -rrbconfig -e 'puts RbConfig::CONFIG["vendordir"]'` && \
 		sed -i "s|@RUBYLIBDIR@|$$vendordir|g" \
 			debian/locations.ini \
 			debian/passenger.install \
@@ -53,9 +53,18 @@ override_dh_auto_build:
 		make && \
 		mv objs/nginx objs/nginx-<%= PhusionPassenger::PREFERRED_NGINX_VERSION %>
 	/usr/bin/rake nginx:as_dynamic_module && \
+<% if ubuntu_gte(@distribution, "noble") || debian_gte(@distribution, "bookworm") -%>
 		cp -r /usr/share/nginx/src ./nginx-distro && \
+		source ./nginx-distro/conf_flags && \
+<% else -%>
+		sed -Ee 's/# (deb-src)/\1/g' -i'' /etc/apt/sources.list && \
+		apt-get update && \
+		apt-get source nginx && \
+		tar -xf nginx_*.orig.tar.gz && \
+		mv nginx-* ./nginx-distro && \
+		source <(nginx -V 2>&1 | grep 'configure arguments: ' | cut -d: -f 2- | awk '{print "NGX_CONF_FLAGS=(\"",$$0,"\")"}') && \
+<% end -%>
 		cd ./nginx-distro && \
-		source ./conf_flags && \
 		./configure "$${NGX_CONF_FLAGS[@]}" --add-dynamic-module="../src/nginx_module" && \
 		make -f objs/Makefile modules && \
 		mv ./objs/ngx_http_passenger_module.so "../debian/" || \
@@ -69,7 +78,7 @@ override_dh_auto_install:
 <% distro_ruby_versions.each do |ruby_version| -%>
 	cp -a pkg/fakeroot<%= ruby_version %>/* debian/tmp/
 <% end -%>
-	vendordir=`/usr/bin/ruby<%= distro_ruby_versions[0] %> -rrbconfig -e 'puts RbConfig::CONFIG["vendordir"]'` && \
+	vendordir=`/usr/bin/ruby<%= distro_ruby_versions.first %> -rrbconfig -e 'puts RbConfig::CONFIG["vendordir"]'` && \
 		./dev/install_scripts_bootstrap_code.rb --ruby "$$vendordir" \
 		debian/tmp/usr/bin/* \
 		debian/tmp/usr/sbin/* \
