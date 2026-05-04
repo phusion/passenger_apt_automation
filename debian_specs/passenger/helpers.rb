@@ -30,3 +30,11 @@ def distro_ruby_versions
     raise "Unknown distribution class"
   end
 end
+
+def distro_nginx_sources
+  if ubuntu_gte(@distribution, "noble") || debian_gte(@distribution, "bookworm")
+    'nginx-dev'
+  else
+    'nginx'
+  end
+end
