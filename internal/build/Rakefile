@@ -55,7 +55,7 @@ namespace :spkg do
 
     register_tracking_task(:spkg, "passenger:#{distro}")
     desc "Build Passenger source package for #{distro}"
-    task("passenger:#{distro}" => ["source:passenger:#{distro}}"]) do
+    task("passenger:#{distro}" => ["source:passenger:#{distro}"]) do
       track_task(:spkg, "passenger:#{distro}") do |task|
         task.sh "mkdir -p /work/spkg/passenger"
         task.sh "mkdir /work/spkg/passenger/#{distro}"
