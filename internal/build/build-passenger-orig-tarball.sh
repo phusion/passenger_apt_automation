@@ -76,8 +76,10 @@ cd "$PASSENGER_PACKAGE_NAME-$PASSENGER_VERSION"
 header "Extracting Nginx into Passenger directory"
 run tar xzf "/work/${NGINX_DEBIAN_NAME}_${NGINX_VERSION}.orig.tar.gz"
 
-header "Extracting Nginx into Passenger directory for Module"
-run tar xzf "/work/${NGINX_DEBIAN_NAME}_${distro}.orig.tar.gz"
+if ! ubuntu_gte "$distro" "noble" && ! debian_gte "$distro" "bookworm"; then
+    header "Moving Nginx into Passenger directory for Module"
+    run cp "/work/${NGINX_DEBIAN_NAME}_${distro}.orig.tar.gz" .
+fi
 
 header "Packaging up"
 cd ..
