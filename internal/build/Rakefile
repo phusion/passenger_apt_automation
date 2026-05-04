@@ -35,6 +35,7 @@ namespace :source do
     end
   end
 
+  # For builtin engine Nginx
   register_tracking_task(:preparation, 'nginx')
   desc "Create Nginx orig tarball"
   task :nginx do
