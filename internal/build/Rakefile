@@ -12,23 +12,25 @@ SOURCE_TASKS = ['source:passenger']
 register_tracking_category(:preparation, 'Preparation')
 
 namespace :source do
-  register_tracking_task(:preparation, "passenger:#{distro}")
-  desc "Create Passenger orig tarball"
-  task("passenger:#{distro}" => :nginx) do
-    track_task(:preparation, "passenger:#{distro}") do |task|
-      if FETCH_PASSENGER_TARBALL_FROM_CACHE && File.exist?("/cache/#{distro}_#{PASSENGER_TARBALL}")
-        task.sh "cp /cache/#{distro}_#{PASSENGER_TARBALL} /work/#{PASSENGER_TARBALL}"
-      else
-        if ubuntu_gte(@distribution, "noble") || debian_gte(@distribution, "bookworm")
-          if File.exist?("/cache/nginx_#{distro}.orig.tar.gz")
-            task.sh "cp /cache/nginx_#{distro}.orig.tar.gz /work/"
-          else
-            task.sh "./download-nginx-distro-tarball.sh #{distro} /work/nginx_#{distro}.orig.tar.gz"
-            task.sh "cp /work/nginx_#{distro}.orig.tar.gz /cache/"
+  DISTROS.each do |distro|
+    register_tracking_task(:preparation, "passenger:#{distro}")
+    desc "Create Passenger orig tarball"
+    task("passenger:#{distro}" => :nginx) do
+      track_task(:preparation, "passenger:#{distro}") do |task|
+        if FETCH_PASSENGER_TARBALL_FROM_CACHE && File.exist?("/cache/#{distro}_#{PASSENGER_TARBALL}")
+          task.sh "cp /cache/#{distro}_#{PASSENGER_TARBALL} /work/#{PASSENGER_TARBALL}"
+        else
+          if ubuntu_gte(@distribution, "noble") || debian_gte(@distribution, "bookworm")
+            if File.exist?("/cache/nginx_#{distro}.orig.tar.gz")
+              task.sh "cp /cache/nginx_#{distro}.orig.tar.gz /work/"
+            else
+              task.sh "./download-nginx-distro-tarball.sh #{distro} /work/nginx_#{distro}.orig.tar.gz"
+              task.sh "cp /work/nginx_#{distro}.orig.tar.gz /cache/"
+            end
           end
+          task.sh "./build-passenger-orig-tarball.sh /work/#{PASSENGER_TARBALL} ${distro}"
+          task.sh "cp /work/#{PASSENGER_TARBALL} /cache/#{distro}_#{PASSENGER_TARBALL}"
         end
-        task.sh "./build-passenger-orig-tarball.sh /work/#{PASSENGER_TARBALL} ${distro}"
-        task.sh "cp /work/#{PASSENGER_TARBALL} /cache/#{distro}_#{PASSENGER_TARBALL}"
       end
     end
   end
@@ -53,7 +55,7 @@ namespace :spkg do
 
     register_tracking_task(:spkg, "passenger:#{distro}")
     desc "Build Passenger source package for #{distro}"
-    task("passenger:#{distro}" => ["source:passenger"]) do
+    task("passenger:#{distro}" => ["source:passenger:#{distro}}"]) do
       track_task(:spkg, "passenger:#{distro}") do |task|
         task.sh "mkdir -p /work/spkg/passenger"
         task.sh "mkdir /work/spkg/passenger/#{distro}"
