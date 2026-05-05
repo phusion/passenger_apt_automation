@@ -35,6 +35,6 @@ def distro_nginx_sources
   if ubuntu_gte(@distribution, "noble") || debian_gte(@distribution, "bookworm")
     'nginx-dev'
   else
-    'nginx'
+    'nginx, libpcre3-dev'
   end
 end

@@ -58,14 +58,15 @@ override_dh_auto_build:
 		source ./nginx-distro/conf_flags && \
 <% else -%>
 		tar -xf nginx_*.orig.tar.gz && \
-		mv "nginx-$$(tar --exclude='*/*' -t -f nginx_j*.orig.tar.gz | tr -d / | cut -d- -f2)" ./nginx-distro && \
+		mv "$$(tar --exclude='*/*' -t -f nginx_*.orig.tar.gz | tr -d /)" ./nginx-distro && \
 		readarray -t NGX_CONF_FLAGS < <(nginx -V 2>&1 | awk -F: '/configure arguments/ {print $$2}' | xargs -n1) && \
+		for index in "$${!NGX_CONF_FLAGS[@]}"; do if [[ "$${NGX_CONF_FLAGS[$$index]}" =~ ^--add-dynamic-module= ]]; then unset -v 'NGX_CONF_FLAGS[$$index]'; fi; done && \
 <% end -%>
 		cd ./nginx-distro && \
 		./configure "$${NGX_CONF_FLAGS[@]}" --add-dynamic-module="../src/nginx_module" && \
 		make -f objs/Makefile modules && \
-		mv ./objs/ngx_http_passenger_module.so "../debian/" || \
-		mv ./modules/ngx_http_passenger_module.so "../debian/"
+		{ mv ./objs/ngx_http_passenger_module.so "../debian/" || \
+		mv ./modules/ngx_http_passenger_module.so "../debian/"; }
 
 override_dh_auto_test:
 

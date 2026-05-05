@@ -14,6 +14,7 @@ set -e
 ROOTDIR=$(dirname "$0")
 ROOTDIR=$(cd "$ROOTDIR/../.." && pwd)
 source "$ROOTDIR/internal/lib/library.sh"
+source "$ROOTDIR/internal/lib/distro_info.sh"
 
 require_args_exact 2 "$@"
 require_envvar PASSENGER_VERSION "$PASSENGER_VERSION"

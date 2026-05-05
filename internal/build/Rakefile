@@ -20,7 +20,7 @@ namespace :source do
         if FETCH_PASSENGER_TARBALL_FROM_CACHE && File.exist?("/cache/#{distro}_#{PASSENGER_TARBALL}")
           task.sh "cp /cache/#{distro}_#{PASSENGER_TARBALL} /work/#{PASSENGER_TARBALL}"
         else
-          if ubuntu_gte(@distribution, "noble") || debian_gte(@distribution, "bookworm")
+          if !(ubuntu_gte(@distribution, "noble") || debian_gte(@distribution, "bookworm"))
             if File.exist?("/cache/nginx_#{distro}.orig.tar.gz")
               task.sh "cp /cache/nginx_#{distro}.orig.tar.gz /work/"
             else
