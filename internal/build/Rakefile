@@ -7,7 +7,7 @@ initialize_tracking_database!(SHOW_OVERVIEW_PERIODICALLY)
 
 ##### Source tarballs and build environment initialization #####
 
-SOURCE_TASKS = ['source:passenger', 'source:nginx']
+SOURCE_TASKS = [ 'source:passenger', 'source:nginx' ]
 
 register_tracking_category(:preparation, 'Preparation')
 
@@ -77,21 +77,21 @@ namespace :spkg do
 
     register_tracking_task(:spkg, "passenger:#{distro}")
     desc "Build Passenger source package for #{distro}"
-    task("passenger:#{distro}" => ["source:passenger:#{distro}"]) do
+    task("passenger:#{distro}" => [ "source:passenger:#{distro}" ]) do
       track_task(:spkg, "passenger:#{distro}") do |task|
         task.sh "mkdir -p /work/spkg/passenger"
         task.sh "mkdir /work/spkg/passenger/#{distro}"
         task.sh "./build-source-package.rb",
-                :SPECDIR      => "/system/debian_specs/#{PASSENGER_SPECDIR}",
-                :DISTRIBUTION => distro,
-                :TARBALL      => PASSENGER_TARBALL,
-                :SOURCENAME   => "#{PASSENGER_PACKAGE_NAME}-#{PASSENGER_VERSION}",
-                :SPKG_DIR     => "/work/spkg/passenger/#{distro}",
-                :PACKAGE_VERSION  => PASSENGER_VERSION,
-                :DEBIAN_NAME      => PASSENGER_DEBIAN_NAME,
-                :DEBIAN_EPOCH     => PASSENGER_DEBIAN_EPOCH,
-                :DEBIAN_VENDOR_VERSION => PASSENGER_DEBIAN_VENDOR_VERSION,
-                :DEBIAN_HOTFIX_VERSION => PASSENGER_DEBIAN_HOTFIX_VERSION
+                SPECDIR: "/system/debian_specs/#{PASSENGER_SPECDIR}",
+                DISTRIBUTION: distro,
+                TARBALL: PASSENGER_TARBALL,
+                SOURCENAME: "#{PASSENGER_PACKAGE_NAME}-#{PASSENGER_VERSION}",
+                SPKG_DIR: "/work/spkg/passenger/#{distro}",
+                PACKAGE_VERSION: PASSENGER_VERSION,
+                DEBIAN_NAME: PASSENGER_DEBIAN_NAME,
+                DEBIAN_EPOCH: PASSENGER_DEBIAN_EPOCH,
+                DEBIAN_VENDOR_VERSION: PASSENGER_DEBIAN_VENDOR_VERSION,
+                DEBIAN_HOTFIX_VERSION: PASSENGER_DEBIAN_HOTFIX_VERSION
       end
     end
   end
@@ -115,7 +115,7 @@ namespace :env do
 
   DISTROS.each do |distro|
     ARCHITECTURES.each do |arch|
-      task :all => "#{distro}:#{arch}"
+      task all: "#{distro}:#{arch}"
 
       register_tracking_task(:pkg, "env:#{distro}:#{arch}")
       desc "Initialize environment for #{distro} #{arch}"
@@ -145,7 +145,7 @@ namespace :pkg do
 
       register_tracking_task(:pkg, "passenger:#{distro}:#{arch}")
       desc "Build Passenger binary package for #{distro} #{arch}"
-      task("passenger:#{distro}:#{arch}" => ["spkg:passenger:#{distro}", "env:#{distro}:#{arch}"]) do
+      task("passenger:#{distro}:#{arch}" => [ "spkg:passenger:#{distro}", "env:#{distro}:#{arch}" ]) do
         track_task(:pkg, "passenger:#{distro}:#{arch}") do |task|
           task.sh "cd /work/spkg/passenger/#{distro} && yes | pbuilder-dist #{distro} #{arch} *.dsc"
         end

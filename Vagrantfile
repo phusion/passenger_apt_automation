@@ -17,7 +17,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.synced_folder passenger_path, "/passenger"
   end
 
-  config.vm.provision :shell, :path => "internal/scripts/setup-vagrant.sh"
+  config.vm.provision :shell, path: "internal/scripts/setup-vagrant.sh"
 
   config.vm.provider "virtualbox" do |v|
     v.memory = 2048

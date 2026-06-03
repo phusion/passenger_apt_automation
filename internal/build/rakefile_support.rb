@@ -96,4 +96,3 @@ def infer_next_passenger_version(passenger_version)
   end
   components.join(".")
 end
-

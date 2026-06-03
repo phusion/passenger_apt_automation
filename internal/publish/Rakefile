@@ -11,7 +11,7 @@ initialize_tracking_database!(SHOW_OVERVIEW_PERIODICALLY)
 desc "Publish all packages"
 task "publish:all"
 
-task :init_repo_server_client => REPO_SERVER_YANK_ALL_TASKS do
+task init_repo_server_client: REPO_SERVER_YANK_ALL_TASKS do
   initialize_tracking_database_logs!
 end
 
@@ -51,9 +51,8 @@ DISTROS.each do |distro_class, distro|
   desc "Publish #{distro} packages"
   task "publish:all" => "publish:#{distro}"
   register_tracking_task(:publish, "#{distro}")
-  task "publish:#{distro}" => [:init_repo_server_client] do
+  task "publish:#{distro}" => [ :init_repo_server_client ] do
     track_task(:publish, "#{distro}", false) do |task|
-
     Dir.mktmpdir do |tmpdir|
       files = Dir["/output/#{distro}/*.{deb,dsc}"].map { |x| File.basename(x) }
       task.sh "tar -cf #{Shellwords.escape tmpdir}/#{Shellwords.escape distro}.tar" \

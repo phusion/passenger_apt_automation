@@ -20,7 +20,7 @@ module Utils
     "MediumOrchid1",
     "DeepSkyBlue",
     "chartreuse1",
-    "aquamarine"
+    "aquamarine",
   ].freeze
 
   def distance_of_time_in_hours_and_minutes(from_time, to_time)

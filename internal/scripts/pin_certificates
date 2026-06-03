@@ -22,7 +22,7 @@ def get_fingerprint(host, port = 443)
   request = Net::HTTP::Get.new("/")
   http.request(request)
 
-  [subject, fingerprint]
+  [ subject, fingerprint ]
 end
 
 def update_pin_file(path, hostname, port = 443)

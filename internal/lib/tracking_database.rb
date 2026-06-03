@@ -81,8 +81,8 @@ class TrackingDatabase
   def dump(color = false)
     io = StringIO.new
     if color
-      success_color = [:green]
-      error_color = [:red]
+      success_color = [ :green ]
+      error_color = [ :red ]
     else
       success_color = error_color = []
     end

@@ -16,7 +16,7 @@ def ping_socket(socket_domain, sockaddr)
     begin
       socket.connect_nonblock(sockaddr)
     rescue Errno::ENOENT, Errno::EINPROGRESS, Errno::EAGAIN, Errno::EWOULDBLOCK
-      if select(nil, [socket], nil, 0.1)
+      if select(nil, [ socket ], nil, 0.1)
         begin
           socket.connect_nonblock(sockaddr)
         rescue Errno::EISCONN

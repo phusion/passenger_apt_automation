@@ -1,4 +1,5 @@
 # encoding: utf-8
+
 #  Phusion Passenger - https://www.phusionpassenger.com/
 #  Copyright (c) 2013-2015 Phusion
 #
@@ -67,9 +68,9 @@ private
   class Evaluator
     def _infer_distro_table(name)
       if UBUNTU_DISTRIBUTIONS.has_key?(name)
-        return UBUNTU_DISTRIBUTIONS
+        UBUNTU_DISTRIBUTIONS
       elsif DEBIAN_DISTRIBUTIONS.has_key?(name)
-        return DEBIAN_DISTRIBUTIONS
+        DEBIAN_DISTRIBUTIONS
       end
     end
 
@@ -115,17 +116,17 @@ private
 
         case comparator
         when ">"
-          return v1 > v2
+          v1 > v2
         when ">="
-          return v1 >= v2
+          v1 >= v2
         when "<"
-          return v1 < v2
+          v1 < v2
         when "<="
-          return v1 <= v2
+          v1 <= v2
         when "=="
-          return v1 == v2
+          v1 == v2
         when "!="
-          return v1 != v2
+          v1 != v2
         else
           raise "BUG"
         end
@@ -172,7 +173,7 @@ private
       object.send(:instance_variable_set, "@#{key}", val)
     end
     object.instance_eval do
-      [object, binding]
+      [ object, binding ]
     end
   end
 end

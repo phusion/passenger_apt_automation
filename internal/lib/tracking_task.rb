@@ -1,4 +1,5 @@
 # encoding: binary
+
 require_relative 'utils'
 require 'shellwords'
 require 'paint'
