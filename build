@@ -167,20 +167,22 @@ if $SHOW_TASKS; then
      /sbin/my_init --quiet --skip-runit --skip-startup-files -- \
      rake -f /system/internal/build/Rakefile -T --trace
 else
-    DISTRO_NGINXS=()
-    for distro in $DISTRIBUTIONS; do
-        export DOCKER_CLI_EXPERIMENTAL=enabled
-        if docker manifest inspect "debian:$distro" >/dev/null 2>&1; then
-            kind="debian"
-        else
-            kind="ubuntu"
-            # so far only debian blocks scraping their repos, ubuntu doesn't yet
-            continue
-        fi
-        version=$(docker run "$kind:$distro" bash -c 'apt-get update >/dev/null && apt-cache policy nginx' | awk '/Candidate:/{print $NF}')
-        DISTRO_NGINXS+=("$distro:$version")
-    done
-
+    # save time by dropping this after the old distros are EOL (jammy: 2027-05-??, bullseye: 2026-08-31)
+    if [[ "${DEFAULT_DISTROS[*]}" == *" jammy "* ]] || [[ "${DEFAULT_DISTROS[*]}" == *" bullseye "* ]]; then
+        DISTRO_NGINXS=()
+        for distro in $DISTRIBUTIONS; do
+            export DOCKER_CLI_EXPERIMENTAL=enabled
+            if docker manifest inspect "debian:$distro" >/dev/null 2>&1; then
+                kind="debian"
+            else
+                kind="ubuntu"
+                # so far only debian blocks scraping their repos, ubuntu doesn't yet
+                continue
+            fi
+            version=$(docker run "$kind:$distro" bash -c 'apt-get update >/dev/null && apt-cache policy nginx' | awk '/Candidate:/{print $NF}')
+            DISTRO_NGINXS+=("$distro:$version")
+        done
+    fi
     PASSENGER_DIR=$(absolute_path "$PASSENGER_DIR")
     WORK_DIR=$(absolute_path "$WORK_DIR")
     CACHE_DIR=$(absolute_path "$CACHE_DIR")

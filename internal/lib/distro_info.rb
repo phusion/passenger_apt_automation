@@ -19,6 +19,8 @@ DEBIAN_DISTRIBUTIONS = gen_distros("debian").transform_values(&:to_i)
 
 # A list of distribution codenames for which the `build` script
 # will build for, and for which the `test` script will test for.
+# https://ubuntu.com/about/release-cycle
+# https://www.debian.org/releases/
 DEFAULT_DISTROS = %w[
   jammy
   noble
