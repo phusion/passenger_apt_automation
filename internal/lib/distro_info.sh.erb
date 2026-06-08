@@ -138,3 +138,13 @@ function known_distro ()
         '
 	awk -F, -vPATTERN="^$INPUT( LTS|\\\\.0)?\$" "$AWK_SCRIPT" /usr/share/distro-info/*.csv
 }
+
+function is_ubuntu ()
+{
+    grep -q "$1" /usr/share/distro-info/ubuntu.csv
+}
+
+function is_debian ()
+{
+    grep -q "$1" /usr/share/distro-info/debian.csv
+}
