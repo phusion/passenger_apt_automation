@@ -53,15 +53,18 @@ run chown app: ~app/.pbuilderrc
 
 header "Installing dependencies"
 run apt-get install -y -q ubuntu-dev-tools debhelper source-highlight \
-	ruby ruby-dev ruby-nokogiri libsqlite3-dev runit git gawk dh-make dirmngr debian-keyring \
-	zlib1g-dev libxml2-dev libxslt1-dev gdebi-core gnupg distro-info-data dh-sequence-nginx
+	ruby ruby-dev ruby-nokogiri libsqlite3-dev runit git gawk dh-make dirmngr \
+	zlib1g-dev libxml2-dev libxslt1-dev gdebi-core gnupg distro-info-data dh-sequence-nginx \
+	dpkg-dev debian-keyring debian-archive-keyring
+# installing dpkg-dev and debian-archive-keyring and the keyring copy below are only needed until bullseye & jammy are EOL
+cp /usr/share/keyrings/debian-* /etc/apt/trusted.gpg.d/
 run gem install rake bundler --no-document
 run env BUNDLE_GEMFILE=/paa_build/Gemfile bundle install
 
 header "Importing public keys"
 run sudo -u app -H gpg --keyserver keyserver.ubuntu.com --recv-keys C324F5BB38EEB5A0
-echo '+ sudo -u app -H gpg --armor --export C324F5BB38EEB5A0 | apt-key add -'
-sudo -u app -H gpg --armor --export C324F5BB38EEB5A0 | apt-key add -
+echo '+ sudo -u app -H gpg --armor --export C324F5BB38EEB5A0 > /etc/apt/trusted.gpg.d/launchpad_ppa_for_phusion.asc'
+sudo -u app -H gpg --armor --export C324F5BB38EEB5A0 > /etc/apt/trusted.gpg.d/launchpad_ppa_for_phusion.asc
 # start dirmngr
 run dirmngr
 # Fixes pbuilder-dist not being able to debootstrap newer dists.

@@ -58,7 +58,6 @@ override_dh_auto_build:
 		source ./nginx-distro/conf_flags && \
 <% else -%>
 		tar -xf nginx_*.orig.tar.gz && \
-		mv "$$(tar --exclude='*/*' -t -f nginx_*.orig.tar.gz | tr -d /)" ./nginx-distro && \
 		readarray -t NGX_CONF_FLAGS < <(nginx -V 2>&1 | awk -F: '/configure arguments/ {print $$2}' | xargs -n1) && \
 		for index in "$${!NGX_CONF_FLAGS[@]}"; do if [[ "$${NGX_CONF_FLAGS[$$index]}" =~ ^--add-dynamic-module= ]]; then unset -v 'NGX_CONF_FLAGS[$$index]'; fi; done && \
 <% end -%>
