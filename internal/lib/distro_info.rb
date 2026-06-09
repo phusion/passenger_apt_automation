@@ -41,6 +41,14 @@ def debian_gte(codename, compare)
   generic_gte(DEBIAN_DISTRIBUTIONS, codename, compare)
 end
 
+def is_ubuntu(codename)
+  UBUNTU_DISTRIBUTIONS.keys.include?  codename
+end
+
+def is_debian(codename)
+  DEBIAN_DISTRIBUTIONS.keys.include?  codename
+end
+
 def generic_gte(hash, codename, compare)
   return nil unless hash.key?(codename)
   hash[codename] >= hash[compare]
