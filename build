@@ -149,14 +149,14 @@ function parse_options()
 parse_options "$@"
 
 if tty -s; then
-    TTY_ARGS="-t -i"
+    TTY_ARGS=(-t -i)
 else
-    TTY_ARGS=
+    TTY_ARGS=()
 fi
 
 if $SHOW_TASKS; then
     exec docker run \
-     --rm $TTY_ARGS \
+     --rm "${TTY_ARGS[@]}" \
      -v "$SELFDIR:/system:ro" \
      -e "DISTRIBUTIONS=$DISTRIBUTIONS" \
      -e "ARCHITECTURES=$ARCHITECTURES" \
@@ -191,7 +191,7 @@ else
     for ARCH in $ARCHITECTURES; do
     echo "+ Initializing ccache directory for $ARCH"
     verbose_run docker run \
-            --rm $TTY_ARGS \
+            --rm "${TTY_ARGS[@]}" \
             -v "$SELFDIR:/system:ro" \
             -v "$CACHE_DIR:/cache" \
             -e "DISTRIBUTIONS=$DISTRIBUTIONS" \
@@ -204,8 +204,8 @@ else
             /system/internal/scripts/initccache.sh
 
     echo "-------- Entering Docker container for $ARCH --------"
-    exec docker run \
-         --rm $TTY_ARGS \
+    docker run \
+         --rm "${TTY_ARGS[@]}" \
          --privileged \
          -v "$SELFDIR:/system:ro" \
          -v "$PASSENGER_DIR:/passenger:ro" \
