@@ -46,14 +46,6 @@ namespace :source do
         task.sh "./download-nginx-orig-tarball.sh /work/#{NGINX_TARBALL}"
         task.sh "cp /work/#{NGINX_TARBALL} /cache/#{NGINX_TARBALL}"
       end
-      # This second Nginx is specifically for when we're stuck at a lower version (e.g. due to distro module
-      # list containing modules that are incompatible with the above Nginx version).
-      if File.exist?("/cache/#{PACKAGING_NGINX_TARBALL}")
-        task.sh "cp /cache/#{PACKAGING_NGINX_TARBALL} /work/#{PACKAGING_NGINX_TARBALL}"
-      else
-        task.sh "./download-nginx-orig-tarball.sh /work/#{PACKAGING_NGINX_TARBALL}"
-        task.sh "cp /work/#{PACKAGING_NGINX_TARBALL} /cache/#{PACKAGING_NGINX_TARBALL}"
-      end
     end
   end
 end
