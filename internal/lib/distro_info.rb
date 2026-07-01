@@ -81,3 +81,7 @@ end
 def systemd_tmpfiles?(distro)
   ubuntu_gte(distro, "vivid") || debian_gte(distro, "jessie")
 end
+
+def latest_nginx_unsanitized(distro)
+  ENV['DISTRO_NGINXS'].split.map{|dv|dv.split(":")}.to_h[distro.to_s]
+end
