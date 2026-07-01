@@ -54,7 +54,7 @@ DISTROS.each do |distro_class, distro|
   task "publish:#{distro}" => [ :init_repo_server_client ] do
     track_task(:publish, "#{distro}", false) do |task|
     Dir.mktmpdir do |tmpdir|
-      files = Dir["/output/#{distro}/*.{deb,dsc}"].map { |x| File.basename(x) }
+      files = Dir["/output/#{distro}/*.{deb,dsc,tar.xz}"].map { |x| File.basename(x) }
       task.sh "tar -cf #{Shellwords.escape tmpdir}/#{Shellwords.escape distro}.tar" \
         " -C /output/#{Shellwords.escape distro} #{Shellwords.shelljoin(files)}"
 
