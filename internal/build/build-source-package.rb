@@ -75,32 +75,6 @@ puts "+ cd #{SPECDIR}"
 Dir.chdir(SPECDIR)
 Utils.recursive_copy_files(Dir["**/*"], "#{SPKG_DIR}/#{SOURCENAME}/debian", true, distribution: DISTRIBUTION)
 
-if DEBIAN_NAME =~ /nginx/
-  puts "--> Copying Passenger files into Debian directory"
-  puts "+ cd #{SPKG_DIR}/#{SOURCENAME}/debian/modules"
-  Dir.chdir("#{SPKG_DIR}/#{SOURCENAME}/debian/modules")
-  sh "tar xzf /work/#{PASSENGER_TARBALL}"
-  sh "mv passenger* passenger"
-  sh "rm -rf passenger/debian.template passenger/doc/images/* passenger/test passenger/packaging"
-  sh "rm -rf passenger/nginx-*"
-  Dir.chdir("../..") do
-    File.open("debian/source/include-binaries", "a") do |f|
-      Dir["debian/modules/passenger/doc/*.pdf"].each do |filename|
-        puts "+ Including #{filename} as binary"
-        f.puts filename
-      end
-      Dir["debian/modules/passenger/resources/*.p12"].each do |filename|
-        puts "+ Including #{filename} as binary"
-        f.puts filename
-      end
-      Dir["debian/modules/passenger/images/*.png"].each do |filename|
-        puts "+ Including #{filename} as binary"
-        f.puts filename
-      end
-    end
-  end
-end
-
 puts "--> Updating Debian changelog file"
 puts "+ cd #{SPKG_DIR}/#{SOURCENAME}"
 Dir.chdir("#{SPKG_DIR}/#{SOURCENAME}")
