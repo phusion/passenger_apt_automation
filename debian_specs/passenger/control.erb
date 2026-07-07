@@ -83,7 +83,7 @@ Description: Apache integration for Passenger application server
 Package: libnginx-mod-http-passenger
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends},
- nginx-core (= <%= latest_nginx_unsanitized(@distribution) %>),
+ nginx-common (= <%= latest_nginx_unsanitized(@distribution) %>),
  passenger (= ${binary:Version})
 Description: Nginx integration for Passenger application server 
  Passenger is an application server for Ruby, Node.js, Python, Meteor. 
