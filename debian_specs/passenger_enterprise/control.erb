@@ -84,7 +84,7 @@ Description: Apache integration for Passenger application server
 Package: libnginx-mod-http-passenger-enterprise
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends},
- nginx-core (= <%= latest_nginx_unsanitized(@distribution) %>),
+ nginx-common (= <%= latest_nginx_unsanitized(@distribution) %>),
  passenger-enterprise (= ${binary:Version})
 Replaces: libnginx-mod-http-passenger
 Conflicts: libnginx-mod-http-passenger
