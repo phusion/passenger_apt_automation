@@ -1,0 +1,16 @@
+<%
+require File.dirname(File.absolute_path(__FILE__)) + '/helpers'
+-%>
+#!/usr/bin/make -f
+export DH_VERBOSE=1
+SHELL := /bin/bash
+BASEDIR = $(CURDIR)
+
+%:
+	dh $@ --without autoreconf
+
+override_dh_auto_configure:
+override_dh_auto_install:
+	mkdir -p debian/build-src
+	cp -a auto src configure debian/build-src
+	nginx -V 2>&1 | awk -F: '/configure arguments/ {print $$2}' | xargs -n1 printf '"%s"\n' | cat <(echo 'export NGX_CONF_FLAGS=(') - <(echo ')') > debian/build-src/conf_flags

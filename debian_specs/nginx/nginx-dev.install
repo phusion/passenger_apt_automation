@@ -1,0 +1,4 @@
+debian/build-src/auto usr/share/nginx/src/
+debian/build-src/src usr/share/nginx/src/
+debian/build-src/conf_flags usr/share/nginx/src/
+debian/build-src/configure usr/share/nginx/src/

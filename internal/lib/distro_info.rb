@@ -85,3 +85,15 @@ end
 def latest_nginx_unsanitized(distro)
   ENV['DISTRO_NGINXS'].split.map{|dv|dv.split(":")}.to_h[distro.to_s]
 end
+# [upstream_version]-[debian_revision_component]ubuntu[ubuntu_revision_component]
+def latest_nginx_version_upstream(distro)
+  latest_nginx_unsanitized(distro).split('-').first
+end
+
+def latest_nginx_version_debian_revision(distro)
+  latest_nginx_unsanitized(distro).split('-').last.split('ubuntu').first
+end
+
+def latest_nginx_version_ubuntu_revision(distro)
+  latest_nginx_unsanitized(distro).split('-').last.split('ubuntu').last
+end

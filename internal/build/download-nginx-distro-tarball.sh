@@ -27,5 +27,5 @@ chown -R "$USER" "/work/lists"
 printf "${prefix}%s\n" "${suffixes[@]}" > "/work/sources.list"
 apt -o "Dir::Etc::sourcelist=/work/sources.list" -o "Dir::State::Lists=/work/lists" -o "Dir::Cache=/work/cache" -o "APT::Default-Release=n=$distro" update
 apt -o "Dir::Etc::sourcelist=/work/sources.list" -o "Dir::State::Lists=/work/lists" -o "Dir::Cache=/work/cache" -o "APT::Default-Release=n=$distro" source nginx
-mv ./nginx-* "./nginx-distro"
-tar -cf "$2" ./nginx-distro
+awk -i inplace -v RS='' -v ORS='\n\n' '$0 !~ /^Files: debian\/modules\/http-lua/' nginx-*/debian/copyright
+tar -czf "$2" ./nginx-*

@@ -44,7 +44,7 @@ module Utils
   end
 
   def recursive_copy_files(files, destination_dir, preprocess = false, variables = {})
-    puts "Copying files..." unless STDOUT.tty?
+    puts "Copying files..." if STDOUT.tty?
     files.each_with_index do |filename, i|
       next if filename =~ /\.in(\.erb)?$/ || File.basename(filename) == "helpers.rb"
       dirpath = "#{destination_dir}/#{File.dirname(filename)}"

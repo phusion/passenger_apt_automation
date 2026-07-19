@@ -28,6 +28,9 @@ testboxes: $(DEBIAN_TESTBOXES) $(UBUNTU_TESTBOXES)
 buildbox:
 	./setup-buildbox-docker-image "$(BUILDBOX_NAME):$(BUILDBOX_VERSION)"
 
+buildbox-label:
+	@echo "$(BUILDBOX_NAME):$(BUILDBOX_VERSION)"
+
 testbox-%: FORCE
 	./setup-testbox-docker-image "$(TESTBOX_BASE_NAME)_$(subst .,_,$(subst -,_,$*)):$(TESTBOX_VERSION)" "testbox-$*"
 

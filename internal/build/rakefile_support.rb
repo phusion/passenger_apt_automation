@@ -20,6 +20,7 @@ def initialize_rakefile!
         "know about, please edit internal/lib/distro_info.rb."
     end
   end
+
   if SHOW_TASKS
     create_fake_directories
   else
@@ -69,8 +70,15 @@ def set_constants_and_envvars
   set_constant_and_envvar :PASSENGER_TARBALL, "#{PASSENGER_DEBIAN_NAME}_#{PASSENGER_VERSION}.orig.tar.gz"
   set_constant_and_envvar :NEXT_PASSENGER_VERSION, infer_next_passenger_version(PASSENGER_VERSION)
 
+  set_constant_and_envvar :NGINX_SPECDIR, "nginx"
+  set_constant_and_envvar :NGINX_SOURCE_PACKAGE_NAME, "nginx"
+  set_constant_and_envvar :NGINX_DEV_PACKAGE_NAME, "nginx-dev"
   set_constant_and_envvar :NGINX_DEBIAN_NAME, "nginx"
+  set_constant_and_envvar :NGINX_DEV_DEBIAN_NAME, "nginx"
+  set_constant_and_envvar :NGINX_DEV_DEBIAN_EPOCH, 0
+  set_constant_and_envvar :NGINX_DEV_DEBIAN_HOTFIX_VERSION, 1
   set_constant_and_envvar :NGINX_VERSION, PhusionPassenger::PREFERRED_NGINX_VERSION
+  set_constant_and_envvar :PACKAGING_NGINX_VERSION, PhusionPassenger::PACKAGING_PREFERRED_NGINX_VERSION
   set_constant_and_envvar :NGINX_TARBALL, "nginx_#{NGINX_VERSION}.orig.tar.gz"
 end
 

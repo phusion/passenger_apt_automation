@@ -1,0 +1,27 @@
+<%
+require File.dirname(File.absolute_path(__FILE__)) + '/helpers'
+-%>
+Source: nginx
+Priority: optional
+Section: httpd
+Maintainer: <%= MAINTAINER_NAME %> <<%= MAINTAINER_EMAIL %>>
+Build-Depends: debhelper (>= 10~), rake, po-debconf, nginx
+Standards-Version: 3.9.3
+Homepage: https://nginx.org
+Vcs-Git: https://salsa.debian.org/nginx-team/nginx.git
+Vcs-Browser: https://salsa.debian.org/nginx-team/nginx
+
+Package: nginx-dev
+Priority: optional
+Architecture: all
+Multi-Arch: foreign
+Depends: ${misc:Depends}, ${S:Build-Depends}
+Provides: dh-sequence-nginx
+Description: nginx web/proxy server - development headers
+ Nginx ("engine X") is a high-performance web and reverse proxy server
+ created by Igor Sysoev. It can be used both as a standalone web server
+ and as a proxy to reduce the load on back-end HTTP or mail servers.
+ .
+ This package provides development headers and necessary config scripts
+ for the nginx web/proxy server, useful to develop and link third party
+ additions to the Debian nginx web/proxy server packages.

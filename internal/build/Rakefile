@@ -7,7 +7,7 @@ initialize_tracking_database!(SHOW_OVERVIEW_PERIODICALLY)
 
 ##### Source tarballs and build environment initialization #####
 
-SOURCE_TASKS = [ 'source:passenger', 'source:nginx' ]
+SOURCE_TASKS = [ 'source:passenger', 'source:builtin_nginx', 'source:nginx_dev' ]
 
 register_tracking_category(:preparation, 'Preparation')
 
@@ -15,19 +15,11 @@ namespace :source do
   DISTROS.each do |distro|
     register_tracking_task(:preparation, "passenger:#{distro}")
     desc "Create Passenger orig tarball"
-    task("passenger:#{distro}" => :nginx) do
+    task("passenger:#{distro}" => :builtin_nginx) do
       track_task(:preparation, "passenger:#{distro}") do |task|
         if FETCH_PASSENGER_TARBALL_FROM_CACHE && File.exist?("/cache/#{distro}_#{PASSENGER_TARBALL}")
           task.sh "cp /cache/#{distro}_#{PASSENGER_TARBALL} /work/#{PASSENGER_TARBALL}"
         else
-          if !((is_ubuntu(distro) && ubuntu_gte(distro, "noble")) || (is_debian(distro) && debian_gte(distro, "bookworm")))
-            if File.exist?("/cache/nginx_#{distro}.orig.tar.gz")
-              task.sh "cp /cache/nginx_#{distro}.orig.tar.gz /work/"
-            else
-              task.sh "./download-nginx-distro-tarball.sh #{distro} /work/nginx_#{distro}.orig.tar.gz"
-              task.sh "cp /work/nginx_#{distro}.orig.tar.gz /cache/"
-            end
-          end
           task.sh "./build-passenger-orig-tarball.sh /work/#{PASSENGER_TARBALL} #{distro}"
           task.sh "cp /work/#{PASSENGER_TARBALL} /cache/#{distro}_#{PASSENGER_TARBALL}"
         end
@@ -35,11 +27,10 @@ namespace :source do
     end
   end
 
-  # For builtin engine Nginx
-  register_tracking_task(:preparation, 'nginx')
-  desc "Create Nginx orig tarball"
-  task :nginx do
-    track_task(:preparation, 'nginx') do |task|
+  register_tracking_task(:preparation, 'builtin_nginx')
+  desc "Create builtin Nginx orig tarball"
+  task :builtin_nginx do
+    track_task(:preparation, 'builtin_nginx') do |task|
       if File.exist?("/cache/#{NGINX_TARBALL}")
         task.sh "cp /cache/#{NGINX_TARBALL} /work/#{NGINX_TARBALL}"
       else
@@ -48,6 +39,24 @@ namespace :source do
       end
     end
   end
+
+  ["jammy", "bullseye"].each do |distro|
+    register_tracking_task(:preparation, 'nginx_dev')
+    desc "Create Nginx dev orig tarball"
+    task "nginx_dev:#{distro}" do
+      track_task(:preparation, 'nginx_dev') do |task|
+        cache_tarball="#{NGINX_SOURCE_PACKAGE_NAME}_#{distro}_#{latest_nginx_version_upstream(distro)}.orig.tar.gz"
+        work_tarball="#{NGINX_SOURCE_PACKAGE_NAME}_#{latest_nginx_version_upstream(distro)}.orig.tar.gz"
+        if File.exist?("/cache/#{cache_tarball}")
+          task.sh "cp /cache/#{cache_tarball} /work/#{work_tarball}"
+        else
+          task.sh "./download-nginx-distro-tarball.sh #{distro} /work/#{work_tarball}"
+          task.sh "cp /work/#{work_tarball} /cache/#{cache_tarball}"
+        end
+      end
+    end
+  end
+
 end
 
 ##### Source packages #####
@@ -71,8 +80,7 @@ namespace :spkg do
     desc "Build Passenger source package for #{distro}"
     task("passenger:#{distro}" => [ "source:passenger:#{distro}" ]) do
       track_task(:spkg, "passenger:#{distro}") do |task|
-        task.sh "mkdir -p /work/spkg/passenger"
-        task.sh "mkdir /work/spkg/passenger/#{distro}"
+        task.sh "mkdir -p /work/spkg/passenger/#{distro}"
         task.sh "./build-source-package.rb",
                 SPECDIR: "/system/debian_specs/#{PASSENGER_SPECDIR}",
                 DISTRIBUTION: distro,
@@ -84,6 +92,31 @@ namespace :spkg do
                 DEBIAN_EPOCH: PASSENGER_DEBIAN_EPOCH,
                 DEBIAN_VENDOR_VERSION: PASSENGER_DEBIAN_VENDOR_VERSION,
                 DEBIAN_HOTFIX_VERSION: PASSENGER_DEBIAN_HOTFIX_VERSION
+      end
+    end
+  end
+
+  ["jammy", "bullseye"].each do |distro|
+    task "passenger:#{distro}" => "passenger:#{distro}:nginx_dev"
+    task "all" => "passenger:#{distro}:nginx_dev"
+
+    register_tracking_task(:spkg, "passenger:#{distro}:nginx_dev")
+    desc "Build Nginx source package for #{distro}"
+    task("passenger:#{distro}:nginx_dev" => [ "source:nginx_dev:#{distro}" ]) do
+      track_task(:spkg, "passenger:#{distro}:nginx_dev") do |task|
+        task.sh "mkdir -p /work/spkg/nginx/#{distro}"
+        nginx_dev_version = latest_nginx_version_upstream(distro)
+        task.sh "./build-source-package.rb",
+                SPECDIR: "/system/debian_specs/#{NGINX_SPECDIR}",
+                DISTRIBUTION: distro,
+                TARBALL: "#{NGINX_SOURCE_PACKAGE_NAME}_#{nginx_dev_version}.orig.tar.gz",
+                SOURCENAME: "#{NGINX_SOURCE_PACKAGE_NAME}-#{nginx_dev_version}",
+                SPKG_DIR: "/work/spkg/nginx/#{distro}",
+                PACKAGE_VERSION: nginx_dev_version,
+                DEBIAN_NAME: NGINX_DEV_DEBIAN_NAME,
+                DEBIAN_EPOCH: NGINX_DEV_DEBIAN_EPOCH,
+                DEBIAN_VENDOR_VERSION: latest_nginx_version_debian_revision(distro),
+                DEBIAN_HOTFIX_VERSION: NGINX_DEV_DEBIAN_HOTFIX_VERSION
       end
     end
   end
@@ -140,6 +173,27 @@ namespace :pkg do
       task("passenger:#{distro}:#{arch}" => [ "spkg:passenger:#{distro}", "env:#{distro}:#{arch}" ]) do
         track_task(:pkg, "passenger:#{distro}:#{arch}") do |task|
           task.sh "cd /work/spkg/passenger/#{distro} && yes | pbuilder-dist #{distro} #{arch} *.dsc"
+        end
+      end
+    end
+  end
+
+
+  ### Nginx ###
+
+  desc "Build Nginx-dev binary packages for select distributions"
+  task "nginx:all"
+
+  ["jammy", "bullseye"].each do |distro|
+    ARCHITECTURES.each do |arch|
+      task "nginx:all" => "nginx:#{distro}:#{arch}"
+      task "all" => "nginx:#{distro}:#{arch}"
+
+      register_tracking_task(:pkg, "nginx:#{distro}:#{arch}")
+      desc "Build Nginx-dev binary package for #{distro} #{arch}"
+      task("nginx:#{distro}:#{arch}" => [ "spkg:passenger:#{distro}:nginx_dev", "env:#{distro}:#{arch}" ]) do
+        track_task(:pkg, "nginx:#{distro}:#{arch}") do |task|
+          task.sh "cd /work/spkg/nginx/#{distro} && yes | pbuilder-dist #{distro} #{arch} *.dsc"
         end
       end
     end
