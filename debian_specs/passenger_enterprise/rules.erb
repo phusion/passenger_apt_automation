@@ -53,14 +53,8 @@ override_dh_auto_build:
 		make && \
 		mv objs/nginx objs/nginx-<%= PhusionPassenger::PREFERRED_NGINX_VERSION %>
 	/usr/bin/rake nginx:as_dynamic_module && \
-<% if ubuntu_gte(@distribution, "noble") || debian_gte(@distribution, "bookworm") -%>
 		cp -r /usr/share/nginx/src ./nginx-distro && \
 		source ./nginx-distro/conf_flags && \
-<% else -%>
-		tar -xf nginx_*.orig.tar.gz && \
-		readarray -t NGX_CONF_FLAGS < <(nginx -V 2>&1 | awk -F: '/configure arguments/ {print $$2}' | xargs -n1) && \
-		for index in "$${!NGX_CONF_FLAGS[@]}"; do if [[ "$${NGX_CONF_FLAGS[$$index]}" =~ ^--add-dynamic-module= ]]; then unset -v 'NGX_CONF_FLAGS[$$index]'; fi; done && \
-<% end -%>
 		cd ./nginx-distro && \
 		./configure "$${NGX_CONF_FLAGS[@]}" --add-dynamic-module="../src/nginx_module" && \
 		make -f objs/Makefile modules && \
