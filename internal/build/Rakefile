@@ -252,23 +252,25 @@ task :finish do
   if files.any?
     puts "Placing #{files.size} files from /work/spkg into output directory"
     files.each do |path|
-      return if path.include?('nginx-dev')
-      basename = File.basename(path)
-      distro = File.basename(File.dirname(path))
-      mkdir_p "/output/#{distro}"
-      cp path, "/output/#{distro}/#{basename}"
+      unless path.include?('nginx-dev')
+        basename = File.basename(path)
+        distro = File.basename(File.dirname(path))
+        mkdir_p "/output/#{distro}"
+        cp path, "/output/#{distro}/#{basename}"
+      end
     end
   end
 
-  files = Dir["/work/pkg/*passenger*/*.{deb,dsc,gz,xz}"]
+  files = Dir["/work/pkg/*/*.{deb,dsc,gz,xz}"]
   if files.any?
     puts "Placing #{files.size} files from /work/pkg into output directory"
     files.each do |path|
-      return if path.include?('nginx-dev')
-      basename = File.basename(path)
-      distro = File.basename(File.dirname(path)).sub(/[-_].*/, '')
-      mkdir_p "/output/#{distro}"
-      cp path, "/output/#{distro}/#{basename}"
+      unless path.include?('nginx-dev')
+        basename = File.basename(path)
+        distro = File.basename(File.dirname(path)).sub(/[-_].*/, '')
+        mkdir_p "/output/#{distro}"
+        cp path, "/output/#{distro}/#{basename}"
+      end
     end
   end
 end
