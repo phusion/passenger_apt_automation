@@ -4,16 +4,14 @@ require_relative '../lib/utils'
 require_relative '../lib/distro_info'
 
 DISTROS = ENV['DISTRIBUTIONS'].split(/ +/).map { |distro| to_distro_codename(distro) }
+PROBLEM_DISTROS = ["jammy", "bullseye"] & DISTROS
 ARCHITECTURES = ENV['ARCHITECTURES'].split(/ +/)
 SHOW_TASKS = !!ENV['SHOW_TASKS']
 SHOW_OVERVIEW_PERIODICALLY = ENV['SHOW_OVERVIEW_PERIODICALLY'] == 'true'
 FETCH_PASSENGER_TARBALL_FROM_CACHE = ENV['FETCH_PASSENGER_TARBALL_FROM_CACHE'] == 'true'
 
-LOCAL_REPO = File.expand_path("build/staging-repo")
-LOCAL_POOL = File.join(LOCAL_REPO, "pool")
-LOCAL_REPO_PORT = "8000"
-LOCAL_REPO_URL  = "http://127.0.0.1:#{LOCAL_REPO_PORT}"
-directory LOCAL_POOL
+LOCAL_REPO = File.expand_path("/work/staging-repo")
+LOCAL_POOL = File.join(LOCAL_REPO, "pool/main/n/nginx")
 
 include Utils
 
@@ -106,41 +104,20 @@ def infer_next_passenger_version(passenger_version)
   components.join(".")
 end
 
-def update_staging_repo(task)
-  FileUtils.rm_f("#{LOCAL_REPO}/Packages.gz")
-  task.sh "dpkg-scanpackages #{LOCAL_POOL} /dev/null | gzip -9c > #{LOCAL_REPO}/Packages.gz"
+def update_staging_repo(task, distro, arch)
+  Dir.chdir(LOCAL_REPO) do
+    task.sh "apt-ftparchive packages pool > #{local_repo_packages(distro, arch)}/Packages"
+    task.sh "gzip --keep --force #{local_repo_packages(distro, arch)}/Packages"
+    task.sh "apt-ftparchive release ./ > ./Release"
+  end
 end
 
-def add_deb_to_staging_repo(deb, task)
+def add_deb_to_staging_repo(deb, task, distro, arch)
   FileUtils.mkdir_p(LOCAL_POOL)
   FileUtils.cp(deb, LOCAL_POOL)
-  update_staging_repo(task)
+  update_staging_repo(task, distro, arch)
 end
 
-def start_repo_server
-  pid = Process.spawn(
-    "python3",
-    "-m",
-    "http.server",
-    LOCAL_REPO_PORT,
-    chdir: LOCAL_REPO,
-    out: "/dev/null",
-    err: "/dev/null"
-  )
-
-  # Give the server time to bind the port
-  sleep 1
-
-  pid
-end
-
-def stop_repo_server(pid)
-  return unless pid
-
-  begin
-    Process.kill("TERM", pid)
-    Process.wait(pid)
-  rescue Errno::ESRCH
-    # Process already exited
-  end
+def local_repo_packages(distro, arch)
+ File.join(LOCAL_REPO, "dists/#{distro}/main/binary-#{arch}")
 end

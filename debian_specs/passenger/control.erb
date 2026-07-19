@@ -10,7 +10,7 @@ Build-Depends: debhelper (>= 10~), rake,
  <%= ruby_package_dependencies %>,
  apache2 (>= 2.4), apache2-dev (>= 2.4),
  libxslt-dev, libgd-dev, libgeoip-dev,
- nginx-dev,
+ <%= distro_nginx_sources %>,
  libapr1-dev, libcurl4-openssl-dev, zlib1g-dev, libssl-dev,
  libpcre2-dev
 Standards-Version: 3.9.3
@@ -54,7 +54,7 @@ Description: Debugging symbols for Passenger application server
 Package: passenger-dev
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends},
-<%= ruby_packages %>,
+ <%= ruby_packages %>,
  passenger (= ${binary:Version})
 Replaces: ruby-passenger-dev
 Conflicts: ruby-passenger-dev

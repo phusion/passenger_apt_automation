@@ -42,3 +42,11 @@ def ruby_packages
     "ruby#{major}.#{minor}"
   }.concat(["ruby1.9.1", "ruby1.8", "ruby-interpreter"]).join(" | ")
 end
+
+def distro_nginx_sources
+  if ubuntu_gte(@distribution, "noble") || debian_gte(@distribution, "bookworm")
+    'nginx-dev'
+  else
+    'nginx-dev, libpcre3-dev'
+  end
+end

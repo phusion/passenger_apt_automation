@@ -40,7 +40,7 @@ namespace :source do
     end
   end
 
-  ["jammy", "bullseye"].each do |distro|
+  PROBLEM_DISTROS.each do |distro|
     register_tracking_task(:preparation, 'nginx_dev')
     desc "Create Nginx dev orig tarball"
     task "nginx_dev:#{distro}" do
@@ -96,7 +96,7 @@ namespace :spkg do
     end
   end
 
-  ["jammy", "bullseye"].each do |distro|
+  PROBLEM_DISTROS.each do |distro|
     task "passenger:#{distro}" => "passenger:#{distro}:nginx_dev"
     task "all" => "passenger:#{distro}:nginx_dev"
 
@@ -157,8 +157,20 @@ namespace :pkg do
   desc "Build all binary packages for all distributions and architectures"
   task :all
 
-  task :prepare_staging_repo => LOCAL_POOL do |task|
-    update_staging_repo task
+  directory LOCAL_POOL
+
+  PROBLEM_DISTROS.each do |distro|
+    ARCHITECTURES.each do |arch|
+      directory local_repo_packages(distro, arch)
+
+      register_tracking_task(:pkg, "prepare_local_repo:#{distro}:#{arch}")
+      desc "Setup the local repo used to provide nginx-dev to build environment"
+      task "prepare_local_repo:#{distro}:#{arch}" => [ LOCAL_POOL, local_repo_packages(distro, arch) ] do
+        track_task(:pkg, "prepare_local_repo:#{distro}:#{arch}") do |task|
+          update_staging_repo(task, distro, arch)
+        end
+      end
+    end
   end
 
   ### Passenger ###
@@ -175,19 +187,12 @@ namespace :pkg do
       desc "Build Passenger binary package for #{distro} #{arch}"
       task("passenger:#{distro}:#{arch}" => [ "spkg:passenger:#{distro}", "env:#{distro}:#{arch}" ]) do
         track_task(:pkg, "passenger:#{distro}:#{arch}") do |task|
-          if ["jammy", "bullseye"].include? distro
-            repo_pid = nil
-            cmd = "cd /work/spkg/passenger/#{distro} && yes | pbuilder-dist #{distro} #{arch} *.dsc"
-            begin
-              repo_pid = start_repo_server
-
-              task.sh "#{cmd} --othermirror 'deb [trusted=yes] #{REPO_URL} ./'"
-            ensure
-              stop_repo_server(repo_pid)
-            end
-          else
-            task.sh cmd
+          extra_flags = ""
+          if PROBLEM_DISTROS.include? distro
+            extra_flags = "--bindmounts #{LOCAL_REPO} --othermirror 'deb [trusted=yes] file://#{LOCAL_REPO}/ #{distro} main'"
+            task.sh "cd /work/spkg/passenger/#{distro} && yes | pbuilder-dist #{distro} #{arch} update --override-config #{extra_flags}"
           end
+          task.sh "cd /work/spkg/passenger/#{distro} && yes | pbuilder-dist #{distro} #{arch} build #{extra_flags} *.dsc"
         end
       end
     end
@@ -199,20 +204,21 @@ namespace :pkg do
   desc "Build Nginx-dev binary packages for select distributions"
   task "nginx:all"
 
-  ["jammy", "bullseye"].each do |distro|
+  PROBLEM_DISTROS.each do |distro|
     ARCHITECTURES.each do |arch|
       task "nginx:all" => "nginx:#{distro}:#{arch}"
       task "all" => "nginx:#{distro}:#{arch}"
+      task "passenger:#{distro}:#{arch}" => "nginx:#{distro}:#{arch}"
 
       register_tracking_task(:pkg, "nginx:#{distro}:#{arch}")
       desc "Build Nginx-dev binary package for #{distro} #{arch}"
-      task("nginx:#{distro}:#{arch}" => [ "spkg:passenger:#{distro}:nginx_dev", "env:#{distro}:#{arch}", "pkg:prepare_staging_repo" ]) do
+      task("nginx:#{distro}:#{arch}" => [ "pkg:prepare_local_repo:#{distro}:#{arch}", "spkg:passenger:#{distro}:nginx_dev", "env:#{distro}:#{arch}" ]) do
         track_task(:pkg, "nginx:#{distro}:#{arch}") do |task|
-          task.sh "cd /work/spkg/nginx/#{distro} && yes | pbuilder-dist #{distro} #{arch} *.dsc"
+          task.sh "cd /work/spkg/nginx/#{distro} && yes | pbuilder-dist #{distro} #{arch} build *.dsc"
           deb = Dir["/work/pkg/#{distro}_result/nginx-dev*.deb"].first
           raise "nginx-dev .deb not found" unless deb
 
-          add_deb_to_staging_repo(deb, task)
+          add_deb_to_staging_repo(deb, task, distro, arch)
         end
       end
     end
@@ -242,11 +248,11 @@ task :finish do
   puts "Committing build products to output directory..."
   sh "rm -rf /output/*"
 
-  files = Dir["/work/spkg/*/*/*.{gz,xz,dsc}"]
+  files = Dir["/work/spkg/*passenger*/*/*.{gz,xz,dsc}"]
   if files.any?
     puts "Placing #{files.size} files from /work/spkg into output directory"
     files.each do |path|
-      return if /nginx-dev/.test? path
+      return if path.include?('nginx-dev')
       basename = File.basename(path)
       distro = File.basename(File.dirname(path))
       mkdir_p "/output/#{distro}"
@@ -254,11 +260,11 @@ task :finish do
     end
   end
 
-  files = Dir["/work/pkg/*/*.{deb,dsc,gz,xz}"]
+  files = Dir["/work/pkg/*passenger*/*.{deb,dsc,gz,xz}"]
   if files.any?
     puts "Placing #{files.size} files from /work/pkg into output directory"
     files.each do |path|
-      return if /nginx-dev/.test? path
+      return if path.include?('nginx-dev')
       basename = File.basename(path)
       distro = File.basename(File.dirname(path)).sub(/[-_].*/, '')
       mkdir_p "/output/#{distro}"
