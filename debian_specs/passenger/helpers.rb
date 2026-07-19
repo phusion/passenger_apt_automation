@@ -38,3 +38,15 @@ def distro_nginx_sources
     'nginx, libpcre3-dev'
   end
 end
+
+def ruby_packages
+  [
+    [4,0],
+    [3,4],
+    [2,7],
+  ].flat_map { |major,minor_max|
+    (0..minor_max).reverse_each.map { |minor| [major, minor] }
+  }.map { |major, minor|
+    "ruby#{major}.#{minor}"
+  }.concat(["ruby1.9.1", "ruby1.8", "ruby-interpreter"]).join(" | ")
+end

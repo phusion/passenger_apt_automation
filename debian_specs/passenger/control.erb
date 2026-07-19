@@ -23,7 +23,7 @@ Package: passenger
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends},
  procps,
- <%= [[4,0],[3,4],[2,7]].flat_map{|major,minor| (0..minor).reverse_each.map{[major,it]} }.map{|major, minor| "ruby#{major}.#{minor}"}.concat(["ruby1.9.1","ruby1.8", "ruby-interpreter"]).join(" | ") %>,
+ <%= ruby_packages %>,
  rubygems-integration (>= 1.8) | rubygems1.9.1 | rubygems1.9 | rubygems (>= 1.2),
  ruby-rack
 Recommends: passenger-doc (= ${binary:Version}), passenger-dev (= ${binary:Version})
@@ -54,7 +54,7 @@ Description: Debugging symbols for Passenger application server
 Package: passenger-dev
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends},
-<%= [[4,0],[3,4],[2,7]].flat_map{|major,minor| (0..minor).reverse_each.map{[major,it]} }.map{|major, minor| "ruby#{major}.#{minor}"}.concat(["ruby1.9.1","ruby1.8", "ruby-interpreter"]).join(" | ") %>,
+<%= ruby_packages %>,
  passenger (= ${binary:Version})
 Replaces: ruby-passenger-dev
 Conflicts: ruby-passenger-dev
