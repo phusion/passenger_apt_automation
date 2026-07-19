@@ -157,6 +157,9 @@ namespace :pkg do
   desc "Build all binary packages for all distributions and architectures"
   task :all
 
+  task :prepare_staging_repo => LOCAL_POOL do |task|
+    update_staging_repo task
+  end
 
   ### Passenger ###
 
@@ -172,7 +175,19 @@ namespace :pkg do
       desc "Build Passenger binary package for #{distro} #{arch}"
       task("passenger:#{distro}:#{arch}" => [ "spkg:passenger:#{distro}", "env:#{distro}:#{arch}" ]) do
         track_task(:pkg, "passenger:#{distro}:#{arch}") do |task|
-          task.sh "cd /work/spkg/passenger/#{distro} && yes | pbuilder-dist #{distro} #{arch} *.dsc"
+          if ["jammy", "bullseye"].include? distro
+            repo_pid = nil
+            cmd = "cd /work/spkg/passenger/#{distro} && yes | pbuilder-dist #{distro} #{arch} *.dsc"
+            begin
+              repo_pid = start_repo_server
+
+              task.sh "#{cmd} --othermirror 'deb [trusted=yes] #{REPO_URL} ./'"
+            ensure
+              stop_repo_server(repo_pid)
+            end
+          else
+            task.sh cmd
+          end
         end
       end
     end
@@ -191,9 +206,13 @@ namespace :pkg do
 
       register_tracking_task(:pkg, "nginx:#{distro}:#{arch}")
       desc "Build Nginx-dev binary package for #{distro} #{arch}"
-      task("nginx:#{distro}:#{arch}" => [ "spkg:passenger:#{distro}:nginx_dev", "env:#{distro}:#{arch}" ]) do
+      task("nginx:#{distro}:#{arch}" => [ "spkg:passenger:#{distro}:nginx_dev", "env:#{distro}:#{arch}", "pkg:prepare_staging_repo" ]) do
         track_task(:pkg, "nginx:#{distro}:#{arch}") do |task|
           task.sh "cd /work/spkg/nginx/#{distro} && yes | pbuilder-dist #{distro} #{arch} *.dsc"
+          deb = Dir["/work/pkg/#{distro}_result/nginx-dev*.deb"].first
+          raise "nginx-dev .deb not found" unless deb
+
+          add_deb_to_staging_repo(deb, task)
         end
       end
     end
@@ -227,6 +246,7 @@ task :finish do
   if files.any?
     puts "Placing #{files.size} files from /work/spkg into output directory"
     files.each do |path|
+      return if /nginx-dev/.test? path
       basename = File.basename(path)
       distro = File.basename(File.dirname(path))
       mkdir_p "/output/#{distro}"
@@ -238,6 +258,7 @@ task :finish do
   if files.any?
     puts "Placing #{files.size} files from /work/pkg into output directory"
     files.each do |path|
+      return if /nginx-dev/.test? path
       basename = File.basename(path)
       distro = File.basename(File.dirname(path)).sub(/[-_].*/, '')
       mkdir_p "/output/#{distro}"

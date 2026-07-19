@@ -31,14 +31,6 @@ def distro_ruby_versions
   end
 end
 
-def distro_nginx_sources
-  if ubuntu_gte(@distribution, "noble") || debian_gte(@distribution, "bookworm")
-    'nginx-dev'
-  else
-    'nginx, libpcre3-dev'
-  end
-end
-
 def ruby_packages
   [
     [4,0],

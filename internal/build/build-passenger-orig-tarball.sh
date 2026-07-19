@@ -77,11 +77,6 @@ cd "$PASSENGER_PACKAGE_NAME-$PASSENGER_VERSION"
 header "Extracting Nginx into Passenger directory"
 run tar xzf "/work/${NGINX_DEBIAN_NAME}_${NGINX_VERSION}.orig.tar.gz"
 
-if { is_ubuntu "$distro" && ! ubuntu_gte "$distro" "noble"; } || { is_debian "$distro" && ! debian_gte "$distro" "bookworm"; }; then
-    header "Moving Nginx into Passenger directory for Module"
-    run cp "/work/${NGINX_DEBIAN_NAME}_${distro}.orig.tar.gz" .
-fi
-
 header "Packaging up"
 cd ..
 echo "+ Normalizing timestamps"
