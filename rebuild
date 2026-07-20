@@ -1,0 +1,231 @@
+#!/bin/bash
+set -e
+
+SELFDIR=$(dirname "$0")
+SELFDIR=$(cd "$SELFDIR" && pwd)
+# shellcheck source=internal/lib/library.sh
+source "$SELFDIR/internal/lib/library.sh"
+# shellcheck source=internal/lib/distro_info.sh
+source "$SELFDIR/internal/lib/distro_info.sh"
+
+PASSENGER_DIR=
+WORK_DIR=
+CACHE_DIR=
+OUTPUT_DIR=
+CONCURRENCY=1
+DISTRIBUTIONS="$DEFAULT_DISTROS"
+ARCHITECTURES="amd64 arm64"
+FETCH_PASSENGER_TARBALL_FROM_CACHE=true
+CLEAR_WORK_DIR=true
+SHOW_OVERVIEW_PERIODICALLY=false
+SHOW_BACKTRACES=false
+SHOW_TASKS=false
+ARGV=
+
+function usage()
+{
+    echo "Usage: ./build [OPTIONS] <TASK NAMES...>"
+    echo "Build Debian packages."
+    echo
+    echo "Required options:"
+    echo "  -p DIR     Path to Passenger source directory"
+    echo "  -w DIR     Path to work directory (for temporary files)"
+    echo "  -c DIR     Path to cache directory"
+    echo "  -o DIR     Path in which to store build products"
+    echo
+    echo "Optional options:"
+    echo "  -j NUM     Set build concurrency. Default: 1"
+    echo "  -d NAMES   Build only for given distributions. This is a space-separated list"
+    echo "             of distribution names."
+    echo "             Default: $DEFAULT_DISTROS"
+    echo "  -a NAMES   Build only for given architectures. This is a space-separated list"
+    echo "             of architecture names."
+    echo "             Default: $ARCHITECTURES"
+    echo "  -R         Do not fetch Passenger tarball from cache"
+    echo "  -N         Do not clear work directory on startup"
+    echo "  -O         Periodically show progress overview"
+    echo "  -t         Show backtraces on error"
+    echo
+    echo "  -T         Show all tasks"
+    echo "  -h         Show usage"
+}
+
+function parse_options()
+{
+    local OPTIND=1
+    local ORIG_ARGV
+    local opt
+    while getopts "p:w:c:o:j:d:a:tRNOTh" opt; do
+    case "$opt" in
+        p)
+        PASSENGER_DIR="$OPTARG"
+        ;;
+        w)
+        WORK_DIR="$OPTARG"
+        ;;
+        c)
+        CACHE_DIR="$OPTARG"
+        ;;
+        o)
+        OUTPUT_DIR="$OPTARG"
+        ;;
+        j)
+        CONCURRENCY=$OPTARG
+        ;;
+        d)
+        DISTRIBUTIONS="$OPTARG"
+        ;;
+        a)
+        ARCHITECTURES="$OPTARG"
+        ;;
+        t)
+        SHOW_BACKTRACES=true
+        ;;
+        R)
+        FETCH_PASSENGER_TARBALL_FROM_CACHE=false
+        ;;
+        N)
+        CLEAR_WORK_DIR=false
+        ;;
+        O)
+        SHOW_OVERVIEW_PERIODICALLY=true
+        ;;
+        T)
+        SHOW_TASKS=true
+        ;;
+        h)
+        usage
+        exit
+        ;;
+        *)
+        return 1
+        ;;
+    esac
+    done
+
+    (( OPTIND -= 1 )) || true
+    shift $OPTIND || true
+    ORIG_ARGV=("$@")
+
+    BUILDBOX_IMAGE=$(get_buildbox_image)
+
+    if [[ ${#ORIG_ARGV[@]} = 0 ]]; then
+    SHOW_TASKS=true
+    else
+    ARGV=()
+    if $CLEAR_WORK_DIR; then
+        ARGV+=(clear_work_dir)
+    fi
+    ARGV+=(start "${ORIG_ARGV[@]}" finish)
+    if $SHOW_BACKTRACES; then
+        ARGV+=(--trace)
+    fi
+    fi
+
+    if ! $SHOW_TASKS; then
+    if [[ "$PASSENGER_DIR" = "" ]]; then
+        echo "ERROR: please specify a Passenger source directory with -p."
+        exit 1
+    fi
+    if [[ ! -e "$PASSENGER_DIR" ]]; then
+        echo "ERROR: $PASSENGER_DIR does not exist."
+        exit 1
+    fi
+    if [[ "$WORK_DIR" = "" ]]; then
+        echo "ERROR: please specify a work directory with -w."
+        exit 1
+    fi
+    if [[ "$CACHE_DIR" = "" ]]; then
+        echo "ERROR: please specify a cache directory with -c."
+        exit 1
+    fi
+    if [[ "$OUTPUT_DIR" = "" ]]; then
+        echo "ERROR: please specify an output directory with -o."
+        exit 1
+    fi
+    fi
+}
+
+parse_options "$@"
+
+if tty -s; then
+    TTY_ARGS=(-t -i)
+else
+    TTY_ARGS=()
+fi
+
+if $SHOW_TASKS; then
+    exec docker run \
+     --rm "${TTY_ARGS[@]}" \
+     -v "$SELFDIR:/system:ro" \
+     -e "DISTRIBUTIONS=$DISTRIBUTIONS" \
+     -e "ARCHITECTURES=$ARCHITECTURES" \
+     -e "SHOW_TASKS=true" \
+     -e "LC_CTYPE=C.UTF-8" \
+     --platform "linux/$(dpkg --print-architecture)" \
+     "$BUILDBOX_IMAGE" \
+     /sbin/my_init --quiet --skip-runit --skip-startup-files -- \
+     rake -f /system/internal/build/Rakefile -T --trace
+else
+    DISTRO_NGINXS=()
+    for distro in $DISTRIBUTIONS; do
+        export DOCKER_CLI_EXPERIMENTAL=enabled
+        if docker manifest inspect "debian:$distro" >/dev/null 2>&1; then
+            kind="debian"
+        else
+            kind="ubuntu"
+        fi
+        version=$(docker run "$kind:$distro" bash -c 'apt-get update >/dev/null && apt-cache policy nginx-core' | awk '/Candidate:/{print $NF}')
+        DISTRO_NGINXS+=("$distro:$version")
+    done
+    PASSENGER_DIR=$(absolute_path "$PASSENGER_DIR")
+    WORK_DIR=$(absolute_path "$WORK_DIR")
+    CACHE_DIR=$(absolute_path "$CACHE_DIR")
+    OUTPUT_DIR=$(absolute_path "$OUTPUT_DIR")
+
+    run mkdir -p "$WORK_DIR"
+    run mkdir -p "$CACHE_DIR"
+    run mkdir -p "$CACHE_DIR/pbuilder/ccache"
+    run mkdir -p "$OUTPUT_DIR"
+
+    for ARCH in $ARCHITECTURES; do
+    echo "+ Initializing ccache directory for $ARCH"
+    verbose_run docker run \
+            --rm "${TTY_ARGS[@]}" \
+            -v "$SELFDIR:/system:ro" \
+            -v "$CACHE_DIR:/cache" \
+            -e "DISTRIBUTIONS=$DISTRIBUTIONS" \
+            -e "ARCHITECTURES=$ARCH" \
+            -e "APP_UID=$(/usr/bin/id -u)" \
+            -e "APP_GID=$(/usr/bin/id -g)" \
+            --platform "linux/$ARCH" \
+            "$BUILDBOX_IMAGE" \
+            /system/internal/scripts/inituidgid.sh \
+            /system/internal/scripts/initccache.sh
+
+    echo "-------- Entering Docker container for $ARCH --------"
+    docker run \
+         --rm "${TTY_ARGS[@]}" \
+         --privileged \
+         -v "$SELFDIR:/system:ro" \
+         -v "$PASSENGER_DIR:/passenger:ro" \
+         -v "$WORK_DIR:/work" \
+         -v "$CACHE_DIR:/cache" \
+         -v "$OUTPUT_DIR:/output" \
+         -v "$CACHE_DIR/pbuilder:/var/cache/pbuilder" \
+         -e "DISTRIBUTIONS=$DISTRIBUTIONS" \
+         -e "DISTRO_NGINXS=${DISTRO_NGINXS[*]}" \
+         -e "ARCHITECTURES=$ARCH" \
+         -e "SHOW_OVERVIEW_PERIODICALLY=$SHOW_OVERVIEW_PERIODICALLY" \
+         -e "FETCH_PASSENGER_TARBALL_FROM_CACHE=$FETCH_PASSENGER_TARBALL_FROM_CACHE" \
+         -e "APP_UID=$(/usr/bin/id -u)" \
+         -e "APP_GID=$(/usr/bin/id -g)" \
+         -e "LC_CTYPE=C.UTF-8" \
+         --platform "linux/$ARCH" \
+         "$BUILDBOX_IMAGE" \
+         /sbin/my_init --quiet --skip-runit --skip-startup-files -- \
+         /system/internal/scripts/inituidgid.sh \
+         /sbin/setuser app \
+         rake -f /system/internal/build/Rakefile -j "$CONCURRENCY" "${ARGV[@]}"
+    done
+fi

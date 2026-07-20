@@ -1,0 +1,276 @@
+require_relative 'rakefile_support'
+require_relative '../lib/tracking'
+
+initialize_rakefile!
+initialize_tracking_database!(SHOW_OVERVIEW_PERIODICALLY)
+
+
+##### Source tarballs and build environment initialization #####
+
+SOURCE_TASKS = [ 'source:passenger', 'source:builtin_nginx', 'source:nginx_dev' ]
+
+register_tracking_category(:preparation, 'Preparation')
+
+namespace :source do
+  DISTROS.each do |distro|
+    register_tracking_task(:preparation, "passenger:#{distro}")
+    desc "Create Passenger orig tarball"
+    task("passenger:#{distro}" => :builtin_nginx) do
+      track_task(:preparation, "passenger:#{distro}") do |task|
+        if FETCH_PASSENGER_TARBALL_FROM_CACHE && File.exist?("/cache/#{distro}_#{PASSENGER_TARBALL}")
+          task.sh "cp /cache/#{distro}_#{PASSENGER_TARBALL} /work/#{PASSENGER_TARBALL}"
+        else
+          task.sh "./build-passenger-orig-tarball.sh /work/#{PASSENGER_TARBALL} #{distro}"
+          task.sh "cp /work/#{PASSENGER_TARBALL} /cache/#{distro}_#{PASSENGER_TARBALL}"
+        end
+      end
+    end
+  end
+
+  register_tracking_task(:preparation, 'builtin_nginx')
+  desc "Create builtin Nginx orig tarball"
+  task :builtin_nginx do
+    track_task(:preparation, 'builtin_nginx') do |task|
+      if File.exist?("/cache/#{NGINX_TARBALL}")
+        task.sh "cp /cache/#{NGINX_TARBALL} /work/#{NGINX_TARBALL}"
+      else
+        task.sh "./download-nginx-orig-tarball.sh /work/#{NGINX_TARBALL}"
+        task.sh "cp /work/#{NGINX_TARBALL} /cache/#{NGINX_TARBALL}"
+      end
+    end
+  end
+
+  PROBLEM_DISTROS.each do |distro|
+    register_tracking_task(:preparation, 'nginx_dev')
+    desc "Create Nginx dev orig tarball"
+    task "nginx_dev:#{distro}" do
+      track_task(:preparation, 'nginx_dev') do |task|
+        cache_tarball="#{NGINX_SOURCE_PACKAGE_NAME}_#{distro}_#{latest_nginx_version_upstream(distro)}.orig.tar.gz"
+        work_tarball="#{NGINX_SOURCE_PACKAGE_NAME}_#{latest_nginx_version_upstream(distro)}.orig.tar.gz"
+        if File.exist?("/cache/#{cache_tarball}")
+          task.sh "cp /cache/#{cache_tarball} /work/#{work_tarball}"
+        else
+          task.sh "./download-nginx-distro-tarball.sh #{distro} /work/#{work_tarball}"
+          task.sh "cp /work/#{work_tarball} /cache/#{cache_tarball}"
+        end
+      end
+    end
+  end
+
+end
+
+##### Source packages #####
+
+register_tracking_category(:spkg, 'Building source packages')
+
+namespace :spkg do
+  desc "Build all source packages for all distributions"
+
+
+  ### Passenger ###
+
+  desc "Build Passenger source packages for all distributions"
+  task "passenger:all"
+
+  DISTROS.each do |distro|
+    task "passenger:all" => "passenger:#{distro}"
+    task "all" => "passenger:#{distro}"
+
+    register_tracking_task(:spkg, "passenger:#{distro}")
+    desc "Build Passenger source package for #{distro}"
+    task("passenger:#{distro}" => [ "source:passenger:#{distro}" ]) do
+      track_task(:spkg, "passenger:#{distro}") do |task|
+        task.sh "mkdir -p /work/spkg/passenger/#{distro}"
+        task.sh "./build-source-package.rb",
+                SPECDIR: "/system/debian_specs/#{PASSENGER_SPECDIR}",
+                DISTRIBUTION: distro,
+                TARBALL: PASSENGER_TARBALL,
+                SOURCENAME: "#{PASSENGER_PACKAGE_NAME}-#{PASSENGER_VERSION}",
+                SPKG_DIR: "/work/spkg/passenger/#{distro}",
+                PACKAGE_VERSION: PASSENGER_VERSION,
+                DEBIAN_NAME: PASSENGER_DEBIAN_NAME,
+                DEBIAN_EPOCH: PASSENGER_DEBIAN_EPOCH,
+                DEBIAN_VENDOR_VERSION: PASSENGER_DEBIAN_VENDOR_VERSION,
+                DEBIAN_HOTFIX_VERSION: PASSENGER_DEBIAN_HOTFIX_VERSION
+      end
+    end
+  end
+
+  PROBLEM_DISTROS.each do |distro|
+    task "passenger:#{distro}" => "passenger:#{distro}:nginx_dev"
+    task "all" => "passenger:#{distro}:nginx_dev"
+
+    register_tracking_task(:spkg, "passenger:#{distro}:nginx_dev")
+    desc "Build Nginx source package for #{distro}"
+    task("passenger:#{distro}:nginx_dev" => [ "source:nginx_dev:#{distro}" ]) do
+      track_task(:spkg, "passenger:#{distro}:nginx_dev") do |task|
+        task.sh "mkdir -p /work/spkg/nginx/#{distro}"
+        nginx_dev_version = latest_nginx_version_upstream(distro)
+        task.sh "./build-source-package.rb",
+                SPECDIR: "/system/debian_specs/#{NGINX_SPECDIR}",
+                DISTRIBUTION: distro,
+                TARBALL: "#{NGINX_SOURCE_PACKAGE_NAME}_#{nginx_dev_version}.orig.tar.gz",
+                SOURCENAME: "#{NGINX_SOURCE_PACKAGE_NAME}-#{nginx_dev_version}",
+                SPKG_DIR: "/work/spkg/nginx/#{distro}",
+                PACKAGE_VERSION: nginx_dev_version,
+                DEBIAN_NAME: NGINX_DEV_DEBIAN_NAME,
+                DEBIAN_EPOCH: NGINX_DEV_DEBIAN_EPOCH,
+                DEBIAN_VENDOR_VERSION: latest_nginx_version_debian_revision(distro),
+                DEBIAN_HOTFIX_VERSION: NGINX_DEV_DEBIAN_HOTFIX_VERSION
+      end
+    end
+  end
+end
+
+
+##### Binary packages #####
+
+register_tracking_category(:pkg, 'Building binary packages')
+
+namespace :env do
+  desc "Initialize environments for all distributions and architectures"
+  task :all
+
+  register_tracking_task(:pkg, "env:essentials")
+  task :essentials do
+    track_task(:pkg, "env:essentials") do |task|
+      task.sh "./setup-environment-essentials.sh"
+    end
+  end
+
+  DISTROS.each do |distro|
+    ARCHITECTURES.each do |arch|
+      task all: "#{distro}:#{arch}"
+
+      register_tracking_task(:pkg, "env:#{distro}:#{arch}")
+      desc "Initialize environment for #{distro} #{arch}"
+      task "#{distro}:#{arch}" => :essentials do
+        track_task(:pkg, "env:#{distro}:#{arch}") do |task|
+          task.sh "./setup-environment.sh #{distro} #{arch}"
+        end
+      end
+    end
+  end
+end
+
+namespace :pkg do
+  desc "Build all binary packages for all distributions and architectures"
+  task :all
+
+  directory LOCAL_POOL
+
+  PROBLEM_DISTROS.each do |distro|
+    ARCHITECTURES.each do |arch|
+      directory local_repo_packages(distro, arch)
+
+      register_tracking_task(:pkg, "prepare_local_repo:#{distro}:#{arch}")
+      desc "Setup the local repo used to provide nginx-dev to build environment"
+      task "prepare_local_repo:#{distro}:#{arch}" => [ LOCAL_POOL, local_repo_packages(distro, arch) ] do
+        track_task(:pkg, "prepare_local_repo:#{distro}:#{arch}") do |task|
+          update_staging_repo(task, distro, arch)
+        end
+      end
+    end
+  end
+
+  ### Passenger ###
+
+  desc "Build Passenger binary packages for all distributions and architectures"
+  task "passenger:all"
+
+  DISTROS.each do |distro|
+    ARCHITECTURES.each do |arch|
+      task "passenger:all" => "passenger:#{distro}:#{arch}"
+      task "all" => "passenger:#{distro}:#{arch}"
+
+      register_tracking_task(:pkg, "passenger:#{distro}:#{arch}")
+      desc "Build Passenger binary package for #{distro} #{arch}"
+      task("passenger:#{distro}:#{arch}" => [ "spkg:passenger:#{distro}", "env:#{distro}:#{arch}" ]) do
+        track_task(:pkg, "passenger:#{distro}:#{arch}") do |task|
+          extra_flags = ""
+          if PROBLEM_DISTROS.include? distro
+            extra_flags = "--bindmounts #{LOCAL_REPO} --othermirror 'deb [trusted=yes] file://#{LOCAL_REPO}/ #{distro} main'"
+            task.sh "cd /work/spkg/passenger/#{distro} && yes | pbuilder-dist #{distro} #{arch} update --override-config #{extra_flags}"
+          end
+          task.sh "cd /work/spkg/passenger/#{distro} && yes | pbuilder-dist #{distro} #{arch} build #{extra_flags} *.dsc"
+        end
+      end
+    end
+  end
+
+
+  ### Nginx ###
+
+  desc "Build Nginx-dev binary packages for select distributions"
+  task "nginx:all"
+
+  PROBLEM_DISTROS.each do |distro|
+    ARCHITECTURES.each do |arch|
+      task "nginx:all" => "nginx:#{distro}:#{arch}"
+      task "all" => "nginx:#{distro}:#{arch}"
+      task "passenger:#{distro}:#{arch}" => "nginx:#{distro}:#{arch}"
+
+      register_tracking_task(:pkg, "nginx:#{distro}:#{arch}")
+      desc "Build Nginx-dev binary package for #{distro} #{arch}"
+      task("nginx:#{distro}:#{arch}" => [ "pkg:prepare_local_repo:#{distro}:#{arch}", "spkg:passenger:#{distro}:nginx_dev", "env:#{distro}:#{arch}" ]) do
+        track_task(:pkg, "nginx:#{distro}:#{arch}") do |task|
+          task.sh "cd /work/spkg/nginx/#{distro} && yes | pbuilder-dist #{distro} #{arch} build *.dsc"
+          deb = Dir["/work/pkg/#{distro}_result/nginx-dev*.deb"].first
+          raise "nginx-dev .deb not found" unless deb
+
+          add_deb_to_staging_repo(deb, task, distro, arch)
+        end
+      end
+    end
+  end
+end
+
+
+##### Misc #####
+
+task :clear_work_dir do
+  sh "rm -rf /work/*"
+end
+
+task :start do
+  initialize_tracking_database_logs!
+end
+
+task :finish do
+  puts
+  puts "Finished"
+  TRACKING_DB.monitor.synchronize do
+    TRACKING_DB.set_finished!
+    dump_tracking_database
+  end
+
+  puts
+  puts "Committing build products to output directory..."
+  sh "rm -rf /output/*"
+
+  files = Dir["/work/spkg/*passenger*/*/*.{gz,xz,dsc}"]
+  if files.any?
+    puts "Placing #{files.size} files from /work/spkg into output directory"
+    files.each do |path|
+      unless path.include?('nginx-dev')
+        basename = File.basename(path)
+        distro = File.basename(File.dirname(path))
+        mkdir_p "/output/#{distro}"
+        cp path, "/output/#{distro}/#{basename}"
+      end
+    end
+  end
+
+  files = Dir["/work/pkg/*/*.{deb,dsc,gz,xz}"]
+  if files.any?
+    puts "Placing #{files.size} files from /work/pkg into output directory"
+    files.each do |path|
+      unless path.include?('nginx-dev')
+        basename = File.basename(path)
+        distro = File.basename(File.dirname(path)).sub(/[-_].*/, '')
+        mkdir_p "/output/#{distro}"
+        cp path, "/output/#{distro}/#{basename}"
+      end
+    end
+  end
+end
