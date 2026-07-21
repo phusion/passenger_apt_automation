@@ -29,7 +29,7 @@ def initialize_rakefile!
   if SHOW_TASKS
     create_fake_directories
   else
-    Dir.chdir("/system/internal/build")
+    Dir.chdir("/system/internal/rebuild")
     load_passenger
     set_constants_and_envvars
   end
