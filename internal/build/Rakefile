@@ -17,11 +17,11 @@ namespace :source do
     desc "Create Passenger orig tarball"
     task("passenger:#{distro}" => :builtin_nginx) do
       track_task(:preparation, "passenger:#{distro}") do |task|
-        if FETCH_PASSENGER_TARBALL_FROM_CACHE && File.exist?("/cache/#{distro}_#{PASSENGER_TARBALL}")
-          task.sh "cp /cache/#{distro}_#{PASSENGER_TARBALL} /work/#{PASSENGER_TARBALL}"
+        if FETCH_PASSENGER_TARBALL_FROM_CACHE && File.exist?("/cache/#{PASSENGER_TARBALL}")
+          task.sh "cp /cache/#{PASSENGER_TARBALL} /work/#{PASSENGER_TARBALL}"
         else
           task.sh "./build-passenger-orig-tarball.sh /work/#{PASSENGER_TARBALL} #{distro}"
-          task.sh "cp /work/#{PASSENGER_TARBALL} /cache/#{distro}_#{PASSENGER_TARBALL}"
+          task.sh "cp /work/#{PASSENGER_TARBALL} /cache/#{PASSENGER_TARBALL}"
         end
       end
     end
