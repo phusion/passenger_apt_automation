@@ -18,7 +18,7 @@ namespace :source do
     task("passenger:#{distro}") do
       track_task(:preparation, "passenger:#{distro}") do |task|
         tar_xz = "#{PASSENGER_DEBIAN_NAME}_#{PASSENGER_VERSION}-*#{distro}*.debian.tar.xz"
-        if FETCH_PASSENGER_TARBALL_FROM_CACHE && File.exist?("/cache/#{PASSENGER_TARBALL}") && File.exist?("/cache/#{tar_xz}")
+        if FETCH_PASSENGER_TARBALL_FROM_CACHE && File.exist?("/cache/#{PASSENGER_TARBALL}") && !Dir["/cache/#{tar_xz}"].empty?
           task.sh "cp /cache/#{PASSENGER_TARBALL} /work/#{PASSENGER_TARBALL}"
           task.sh "cp /cache/#{tar_xz} /work/"
         else
