@@ -48,7 +48,7 @@ jobs:
         uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf
         with:
           images: |
-            ghcr.io/${{ env.BUILDBOX_IMAGE_NAME }}
+            ${{ env.BUILDBOX_IMAGE_NAME }}
           tags: |
             type=raw,value=${{ env.BUILDBOX_IMAGE_VERSION }}-${{ matrix.arch.name }}
             type=edge,enable=true,priority=700,prefix=,suffix=${{ matrix.arch.name }},branch=$repo.default_branch
@@ -75,7 +75,7 @@ jobs:
           platforms: linux/${{ matrix.arch.name }}
           labels: ${{ steps.meta.outputs.labels }}
           tags: ${{ steps.meta.outputs.tags }}
-          outputs: "type=image,name=ghcr.io/${{ env.BUILDBOX_IMAGE_NAME }},push-by-digest=false,name-canonical=true,push=true"
+          outputs: "type=image,name=${{ env.BUILDBOX_IMAGE_NAME }},push-by-digest=false,name-canonical=true,push=true"
 
       - name: Export digest
         run: |
@@ -122,7 +122,7 @@ jobs:
         uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf
         with:
           images: |
-            ghcr.io/${{ env.TESTBOX_IMAGE_NAME }}
+            ${{ env.TESTBOX_IMAGE_NAME }}
           tags: |
             type=raw,value=${{ env.TESTBOX_IMAGE_VERSION }}-${{ matrix.arch.name }}
             type=edge,enable=true,priority=700,prefix=,suffix=${{ matrix.arch.name }},branch=$repo.default_branch
@@ -149,7 +149,7 @@ jobs:
           platforms: linux/${{ matrix.arch.name }}
           labels: ${{ steps.meta.outputs.labels }}
           tags: ${{ steps.meta.outputs.tags }}
-          outputs: "type=image,name=ghcr.io/${{ env.TESTBOX_IMAGE_NAME }},push-by-digest=false,name-canonical=true,push=true"
+          outputs: "type=image,name=${{ env.TESTBOX_IMAGE_NAME }},push-by-digest=false,name-canonical=true,push=true"
 
       - name: Export digest
         run: |
@@ -195,7 +195,7 @@ jobs:
         uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf
         with:
           images: |
-            ghcr.io/${{ env.TESTBOX_IMAGE_NAME }}
+            ${{ env.TESTBOX_IMAGE_NAME }}
           tags: |
             type=raw,value=${{ env.TESTBOX_IMAGE_VERSION }}-${{ matrix.arch.name }}
             type=edge,enable=true,priority=700,prefix=,suffix=-${{ matrix.arch.name }},branch=$repo.default_branch
@@ -222,7 +222,7 @@ jobs:
           platforms: linux/${{ matrix.arch.name }}
           labels: ${{ steps.meta.outputs.labels }}
           tags: ${{ steps.meta.outputs.tags }}
-          outputs: "type=image,name=ghcr.io/${{ env.TESTBOX_IMAGE_NAME }},push-by-digest=false,name-canonical=true,push=true"
+          outputs: "type=image,name=${{ env.TESTBOX_IMAGE_NAME }},push-by-digest=false,name-canonical=true,push=true"
 
       - name: Export digest
         run: |
@@ -271,7 +271,7 @@ jobs:
         uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf
         with:
           images: |
-            ghcr.io/${{ env.BUILDBOX_IMAGE_NAME }}
+            ${{ env.BUILDBOX_IMAGE_NAME }}
           tags: |
             type=raw,value=${{ env.BUILDBOX_IMAGE_VERSION }}
             type=raw,value=latest
@@ -279,10 +279,10 @@ jobs:
 
       - name: Create manifest list and push
         working-directory: /tmp/digests
-        run: docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") $(printf 'ghcr.io/${{ env.BUILDBOX_IMAGE_NAME }}@sha256:%s ' *)
+        run: docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") $(printf '${{ env.BUILDBOX_IMAGE_NAME }}@sha256:%s ' *)
 
       - name: Inspect image
-        run: docker buildx imagetools inspect ghcr.io/${{ env.BUILDBOX_IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+        run: docker buildx imagetools inspect ${{ env.BUILDBOX_IMAGE_NAME }}:${{ steps.meta.outputs.version }}
 
 
   merge-ubuntus:
@@ -327,7 +327,7 @@ jobs:
         uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf
         with:
           images: |
-            ghcr.io/${{ env.TESTBOX_IMAGE_NAME }}
+            ${{ env.TESTBOX_IMAGE_NAME }}
           tags: |
             type=raw,value=${{ env.TESTBOX_IMAGE_VERSION }}
             type=raw,value=latest
@@ -335,10 +335,10 @@ jobs:
 
       - name: Create manifest list and push
         working-directory: /tmp/digests
-        run: docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") $(printf 'ghcr.io/${{ env.TESTBOX_IMAGE_NAME }}@sha256:%s ' *)
+        run: docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") $(printf '${{ env.TESTBOX_IMAGE_NAME }}@sha256:%s ' *)
 
       - name: Inspect image
-        run: docker buildx imagetools inspect ghcr.io/${{ env.TESTBOX_IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+        run: docker buildx imagetools inspect ${{ env.TESTBOX_IMAGE_NAME }}:${{ steps.meta.outputs.version }}
 
 
   merge-debians:
@@ -383,7 +383,7 @@ jobs:
         uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf
         with:
           images: |
-            ghcr.io/${{ env.TESTBOX_IMAGE_NAME }}
+            ${{ env.TESTBOX_IMAGE_NAME }}
           tags: |
             type=raw,value=${{ env.TESTBOX_IMAGE_VERSION }}
             type=raw,value=latest
@@ -391,7 +391,7 @@ jobs:
 
       - name: Create manifest list and push
         working-directory: /tmp/digests
-        run: docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") $(printf 'ghcr.io/${{ env.TESTBOX_IMAGE_NAME }}@sha256:%s ' *)
+        run: docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") $(printf '${{ env.TESTBOX_IMAGE_NAME }}@sha256:%s ' *)
 
       - name: Inspect image
-        run: docker buildx imagetools inspect ghcr.io/${{ env.TESTBOX_IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+        run: docker buildx imagetools inspect ${{ env.TESTBOX_IMAGE_NAME }}:${{ steps.meta.outputs.version }}

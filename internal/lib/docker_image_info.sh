@@ -16,11 +16,11 @@ if [[ -z "$1" ]]; then
 fi
 
 if [[ "$1" == "buildbox_name" ]]; then
-	echo -n "phusion/passenger_apt_automation_buildbox"
+	echo -n "ghcr.io/phusion/passenger_apt_automation_buildbox"
 elif [[ "$1" == "buildbox_version" ]]; then
 	echo -n "2.2.7"
 elif [[ "$1" == "testbox_base_name" ]]; then
-	echo -n "phusion/passenger_apt_automation_testbox"
+	echo -n "ghcr.io/phusion/passenger_apt_automation_testbox"
 elif [[ "$1" == "testbox_version" ]]; then
 	echo -n "2.2.2"
 else
