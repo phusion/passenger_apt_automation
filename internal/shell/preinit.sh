@@ -5,7 +5,7 @@ ROOTDIR=$(cd "$ROOTDIR/../.." && pwd)
 # shellcheck source=../lib/library.sh
 source "$ROOTDIR/internal/lib/library.sh"
 
-if [[ -e /work ]]; then
+if [ "$CLEAR_WORK_DIR" = true] && [[ -e /work ]]; then
 	rm -rf /work/*
 else
 	run mkdir /work
