@@ -1,7 +1,10 @@
+require 'uri'
+require 'net/http'
 require 'open-uri'
 require 'json'
 require 'csv'
 require 'nokogiri'
+require "zlib"
 
 # After editing this file regenerate distro_info.sh by running:
 # internal/scripts/regen_distro_info_script.sh
@@ -82,8 +85,45 @@ def systemd_tmpfiles?(distro)
   ubuntu_gte(distro, "vivid") || debian_gte(distro, "jessie")
 end
 
+def deb_comparitor(deb_a, op, deb_b)
+  op_map = {
+   '=' => 'eq',
+  '==' => 'eq',
+  '!=' => 'ne',
+   '<' => 'lt',
+  '<=' => "le",
+   '>' => "gt",
+  '>=' => "ge",
+  }
+  raise ArgumentError, "deb a was nil" if deb_a.nil?
+  raise ArgumentError, "deb b was nil" if deb_b.nil?
+  system("dpkg" ,"--compare-versions", deb_a, op_map.fetch(op.to_s), deb_b)
+end
+
 def latest_nginx_unsanitized(distro)
-  ENV['DISTRO_NGINXS'].split.map{|dv|dv.split(":")}.to_h[distro.to_s]
+  arch = "amd64"
+  if is_ubuntu(distro)
+    uri = "https://archive.ubuntu.com/ubuntu/dists/#{distro}/main/binary-#{arch}/Packages.gz"
+  else
+    uri = "https://ftp.debian.org/debian/dists/#{distro}/main/binary-#{arch}/Packages.gz"
+  end
+  uri = URI(uri)
+  Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
+    http.request(Net::HTTP::Get.new(URI(uri))) do |r|
+      if r.code.to_i < 300
+        return Zlib::GzipReader.new(StringIO.new(r.body)).read.split(/\n\n+/).filter do |p|
+          p.start_with?("Package: nginx-common\n")
+        end.map do |p|
+          p.lines.find { |l| l.start_with? "Version:" }.split(":").last.strip
+        end.sort do |va, vb|
+          next 0 if va == vb
+          deb_comparitor(va, :>, vb) ? 1 : -1
+        end.last
+      else
+        raise "#{uri} encountered error: #{r.message}"
+      end
+    end
+  end
 end
 # [upstream_version]-[debian_revision_component]ubuntu[ubuntu_revision_component]
 def latest_nginx_version_upstream(distro)
