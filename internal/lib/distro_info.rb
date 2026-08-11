@@ -91,13 +91,13 @@ def deb_comparitor(deb_a, op, deb_b)
   '==' => 'eq',
   '!=' => 'ne',
    '<' => 'lt',
-  '<=' => "le",
-   '>' => "gt",
-  '>=' => "ge",
+  '<=' => 'le',
+   '>' => 'gt',
+  '>=' => 'ge',
   }
   raise ArgumentError, "deb a was nil" if deb_a.nil?
   raise ArgumentError, "deb b was nil" if deb_b.nil?
-  system("dpkg" ,"--compare-versions", deb_a, op_map.fetch(op.to_s), deb_b)
+  system("dpkg", "--compare-versions", deb_a, op_map.fetch(op.to_s), deb_b)
 end
 
 def latest_nginx_unsanitized(distro)

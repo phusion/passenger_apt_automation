@@ -4,7 +4,7 @@ require_relative '../lib/utils'
 require_relative '../lib/distro_info'
 
 DISTROS = ENV['DISTRIBUTIONS'].split(/ +/).map { |distro| to_distro_codename(distro) }
-PROBLEM_DISTROS = ["jammy", "bullseye"] & DISTROS
+PROBLEM_DISTROS = [ "jammy", "bullseye" ] & DISTROS
 ARCHITECTURES = ENV['ARCHITECTURES'].split(/ +/)
 SHOW_TASKS = !!ENV['SHOW_TASKS']
 SHOW_OVERVIEW_PERIODICALLY = ENV['SHOW_OVERVIEW_PERIODICALLY'] == 'true'

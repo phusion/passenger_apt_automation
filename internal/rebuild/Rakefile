@@ -185,7 +185,7 @@ namespace :pkg do
           end
           Dir.chdir("/work/spkg/passenger/#{distro}") do
             task.sh "yes | pbuilder-dist #{distro} #{arch} build #{extra_flags} *.dsc"
-            FileUtils.rm Dir["/work/pkg/#{distro}_result/*.deb"].reject {|deb| deb.include? "libnginx-mod-http" }
+            FileUtils.rm Dir["/work/pkg/#{distro}_result/*.deb"].reject { |deb| deb.include? "libnginx-mod-http" }
           end
         end
       end

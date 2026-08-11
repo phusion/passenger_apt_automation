@@ -56,7 +56,6 @@ namespace :source do
       end
     end
   end
-
 end
 
 ##### Source packages #####
