@@ -3,6 +3,7 @@ require 'shellwords'
 require_relative 'preprocessor'
 
 module Utils
+
   extend self
 
   COLORS = [
@@ -70,4 +71,5 @@ module Utils
   def shesc(path)
     Shellwords.escape(path)
   end
+
 end
