@@ -46,7 +46,7 @@ namespace :source do
     task "nginx_dev:#{distro}" do
       track_task(:preparation, 'nginx_dev') do |task|
         cache_tarball="#{NGINX_SOURCE_PACKAGE_NAME}_#{distro}_#{latest_nginx_unsanitized(distro)}.orig.tar.gz"
-        work_tarball="#{NGINX_SOURCE_PACKAGE_NAME}_#{latest_nginx_unsanitized(distro)}.orig.tar.gz"
+        work_tarball="#{NGINX_SOURCE_PACKAGE_NAME}_#{latest_nginx_version_upstream(distro)}.orig.tar.gz"
         if File.exist?("/cache/#{cache_tarball}")
           task.sh "cp /cache/#{cache_tarball} /work/#{work_tarball}"
         else
