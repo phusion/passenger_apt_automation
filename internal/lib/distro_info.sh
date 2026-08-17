@@ -46,7 +46,7 @@ function to_distro_codename()
 
 function get_buildbox_image()
 {
-	echo "ghcr.io/phusion/passenger_apt_automation_buildbox:2.2.7"
+	echo "ghcr.io/phusion/passenger_apt_automation_buildbox:2.2.8"
 }
 
 function to_testbox_image()

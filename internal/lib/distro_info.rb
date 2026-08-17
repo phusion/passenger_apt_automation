@@ -5,6 +5,7 @@ require 'json'
 require 'csv'
 require 'nokogiri'
 require "zlib"
+require "xz"
 
 # After editing this file regenerate distro_info.sh by running:
 # internal/scripts/regen_distro_info_script.sh
@@ -101,28 +102,35 @@ def deb_comparitor(deb_a, op, deb_b)
 end
 
 def latest_nginx_unsanitized(distro)
-  arch = "amd64"
+  arch = "arm64" # due to old ubuntu ports not having amd64
   if is_ubuntu(distro)
-    uri = "https://archive.ubuntu.com/ubuntu/dists/#{distro}/main/binary-#{arch}/Packages.gz"
+    uris = [
+      "https://ports.ubuntu.com/ubuntu-ports/dists/#{distro}/main/binary-#{arch}/Packages.gz",
+      "https://ports.ubuntu.com/ubuntu-ports/dists/#{distro}-updates/main/binary-#{arch}/Packages.gz",
+      "https://ports.ubuntu.com/ubuntu-ports/dists/#{distro}-security/main/binary-#{arch}/Packages.gz",
+    ]
   else
-    uri = "https://ftp.debian.org/debian/dists/#{distro}/main/binary-#{arch}/Packages.gz"
+    uris = [
+      "https://deb.debian.org/debian/dists/#{distro}/main/binary-#{arch}/Packages.gz",
+      "https://deb.debian.org/debian/dists/#{distro}-updates/main/binary-#{arch}/Packages.xz",
+      "https://deb.debian.org/debian-security/dists/#{distro}-security/main/binary-#{arch}/Packages.xz",
+    ]
   end
-  uri = URI(uri)
-  Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
-    http.request(Net::HTTP::Get.new(URI(uri))) do |r|
+  domain = URI(uris.first)
+  Net::HTTP.start(domain.host, domain.port, use_ssl: true) do |http|
+    uris.flat_map do |uri|
+      r = http.request(Net::HTTP::Get.new(URI(uri)))
       if r.code.to_i < 300
-        return Zlib::GzipReader.new(StringIO.new(r.body)).read.split(/\n\n+/).filter do |p|
-          p.start_with?("Package: nginx-common\n")
-        end.map do |p|
-          p.lines.find { |l| l.start_with? "Version:" }.split(":").last.strip
-        end.sort do |va, vb|
-          next 0 if va == vb
-          deb_comparitor(va, :>, vb) ? 1 : -1
-        end.last
+        (uri.end_with?(".gz") ? Zlib.gunzip(r.body) : XZ.decompress(r.body)).force_encoding(Encoding::UTF_8).split(/\n\n+/).filter_map do |p|
+          p.lines.find { |l| l.start_with? "Version:" }.split(":").last.strip if p.start_with?("Package: nginx-common\n")
+        end
       else
         raise "#{uri} encountered error: #{r.message}"
       end
-    end
+    end.sort do |va, vb|
+      next 0 if va == vb
+      deb_comparitor(va, :>, vb) ? 1 : -1
+    end.last
   end
 end
 # [upstream_version]-[debian_revision_component]ubuntu[ubuntu_revision_component]
