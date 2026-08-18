@@ -251,7 +251,7 @@ task :finish do
   if files.any?
     puts "Placing #{files.size} files from /work/spkg into output directory"
     files.each do |path|
-      unless path.include?('nginx-dev')
+      unless path.include?('nginx') && !path.include?('libnginx')
         basename = File.basename(path)
         distro = File.basename(File.dirname(path))
         mkdir_p "/output/#{distro}"
@@ -264,7 +264,7 @@ task :finish do
   if files.any?
     puts "Placing #{files.size} files from /work/pkg into output directory"
     files.each do |path|
-      unless path.include?('nginx-dev')
+      unless path.include?('nginx') && !path.include?('libnginx')
         basename = File.basename(path)
         distro = File.basename(File.dirname(path)).sub(/[-_].*/, '')
         mkdir_p "/output/#{distro}"
