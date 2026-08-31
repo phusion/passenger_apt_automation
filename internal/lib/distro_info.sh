@@ -8,9 +8,9 @@
 # internal/scripts/regen_distro_info_script.sh
 
 # shellcheck disable=SC2034
-DEFAULT_DISTROS="jammy noble resolute bullseye bookworm trixie"
+DEFAULT_DISTROS="jammy noble resolute stonking bullseye bookworm trixie"
 DEBIAN_DISTROS="11 12 13"
-UBUNTU_DISTROS="22.04 24.04 26.04"
+UBUNTU_DISTROS="22.04 24.04 26.04 26.10"
 
 
 function to_distro_codename()

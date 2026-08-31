@@ -29,6 +29,7 @@ DEFAULT_DISTROS = %w[
   jammy
   noble
   resolute
+  stonking
 
   bullseye
   bookworm
