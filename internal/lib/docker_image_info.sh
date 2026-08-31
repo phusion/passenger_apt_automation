@@ -5,6 +5,7 @@
 #
 # !! WARNING !!
 # If you change this file, be sure to run internal/scripts/regen_distro_info_script.sh
+# If you are not on ubuntu or don't have all the deps installed you can use internal/scripts/regen_using_container.sh
 
 set -e
 
@@ -18,7 +19,7 @@ fi
 if [[ "$1" == "buildbox_name" ]]; then
 	echo -n "ghcr.io/phusion/passenger_apt_automation_buildbox"
 elif [[ "$1" == "buildbox_version" ]]; then
-	echo -n "2.2.8"
+	echo -n "2.3.0"
 elif [[ "$1" == "testbox_base_name" ]]; then
 	echo -n "ghcr.io/phusion/passenger_apt_automation_testbox"
 elif [[ "$1" == "testbox_version" ]]; then

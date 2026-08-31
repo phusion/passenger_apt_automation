@@ -9,6 +9,8 @@ require "xz"
 
 # After editing this file regenerate distro_info.sh by running:
 # internal/scripts/regen_distro_info_script.sh
+# If you are not on ubuntu or don't have all the deps installed you can use:
+# internal/scripts/regen_using_container.sh
 
 def gen_distros(family)
   throw "must be run from #{family}" unless File.exist?("/usr/share/distro-info/#{family}.csv")

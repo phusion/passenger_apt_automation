@@ -9,6 +9,8 @@ require File.absolute_path(File.dirname(__FILE__)) + '/distro_info'
 # 
 # Edit those and regenerate distro_info.sh by running:
 # internal/scripts/regen_distro_info_script.sh
+# If you are not on ubuntu or don't have all the deps installed you can use:
+# internal/scripts/regen_using_container.sh
 
 # shellcheck disable=SC2034
 DEFAULT_DISTROS="<%= DEFAULT_DISTROS.join(' ') %>"

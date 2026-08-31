@@ -1,3 +1,3 @@
-FROM phusion/baseimage:noble-1.0.2
+FROM phusion/baseimage:resolute
 ADD . /paa_build
 RUN bash /paa_build/install.sh

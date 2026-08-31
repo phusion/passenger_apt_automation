@@ -2,7 +2,6 @@ source 'https://rubygems.org/'
 
 gem 'rake'
 gem 'bluecloth'
-gem 'mizuho'
 gem 'paint'
 gem 'net-http-persistent'
 gem 'ruby-xz'

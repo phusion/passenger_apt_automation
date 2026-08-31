@@ -6,6 +6,8 @@
 # 
 # Edit those and regenerate distro_info.sh by running:
 # internal/scripts/regen_distro_info_script.sh
+# If you are not on ubuntu or don't have all the deps installed you can use:
+# internal/scripts/regen_using_container.sh
 
 # shellcheck disable=SC2034
 DEFAULT_DISTROS="jammy noble resolute stonking bullseye bookworm trixie"
@@ -46,7 +48,7 @@ function to_distro_codename()
 
 function get_buildbox_image()
 {
-	echo "ghcr.io/phusion/passenger_apt_automation_buildbox:2.2.8"
+	echo "ghcr.io/phusion/passenger_apt_automation_buildbox:2.3.0"
 }
 
 function to_testbox_image()

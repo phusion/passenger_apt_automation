@@ -5,13 +5,13 @@ if [ $# -ne 1 ]; then
 	echo "phusion/passenger_apt_automation_buildbox:1.0.0"
 	exit 1
 fi
-SELFDIR=`dirname "$0"`
-SELFDIR=`cd "$SELFDIR" && pwd`
+SELFDIR=$(dirname "$0")
+SELFDIR=$(cd "$SELFDIR" && pwd)
 set -x
 cd "$SELFDIR/buildbox"
 
 ARM_IMAGE="${1}-arm64"
 AMD_IMAGE="${1}-amd64"
 
-docker buildx build --platform linux/arm64 --pull --force-rm -t $ARM_IMAGE .
-docker buildx build --platform linux/amd64 --pull --force-rm -t $AMD_IMAGE .
+docker buildx build --platform linux/arm64 --pull --force-rm -t "$ARM_IMAGE" .
+docker buildx build --platform linux/amd64 --pull --force-rm -t "$AMD_IMAGE" .

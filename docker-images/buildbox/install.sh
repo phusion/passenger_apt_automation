@@ -39,7 +39,7 @@ export LC_ALL=C.UTF-8
 export DEBIAN_FRONTEND=noninteractive
 export HOME=/root
 
-run sed -e 's/deb/& deb-src/g' -i'' /etc/apt/sources.list.d/ubuntu.sources
+run sed -e 's/deb$/& deb-src/g' -i'' /etc/apt/sources.list.d/ubuntu.sources
 run apt-get update -q
 run apt-get install -y -q sudo
 
@@ -55,7 +55,8 @@ header "Installing dependencies"
 run apt-get install -y -q ubuntu-dev-tools debhelper source-highlight \
 	ruby ruby-dev ruby-nokogiri libsqlite3-dev runit git gawk dh-make dirmngr \
 	zlib1g-dev libxml2-dev libxslt1-dev gdebi-core gnupg distro-info-data dh-sequence-nginx \
-	dpkg-dev debian-keyring debian-archive-keyring
+	dpkg-dev debian-keyring debian-archive-keyring pbuilder
+run apt-get upgrade -y
 # installing dpkg-dev and debian-archive-keyring and the keyring copy below are only needed until bullseye & jammy are EOL
 cp /usr/share/keyrings/debian-* /etc/apt/trusted.gpg.d/
 run gem install rake bundler --no-document
@@ -66,7 +67,8 @@ run sudo -u app -H gpg --keyserver keyserver.ubuntu.com --recv-keys C324F5BB38EE
 echo '+ sudo -u app -H gpg --armor --export C324F5BB38EEB5A0 > /etc/apt/trusted.gpg.d/launchpad_ppa_for_phusion.asc'
 sudo -u app -H gpg --armor --export C324F5BB38EEB5A0 > /etc/apt/trusted.gpg.d/launchpad_ppa_for_phusion.asc
 # start dirmngr
-run dirmngr
+mkdir -p /root/.gnupg/
+run dirmngr --daemon
 # Fixes pbuilder-dist not being able to debootstrap newer dists.
 run gpg --no-default-keyring --keyring /usr/share/keyrings/debian-archive-keyring.gpg --keyserver keyserver.ubuntu.com --recv-keys 6FB2A1C265FFB764
 run gpg --no-default-keyring --keyring /usr/share/keyrings/debian-archive-keyring.gpg --keyserver keyserver.ubuntu.com --recv-keys DCC9EFBF77E11517
@@ -84,10 +86,18 @@ run rm -rf *.deb *.gz *.dsc *.changes pam-*
 
 header "Finishing up"
 # Undo 'apt-get build-dep pam'
-run apt-get remove -y docbook-xml docbook-xsl flex libaudit-dev libcrack2 \
-	libcrack2-dev libdb-dev libdb5.3-dev libfl-dev libgc1c2 libpcre3-dev \
-	libpcrecpp0 libselinux1-dev libsepol1-dev libxml2-utils pkg-config \
-	sgml-data w3m xsltproc
+run apt-get remove -y ant ant-optional ca-certificates-java default-jre-headless \
+	dh-exec docbook-xsl-ns docbook5-xml flex fop java-common java-wrappers \
+	libapache-pom-java  libaudit-dev libbatik-java libbcpkix-java \
+	libbcprov-java libbcutil-java libcap-ng-dev libcommons-io-java \
+	libcommons-logging-java libcommons-parent-java libdb-dev libdb5.3-dev \
+	libfl-dev libfl2 libfontbox2-java libfop-java libgc1 libgpm2 \
+	libjakarta-servlet-api-java libjaxp1.3-java liblcms2-2 libnspr4 libnss3 \
+	libpcsclite1 libqdox-java librhino-java libselinux-dev libsepol-dev \
+	libsystemd-dev libxml-commons-external-java libxml2-utils \
+	libxmlgraphics-commons-java meson ninja-build openjdk-25-jre-headless \
+	w3m xsltproc
+
 run apt-get autoremove -y
 run apt-get clean
 run rm -rf /tmp/* /var/tmp/*
