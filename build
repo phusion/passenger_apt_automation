@@ -155,6 +155,11 @@ else
 fi
 
 if $SHOW_TASKS; then
+    if [ "$(uname)" = Darwin ]; then
+        ARCH=$(uname -m | sed -e 's/x86_64/amd64/')
+    else
+        ARCH=$(dpkg --print-architecture)
+    fi
     exec docker run \
      --rm "${TTY_ARGS[@]}" \
      -v "$SELFDIR:/system:ro" \
@@ -162,7 +167,7 @@ if $SHOW_TASKS; then
      -e "ARCHITECTURES=$ARCHITECTURES" \
      -e "SHOW_TASKS=true" \
      -e "LC_CTYPE=C.UTF-8" \
-     --platform "linux/$(dpkg --print-architecture)" \
+     --platform "linux/$ARCH" \
      "$BUILDBOX_IMAGE" \
      /sbin/my_init --quiet --skip-runit --skip-startup-files -- \
      rake -f /system/internal/build/Rakefile -T --trace
