@@ -33,7 +33,6 @@ DEFAULT_DISTROS = %w[
   resolute
   stonking
 
-  bullseye
   bookworm
   trixie
 ]
