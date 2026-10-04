@@ -109,7 +109,7 @@ describe "The system's Apache with Passenger enabled" do
 
   after :each do |t|
     if t.exception
-      sh('cat /var/log/apache2/error.log')
+      puts File.read('/var/log/apache2/error.log')
     end
   end
 
@@ -168,7 +168,7 @@ describe "The system's Nginx with Passenger enabled" do
 
   after :each do |t|
     if t.exception
-      sh('cat /var/log/nginx/error.log')
+      puts File.read('/var/log/nginx/error.log')
     end
   end
 
