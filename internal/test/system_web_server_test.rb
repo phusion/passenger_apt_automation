@@ -36,6 +36,17 @@ def passenger_instance_fully_initialized?(instance)
   !instance['core_pid'].nil?
 end
 
+# Prints a web server's error log so that CI output shows why a test failed.
+# Don't use `sh('cat ...')` for this: `sh` captures the command's output and
+# only shows it when the command itself fails.
+def print_error_log(path)
+  puts "---------------- Begin #{path} ----------------"
+  puts File.read(path)
+  puts "---------------- End #{path} ----------------"
+rescue Errno::ENOENT
+  puts "#{path} does not exist"
+end
+
 RSpec.shared_examples_for 'Hello world Ruby application' do
   it 'works' do
     if RUBY_VERSION >= '2.5'
@@ -79,6 +90,8 @@ RSpec.shared_examples_for 'Hello world Node.js application' do
 end
 
 describe "The system's Apache with Passenger enabled" do
+  # If this hook fails then RSpec skips the examples along with their
+  # `after :each` hooks, so we print the error log here too.
   before :all do
     @app_dirs = create_app_dirs
     cp('/system/internal/test/apache/vhost.conf', '/etc/apache2/sites-enabled/001-testapp.conf')
@@ -105,11 +118,14 @@ describe "The system's Apache with Passenger enabled" do
       instances.size == 1 &&
         passenger_instance_fully_initialized?(instances[0])
     end
+  rescue StandardError
+    print_error_log('/var/log/apache2/error.log')
+    raise
   end
 
   after :each do |t|
     if t.exception
-      puts File.read('/var/log/apache2/error.log')
+      print_error_log('/var/log/apache2/error.log')
     end
   end
 
@@ -142,16 +158,13 @@ describe "The system's Apache with Passenger enabled" do
 end
 
 describe "The system's Nginx with Passenger enabled" do
+  # See the Apache `before :all` hook for why this prints the error log.
   before :all do
     @app_dirs = create_app_dirs
     cp('/system/internal/test/nginx/vhost.conf', '/etc/nginx/sites-enabled/001-testapp.conf')
     chmod(0644, '/etc/nginx/sites-enabled/001-testapp.conf')
     sh("sed -i 's|# include /etc/nginx/passenger.conf|include /etc/nginx/passenger.conf|' /etc/nginx/nginx.conf")
-    begin
-      sh('service nginx start')
-    ensure
-      sh('cat /var/log/nginx/error.log')
-    end
+    sh('service nginx start')
 
     eventually do
       ping_tcp_socket('127.0.0.1', 80)
@@ -164,11 +177,14 @@ describe "The system's Nginx with Passenger enabled" do
       instances.size == 1 &&
         passenger_instance_fully_initialized?(instances[0])
     end
+  rescue StandardError
+    print_error_log('/var/log/nginx/error.log')
+    raise
   end
 
   after :each do |t|
     if t.exception
-      puts File.read('/var/log/nginx/error.log')
+      print_error_log('/var/log/nginx/error.log')
     end
   end
 
