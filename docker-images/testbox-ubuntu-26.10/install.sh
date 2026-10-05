@@ -52,7 +52,7 @@ run apt-get install -y -q gdebi-core ruby ruby-dev rake \
 	fakeroot libalgorithm-merge-perl less libfile-fcntllock-perl \
 	liblocale-gettext-perl python-is-python3 systemd ruby-nokogiri distro-info-data
 run apt-get install -y -q --no-install-recommends git \
-	build-essential libsqlite3-dev zlib1g-dev ssh-client
+	build-essential libsqlite3-dev zlib1g-dev openssh-client
 
 header "Node.js"
 # Define the desired Node.js major version
