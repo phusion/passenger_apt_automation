@@ -181,8 +181,11 @@ namespace :pkg do
           extra_flags = ""
           if PROBLEM_DISTROS.include? distro
             extra_flags = "--bindmounts #{LOCAL_REPO} --othermirror 'deb [trusted=yes] file://#{LOCAL_REPO}/ #{distro} main'"
-            task.sh "cd /work/spkg/passenger/#{distro} && yes | pbuilder-dist #{distro} #{arch} update --override-config #{extra_flags}"
           end
+          # The chroot is cached across CI runs, and `build` doesn't refresh its package
+          # lists. Update it so that build dependencies like nginx-dev match the versions
+          # that users will install alongside our packages.
+          task.sh "cd /work/spkg/passenger/#{distro} && yes | pbuilder-dist #{distro} #{arch} update --override-config #{extra_flags}"
           Dir.chdir("/work/spkg/passenger/#{distro}") do
             task.sh "yes | pbuilder-dist #{distro} #{arch} build #{extra_flags} *.dsc"
             FileUtils.rm Dir["/work/pkg/#{distro}_result/*.deb"].reject { |deb| deb.include? "libnginx-mod-http" }

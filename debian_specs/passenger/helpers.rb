@@ -45,7 +45,8 @@ end
 
 def distro_nginx_sources
   if ubuntu_gte(@distribution, "noble") || debian_gte(@distribution, "bookworm")
-    'nginx-dev'
+    # Pin this so that if the CI has a stale nginx-dev package the build fails
+    "nginx-dev (= #{latest_nginx_unsanitized(@distribution)})"
   else
     'nginx-dev, libpcre3-dev'
   end

@@ -62,6 +62,8 @@ patterns = [
   "-e",
   "'s/nginx-common (= .*)/nginx-common (= #{NGINX_VERSION})/g'",
   "-e",
+  "'s/nginx-dev (= [^)]*)/nginx-dev (= #{NGINX_VERSION})/g'",
+  "-e",
   "'s/#{PASSENGER_DEBIAN_NAME} (= ${binary:Version})/#{PASSENGER_DEBIAN_NAME} (= #{DEBIAN_EPOCH}:#{LONG_PACKAGE_VERSION})/g'",
 ].join(' ')
 sh "sed #{patterns} -i'' ./debian/control"
