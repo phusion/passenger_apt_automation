@@ -36,17 +36,6 @@ def passenger_instance_fully_initialized?(instance)
   !instance['core_pid'].nil?
 end
 
-# Prints a web server's error log so that CI output shows why a test failed.
-# Don't use `sh('cat ...')` for this: `sh` captures the command's output and
-# only shows it when the command itself fails.
-def print_error_log(path)
-  puts "---------------- Begin #{path} ----------------"
-  puts File.read(path)
-  puts "---------------- End #{path} ----------------"
-rescue Errno::ENOENT
-  puts "#{path} does not exist"
-end
-
 RSpec.shared_examples_for 'Hello world Ruby application' do
   it 'works' do
     if RUBY_VERSION >= '2.5'
@@ -120,6 +109,7 @@ describe "The system's Apache with Passenger enabled" do
     end
   rescue StandardError
     print_error_log('/var/log/apache2/error.log')
+    print_command_output('apache2ctl -t')
     raise
   end
 
@@ -179,6 +169,7 @@ describe "The system's Nginx with Passenger enabled" do
     end
   rescue StandardError
     print_error_log('/var/log/nginx/error.log')
+    print_command_output('nginx -t')
     raise
   end
 

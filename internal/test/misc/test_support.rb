@@ -1,5 +1,26 @@
 require 'socket'
 
+# Prints a web server's error log so that CI output shows why a test failed.
+# Don't use `sh('cat ...')` for this: `sh` captures the command's output and
+# only shows it when the command itself fails.
+def print_error_log(path)
+  puts "---------------- Begin #{path} ----------------"
+  puts File.read(path)
+  puts "---------------- End #{path} ----------------"
+rescue Errno::ENOENT
+  puts "#{path} does not exist"
+end
+
+# Runs a command and prints its output regardless of its exit status. Used to
+# run the web server's config test when startup fails: errors that happen before
+# the web server opens its error log (e.g. config syntax errors or module load
+# failures) only go to stderr, which `service ... start` hides.
+def print_command_output(command)
+  puts "---------------- Begin output of #{command} ----------------"
+  puts `#{command} 2>&1`
+  puts "---------------- End output of #{command} (#{$?}) ----------------"
+end
+
 def sh(command)
   output = IO.popen("#{command} 2>&1", "r") do |io|
     io.read
