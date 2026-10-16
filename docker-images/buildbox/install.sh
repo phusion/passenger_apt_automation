@@ -56,6 +56,27 @@ run apt-get install -y -q ubuntu-dev-tools debhelper source-highlight \
 	ruby ruby-dev ruby-nokogiri libsqlite3-dev runit git gawk dh-make dirmngr \
 	zlib1g-dev libxml2-dev libxslt1-dev gdebi-core gnupg distro-info-data dh-sequence-nginx \
 	dpkg-dev debian-keyring debian-archive-keyring pbuilder
+
+# pbuilder-dist leaves -updates and -security out of a chroot when distro-info-data
+# says that its distribution is in development. When distro-info-data doesn't know
+# the next Ubuntu release yet, as happens right after every Ubuntu release, it
+# treats every Ubuntu release that way, and build dependencies can't be installed.
+# The update that adds the next release reaches -proposed first, so take
+# distro-info-data, and only that, from there.
+header "Installing distro-info-data from -proposed"
+source /etc/os-release
+echo "+ Creating /etc/apt/sources.list.d/ubuntu-proposed.sources"
+{
+	echo "Types: deb"
+	grep -m1 '^URIs:' /etc/apt/sources.list.d/ubuntu.sources
+	echo "Suites: $VERSION_CODENAME-proposed"
+	echo "Components: main"
+	grep -m1 '^Signed-By:' /etc/apt/sources.list.d/ubuntu.sources
+} > /etc/apt/sources.list.d/ubuntu-proposed.sources
+run apt-get update -q
+run apt-get install -y -q -t "$VERSION_CODENAME-proposed" distro-info-data
+run rm /etc/apt/sources.list.d/ubuntu-proposed.sources
+run apt-get update -q
 run apt-get upgrade -y
 # installing dpkg-dev and debian-archive-keyring and the keyring copy below are only needed until bullseye & jammy are EOL
 cp /usr/share/keyrings/debian-* /etc/apt/trusted.gpg.d/
