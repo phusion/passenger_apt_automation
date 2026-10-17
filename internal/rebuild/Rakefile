@@ -179,15 +179,20 @@ namespace :pkg do
       task("passenger:#{distro}:#{arch}" => [ "spkg:passenger:#{distro}", "env:#{distro}:#{arch}" ]) do
         track_task(:pkg, "passenger:#{distro}:#{arch}") do |task|
           extra_flags = ""
+          pbuilder_env = ""
           if PROBLEM_DISTROS.include? distro
-            extra_flags = "--bindmounts #{LOCAL_REPO} --othermirror 'deb [trusted=yes] file://#{LOCAL_REPO}/ #{distro} main'"
+            extra_flags = "--bindmounts #{LOCAL_REPO}"
+            # Through OTHERMIRROR rather than --othermirror: pbuilder-dist passes the
+            # -updates and -security pockets in an --othermirror of its own, which a
+            # second --othermirror would replace. It merges OTHERMIRROR into its own.
+            pbuilder_env = "env OTHERMIRROR='deb [trusted=yes] file://#{LOCAL_REPO}/ #{distro} main' "
           end
           # The chroot is cached across CI runs, and `build` doesn't refresh its package
           # lists. Update it so that build dependencies like nginx-dev match the versions
           # that users will install alongside our packages.
-          task.sh "cd /work/spkg/passenger/#{distro} && yes | pbuilder-dist #{distro} #{arch} update --updates-only --override-config #{extra_flags}"
+          task.sh "cd /work/spkg/passenger/#{distro} && yes | #{pbuilder_env}pbuilder-dist #{distro} #{arch} update --updates-only --override-config #{extra_flags}"
           Dir.chdir("/work/spkg/passenger/#{distro}") do
-            task.sh "yes | pbuilder-dist #{distro} #{arch} build #{extra_flags} *.dsc"
+            task.sh "yes | #{pbuilder_env}pbuilder-dist #{distro} #{arch} build #{extra_flags} *.dsc"
             FileUtils.rm Dir["/work/pkg/#{distro}_result/*.deb"].reject { |deb| deb.include? "libnginx-mod-http" }
           end
         end
